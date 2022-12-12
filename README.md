@@ -1,3 +1,18 @@
+# OpenAI API client library for Rust
+
+## Installation:
+Cargo.toml
+```
+[dependencies]
+openai-rs = { git = "https://github.com/dongri/openai-rs" }
+```
+
+## Example:
+```bash
+export OPENAI_API_KEY={YOUR_API}
+```
+
+```rust
 use openai_rs::v1::completion::{self, CompletionRequest};
 use openai_rs::v1::api::Client;
 use std::env;
@@ -16,7 +31,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         stream: None,
         logprobs: None,
         echo: None,
-        stop: Some(vec![String::from(" Human:"), String::from(" AI:")]),
+        stop: None,
         presence_penalty: Some(0.6),
         frequency_penalty: Some(0.0),
         best_of: None,
@@ -28,5 +43,4 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     Ok(())
 }
-
-// cargo run --package openai-rs --example completion
+```
