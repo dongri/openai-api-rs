@@ -4,7 +4,7 @@
 Cargo.toml
 ```
 [dependencies]
-openai-api-rs = { git = "https://github.com/dongri/openai-api-rs" }
+openai-api-rs = "0.1"
 ```
 
 ## Example:
