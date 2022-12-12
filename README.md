@@ -2,7 +2,7 @@
 
 ## Installation:
 Cargo.toml
-```
+```toml
 [dependencies]
 openai-api-rs = "0.1"
 ```
