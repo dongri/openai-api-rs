@@ -38,8 +38,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         logit_bias: None,
         user: None,
       };
-    let completion_response = client.completion(req).await?;
-    println!("{:?}", completion_response.choices[0].text);
+    let result = client.completion(req).await?;
+    println!("{:?}", result.choices[0].text);
 
     Ok(())
 }
