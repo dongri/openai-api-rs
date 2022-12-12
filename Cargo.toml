@@ -1,5 +1,5 @@
 [package]
-name = "openai-rs"
+name = "openai-api-rs"
 version = "0.1.0"
 edition = "2021"
 authors = ["Dongri Jin <dongrify@gmail.com>"]

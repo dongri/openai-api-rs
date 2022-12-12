@@ -13,8 +13,8 @@ export OPENAI_API_KEY={YOUR_API}
 ```
 
 ```rust
-use openai_rs::v1::completion::{self, CompletionRequest};
-use openai_rs::v1::api::Client;
+use openai_api_rs::v1::completion::{self, CompletionRequest};
+use openai_api_rs::v1::api::Client;
 use std::env;
 
 #[tokio::main]
