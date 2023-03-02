@@ -1,4 +1,4 @@
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use std::option::Option;
 
 use crate::v1::common;
@@ -18,15 +18,15 @@ pub struct EditRequest {
 }
 
 #[derive(Debug, Deserialize)]
-pub struct EditChoice{
-	pub text:  String,
-	pub index: i32,
+pub struct EditChoice {
+    pub text: String,
+    pub index: i32,
 }
 
 #[derive(Debug, Deserialize)]
 pub struct EditResponse {
-    pub object:  String,
+    pub object: String,
     pub created: i64,
-    pub usage:   common::Usage,
+    pub usage: common::Usage,
     pub choices: Vec<EditChoice>,
 }

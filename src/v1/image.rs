@@ -1,9 +1,9 @@
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use std::option::Option;
 
 #[derive(Debug, Deserialize)]
-pub struct ImageData{
-	pub url:  String,
+pub struct ImageData {
+    pub url: String,
 }
 
 #[derive(Debug, Serialize)]
@@ -19,11 +19,10 @@ pub struct ImageGenerationRequest {
     pub user: Option<String>,
 }
 
-
 #[derive(Debug, Deserialize)]
 pub struct ImageGenerationResponse {
     pub created: i64,
-    pub data:   Vec<ImageData>,
+    pub data: Vec<ImageData>,
 }
 
 #[derive(Debug, Serialize)]
@@ -45,7 +44,7 @@ pub struct ImageEditRequest {
 #[derive(Debug, Deserialize)]
 pub struct ImageEditResponse {
     pub created: i64,
-    pub data:   Vec<ImageData>,
+    pub data: Vec<ImageData>,
 }
 
 #[derive(Debug, Serialize)]
@@ -64,5 +63,5 @@ pub struct ImageVariationRequest {
 #[derive(Debug, Deserialize)]
 pub struct ImageVariationResponse {
     pub created: i64,
-    pub data:   Vec<ImageData>,
+    pub data: Vec<ImageData>,
 }

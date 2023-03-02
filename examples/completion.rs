@@ -1,5 +1,5 @@
-use openai_api_rs::v1::completion::{self, CompletionRequest};
 use openai_api_rs::v1::api::Client;
+use openai_api_rs::v1::completion::{self, CompletionRequest};
 use std::env;
 
 #[tokio::main]
@@ -22,11 +22,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         best_of: None,
         logit_bias: None,
         user: None,
-      };
+    };
     let result = client.completion(req).await?;
     println!("{:}", result.choices[0].text);
 
     Ok(())
 }
 
-// cargo run --package openai-rs --example completion
+// OPENAI_API_KEY=xxxx cargo run --package openai-api-rs --example completion
