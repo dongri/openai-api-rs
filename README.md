@@ -4,7 +4,7 @@
 Cargo.toml
 ```toml
 [dependencies]
-openai-api-rs = "0.1.4"
+openai-api-rs = "0.1.5"
 ```
 
 ## Example:
@@ -22,7 +22,7 @@ use std::env;
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let client = Client::new(env::var("OPENAI_API_KEY").unwrap().to_string());
     let req = ChatCompletionRequest {
-        model: chat_completion::GPT3_5_TURBO.to_string(),
+        model: chat_completion::GPT4.to_string(),
         messages: vec![chat_completion::ChatCompletionMessage {
             role: chat_completion::MessageRole::user,
             content: String::from("NFTとは？"),
