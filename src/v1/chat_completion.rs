@@ -4,6 +4,10 @@ use crate::v1::common;
 
 pub const GPT3_5_TURBO: &str = "gpt-3.5-turbo";
 pub const GPT3_5_TURBO_0301: &str = "gpt-3.5-turbo-0301";
+pub const GPT4: &str = "gpt-4";
+pub const GPT4_0314: &str = "gpt-4-0314";
+pub const GPT4_32K: &str = "gpt-4-32k";
+pub const GPT4_32K_0314: &str = "gpt-4-32k-0314";
 
 #[derive(Debug, Serialize)]
 pub struct ChatCompletionRequest {
