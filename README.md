@@ -9,7 +9,7 @@ openai-api-rs = "0.1.4"
 
 ## Example:
 ```bash
-export OPENAI_API_KEY={YOUR_API}
+export OPENAI_API_KEY={YOUR_API_KEY}
 ```
 
 ### Chat
