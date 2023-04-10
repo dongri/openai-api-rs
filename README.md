@@ -1,4 +1,5 @@
 # unofficial OpenAI API client library for Rust
+The OpenAI API client Rust library provides convenient access to the OpenAI API from Rust applications.
 
 ## Installation:
 Cargo.toml
