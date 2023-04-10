@@ -8,7 +8,7 @@ openai-api-rs = "0.1.5"
 ```
 
 ## Usage
-The library needs to be configured with your account's secret key, which is available on the website. We recommend setting it as an environment variable. Here's an example of initializing the library with the API key loaded from an environment variable and creating a completion:
+The library needs to be configured with your account's secret key, which is available on the [website](https://platform.openai.com/account/api-keys). We recommend setting it as an environment variable. Here's an example of initializing the library with the API key loaded from an environment variable and creating a completion:
 
 ### Set OPENAI_API_KEY to environment variable
 ```bash
