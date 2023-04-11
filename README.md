@@ -1,4 +1,4 @@
-# unofficial OpenAI API client library for Rust
+# OpenAI API client library for Rust (unofficial)
 The OpenAI API client Rust library provides convenient access to the OpenAI API from Rust applications.
 
 ## Installation:
