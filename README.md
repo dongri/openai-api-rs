@@ -5,7 +5,7 @@ The OpenAI API client Rust library provides convenient access to the OpenAI API 
 Cargo.toml
 ```toml
 [dependencies]
-openai-api-rs = "0.1.5"
+openai-api-rs = "0.1.6"
 ```
 
 ## Usage
