@@ -1,3 +1,7 @@
+use crate::v1::audio::{
+    AudioTranscriptionRequest, AudioTranscriptionResponse, AudioTranslationRequest,
+    AudioTranslationResponse,
+};
 use crate::v1::chat_completion::{ChatCompletionRequest, ChatCompletionResponse};
 use crate::v1::completion::{CompletionRequest, CompletionResponse};
 use crate::v1::edit::{EditRequest, EditResponse};
@@ -8,10 +12,18 @@ use crate::v1::file::{
     FileRetrieveContentResponse, FileRetrieveRequest, FileRetrieveResponse, FileUploadRequest,
     FileUploadResponse,
 };
+use crate::v1::fine_tune::{
+    CancelFineTuneRequest, CancelFineTuneResponse, CreateFineTuneRequest, CreateFineTuneResponse,
+    DeleteFineTuneModelRequest, DeleteFineTuneModelResponse, ListFineTuneEventsRequest,
+    ListFineTuneEventsResponse, ListFineTuneResponse, RetrieveFineTuneRequest,
+    RetrieveFineTuneResponse,
+};
 use crate::v1::image::{
     ImageEditRequest, ImageEditResponse, ImageGenerationRequest, ImageGenerationResponse,
     ImageVariationRequest, ImageVariationResponse,
 };
+use crate::v1::moderation::{CreateModerationRequest, CreateModerationResponse};
+
 use reqwest::Response;
 
 const APU_URL_V1: &str = "https://api.openai.com/v1";
@@ -226,6 +238,117 @@ impl Client {
     ) -> Result<ChatCompletionResponse, APIError> {
         let res = self.post("/chat/completions", &req).await?;
         let r = res.json::<ChatCompletionResponse>().await;
+        match r {
+            Ok(r) => Ok(r),
+            Err(e) => Err(self.new_error(e)),
+        }
+    }
+
+    pub async fn audio_transcription(
+        &self,
+        req: AudioTranscriptionRequest,
+    ) -> Result<AudioTranscriptionResponse, APIError> {
+        let res = self.post("/audio/transcriptions", &req).await?;
+        let r = res.json::<AudioTranscriptionResponse>().await;
+        match r {
+            Ok(r) => Ok(r),
+            Err(e) => Err(self.new_error(e)),
+        }
+    }
+
+    pub async fn audio_translation(
+        &self,
+        req: AudioTranslationRequest,
+    ) -> Result<AudioTranslationResponse, APIError> {
+        let res = self.post("/audio/translations", &req).await?;
+        let r = res.json::<AudioTranslationResponse>().await;
+        match r {
+            Ok(r) => Ok(r),
+            Err(e) => Err(self.new_error(e)),
+        }
+    }
+
+    pub async fn create_fine_tune(
+        &self,
+        req: CreateFineTuneRequest,
+    ) -> Result<CreateFineTuneResponse, APIError> {
+        let res = self.post("/fine-tunes", &req).await?;
+        let r = res.json::<CreateFineTuneResponse>().await;
+        match r {
+            Ok(r) => Ok(r),
+            Err(e) => Err(self.new_error(e)),
+        }
+    }
+
+    pub async fn list_fine_tune(&self) -> Result<ListFineTuneResponse, APIError> {
+        let res = self.get("/fine-tunes").await?;
+        let r = res.json::<ListFineTuneResponse>().await;
+        match r {
+            Ok(r) => Ok(r),
+            Err(e) => Err(self.new_error(e)),
+        }
+    }
+
+    pub async fn retrieve_fine_tune(
+        &self,
+        req: RetrieveFineTuneRequest,
+    ) -> Result<RetrieveFineTuneResponse, APIError> {
+        let res = self
+            .get(&format!("/fine_tunes/{}", req.fine_tune_id))
+            .await?;
+        let r = res.json::<RetrieveFineTuneResponse>().await;
+        match r {
+            Ok(r) => Ok(r),
+            Err(e) => Err(self.new_error(e)),
+        }
+    }
+
+    pub async fn cancel_fine_tune(
+        &self,
+        req: CancelFineTuneRequest,
+    ) -> Result<CancelFineTuneResponse, APIError> {
+        let res = self
+            .post(&format!("/fine_tunes/{}/cancel", req.fine_tune_id), &req)
+            .await?;
+        let r = res.json::<CancelFineTuneResponse>().await;
+        match r {
+            Ok(r) => Ok(r),
+            Err(e) => Err(self.new_error(e)),
+        }
+    }
+
+    pub async fn list_fine_tune_events(
+        &self,
+        req: ListFineTuneEventsRequest,
+    ) -> Result<ListFineTuneEventsResponse, APIError> {
+        let res = self
+            .get(&format!("/fine-tunes/{}/events", req.fine_tune_id))
+            .await?;
+        let r = res.json::<ListFineTuneEventsResponse>().await;
+        match r {
+            Ok(r) => Ok(r),
+            Err(e) => Err(self.new_error(e)),
+        }
+    }
+
+    pub async fn delete_fine_tune(
+        &self,
+        req: DeleteFineTuneModelRequest,
+    ) -> Result<DeleteFineTuneModelResponse, APIError> {
+        let res = self.delete(&format!("/models/{}", req.model_id)).await?;
+        let r = res.json::<DeleteFineTuneModelResponse>().await;
+        match r {
+            Ok(r) => Ok(r),
+            Err(e) => Err(self.new_error(e)),
+        }
+    }
+
+    pub async fn create_moderation(
+        &self,
+        req: CreateModerationRequest,
+    ) -> Result<CreateModerationResponse, APIError> {
+        let res = self.post("/moderations", &req).await?;
+        let r = res.json::<CreateModerationResponse>().await;
         match r {
             Ok(r) => Ok(r),
             Err(e) => Err(self.new_error(e)),
