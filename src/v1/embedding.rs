@@ -1,14 +1,11 @@
 use serde::{Deserialize, Serialize};
 use std::option::Option;
 
-use crate::v1::common;
-
 #[derive(Debug, Deserialize)]
 pub struct EmbeddingData {
     pub object: String,
     pub embedding: Vec<f32>,
     pub index: i32,
-    pub usage: common::Usage,
 }
 
 #[derive(Debug, Serialize)]
@@ -23,4 +20,12 @@ pub struct EmbeddingRequest {
 pub struct EmbeddingResponse {
     pub object: String,
     pub data: Vec<EmbeddingData>,
+    pub model: String,
+    pub usage: Usage,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct Usage {
+    pub prompt_tokens: i32,
+    pub total_tokens: i32,
 }
