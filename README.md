@@ -1,6 +1,8 @@
 # OpenAI API client library for Rust (unofficial)
 The OpenAI API client Rust library provides convenient access to the OpenAI API from Rust applications.
 
+Check out the [docs.rs](https://docs.rs/openai-api-rs/0.1.7/openai_api_rs/v1/index.html).
+
 ## Installation:
 Cargo.toml
 ```toml
@@ -74,3 +76,6 @@ Check out the [full API documentation](https://platform.openai.com/docs/api-refe
 - [x] [Files](https://platform.openai.com/docs/api-reference/files)
 - [x] [Fine-tunes](https://platform.openai.com/docs/api-reference/fine-tunes)
 - [x] [Moderations](https://platform.openai.com/docs/api-reference/moderations)
+
+## License
+This project is licensed under [MIT license](https://github.com/dongri/openai-api-rs/blob/main/LICENSE).
