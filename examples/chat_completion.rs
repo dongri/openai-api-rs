@@ -9,12 +9,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         model: chat_completion::GPT4.to_string(),
         messages: vec![chat_completion::ChatCompletionMessage {
             role: chat_completion::MessageRole::user,
-            content: String::from("NFTとは？"),
+            content: Some(String::from("What is Bitcoin?")),
+            name: None,
+            function_call: None,
         }],
+        functions: None,
+        function_call: None,
     };
     let result = client.chat_completion(req).await?;
     println!("{:?}", result.choices[0].message.content);
-
     Ok(())
 }
 

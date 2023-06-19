@@ -1,13 +1,13 @@
 # OpenAI API client library for Rust (unofficial)
 The OpenAI API client Rust library provides convenient access to the OpenAI API from Rust applications.
 
-Check out the [docs.rs](https://docs.rs/openai-api-rs/0.1.7/openai_api_rs/v1/index.html).
+Check out the [docs.rs](https://docs.rs/openai-api-rs/0.1.8/openai_api_rs/v1/index.html).
 
 ## Installation:
 Cargo.toml
 ```toml
 [dependencies]
-openai-api-rs = "0.1.7"
+openai-api-rs = "0.1.8"
 ```
 
 ## Usage
@@ -56,14 +56,20 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         model: chat_completion::GPT4.to_string(),
         messages: vec![chat_completion::ChatCompletionMessage {
             role: chat_completion::MessageRole::user,
-            content: String::from("Hello OpenAI!"),
+            content: Some(String::from("What is Bitcoin?")),
+            name: None,
+            function_call: None,
         }],
+        functions: None,
+        function_call: None,
     };
     let result = client.chat_completion(req).await?;
     println!("{:?}", result.choices[0].message.content);
     Ok(())
 }
 ```
+More Examples: [examples](https://github.com/dongri/openai-api-rs/tree/main/examples)
+
 Check out the [full API documentation](https://platform.openai.com/docs/api-reference/completions) for examples of all the available functions.
 
 ## Supported APIs
@@ -76,6 +82,7 @@ Check out the [full API documentation](https://platform.openai.com/docs/api-refe
 - [x] [Files](https://platform.openai.com/docs/api-reference/files)
 - [x] [Fine-tunes](https://platform.openai.com/docs/api-reference/fine-tunes)
 - [x] [Moderations](https://platform.openai.com/docs/api-reference/moderations)
+- [x] [Function calling](https://platform.openai.com/docs/guides/gpt/function-calling)
 
 ## License
 This project is licensed under [MIT license](https://github.com/dongri/openai-api-rs/blob/main/LICENSE).
