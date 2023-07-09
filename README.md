@@ -7,7 +7,7 @@ Check out the [docs.rs](https://docs.rs/openai-api-rs/0.1.8/openai_api_rs/v1/ind
 Cargo.toml
 ```toml
 [dependencies]
-openai-api-rs = "0.1.8"
+openai-api-rs = "0.1.9"
 ```
 
 ## Usage
