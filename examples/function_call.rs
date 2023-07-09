@@ -48,6 +48,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             }),
         }]),
         function_call: Some("auto".to_string()),
+        temperature: None,
+        top_p: None,
+        n: None,
+        stream: None,
+        stop: None,
+        max_tokens: None,
+        presence_penalty: None,
+        frequency_penalty: None,
+        logit_bias: None,
+        user: None,
     };
 
     let result = client.chat_completion(req).await?;

@@ -34,6 +34,18 @@ let req = ChatCompletionRequest {
         role: chat_completion::MessageRole::user,
         content: String::from("Hello OpenAI!"),
     }],
+    functions: None,
+    function_call: None,
+    temperature: None,
+    top_p: None,
+    n: None,
+    stream: None,
+    stop: None,
+    max_tokens: None,
+    presence_penalty: None,
+    frequency_penalty: None,
+    logit_bias: None,
+    user: None,
 };
 ```
 
@@ -62,6 +74,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }],
         functions: None,
         function_call: None,
+        temperature: None,
+        top_p: None,
+        n: None,
+        stream: None,
+        stop: None,
+        max_tokens: None,
+        presence_penalty: None,
+        frequency_penalty: None,
+        logit_bias: None,
+        user: None,
     };
     let result = client.chat_completion(req).await?;
     println!("{:?}", result.choices[0].message.content);
