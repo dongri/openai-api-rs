@@ -49,6 +49,7 @@ pub enum MessageRole {
     user,
     system,
     assistant,
+    function,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
