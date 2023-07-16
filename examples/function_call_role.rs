@@ -80,23 +80,26 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             let arguments = function_call.arguments.clone().unwrap();
             let c: Currency = serde_json::from_str(&arguments)?;
             let coin = c.coin;
-            
+
             let req = ChatCompletionRequest {
                 model: chat_completion::GPT3_5_TURBO_0613.to_string(),
-                messages: vec![chat_completion::ChatCompletionMessage {
-                    role: chat_completion::MessageRole::user,
-                    content: Some(String::from("What is the price of Ethereum?")),
-                    name: None,
-                    function_call: None,
-                }, chat_completion::ChatCompletionMessage {
-                    role: chat_completion::MessageRole::function,
-                    content: Some({
-                        let price = get_coin_price(&coin).await;
-                        format!("{{\"price\": {}}}", price)
-                    }),
-                    name: Some(String::from("get_coin_price")),
-                    function_call: None,
-                }],
+                messages: vec![
+                    chat_completion::ChatCompletionMessage {
+                        role: chat_completion::MessageRole::user,
+                        content: Some(String::from("What is the price of Ethereum?")),
+                        name: None,
+                        function_call: None,
+                    },
+                    chat_completion::ChatCompletionMessage {
+                        role: chat_completion::MessageRole::function,
+                        content: Some({
+                            let price = get_coin_price(&coin).await;
+                            format!("{{\"price\": {}}}", price)
+                        }),
+                        name: Some(String::from("get_coin_price")),
+                        function_call: None,
+                    },
+                ],
                 functions: None,
                 function_call: None,
                 temperature: None,
