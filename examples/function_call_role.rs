@@ -92,10 +92,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     },
                     chat_completion::ChatCompletionMessage {
                         role: chat_completion::MessageRole::function,
-                        content: ({
+                        content: {
                             let price = get_coin_price(&coin).await;
                             format!("{{\"price\": {}}}", price)
-                        }),
+                        },
                         name: Some(String::from("get_coin_price")),
                         function_call: None,
                     },
