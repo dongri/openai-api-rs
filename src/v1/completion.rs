@@ -20,8 +20,7 @@ pub const GPT3_BABBAGE: &str = "babbage";
 #[derive(Debug, Serialize)]
 pub struct CompletionRequest {
     pub model: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub prompt: Option<String>,
+    pub prompt: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub suffix: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
