@@ -4,8 +4,8 @@ pub const WHISPER_1: &str = "whisper-1";
 
 #[derive(Debug, Serialize)]
 pub struct AudioTranscriptionRequest {
-    pub model: String,
     pub file: String,
+    pub model: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub prompt: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -23,8 +23,8 @@ pub struct AudioTranscriptionResponse {
 
 #[derive(Debug, Serialize)]
 pub struct AudioTranslationRequest {
-    pub model: String,
     pub file: String,
+    pub model: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub prompt: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]

@@ -7,7 +7,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let client = Client::new(env::var("OPENAI_API_KEY").unwrap().to_string());
     let req = CompletionRequest {
         model: completion::GPT3_TEXT_DAVINCI_003.to_string(),
-        prompt: Some(String::from("What is Bitcoin?")),
+        prompt: String::from("What is Bitcoin?"),
         suffix: None,
         max_tokens: Some(3000),
         temperature: Some(0.9),

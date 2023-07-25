@@ -43,7 +43,7 @@ pub struct ChatCompletionRequest {
     pub user: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[allow(non_camel_case_types)]
 pub enum MessageRole {
     user,
@@ -52,8 +52,18 @@ pub enum MessageRole {
     function,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ChatCompletionMessage {
+    pub role: MessageRole,
+    pub content: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub function_call: Option<FunctionCall>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ChatCompletionMessageForResponse {
     pub role: MessageRole,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub content: Option<String>,
@@ -66,7 +76,7 @@ pub struct ChatCompletionMessage {
 #[derive(Debug, Deserialize)]
 pub struct ChatCompletionChoice {
     pub index: i64,
-    pub message: ChatCompletionMessage,
+    pub message: ChatCompletionMessageForResponse,
     pub finish_reason: FinishReason,
 }
 
@@ -85,8 +95,7 @@ pub struct Function {
     pub name: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub parameters: Option<FunctionParameters>,
+    pub parameters: FunctionParameters,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -136,7 +145,7 @@ pub enum FinishReason {
     null,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct FunctionCall {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,

@@ -34,18 +34,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         model: chat_completion::GPT3_5_TURBO_0613.to_string(),
         messages: vec![chat_completion::ChatCompletionMessage {
             role: chat_completion::MessageRole::user,
-            content: Some(String::from("What is the price of Ethereum?")),
+            content: String::from("What is the price of Ethereum?"),
             name: None,
             function_call: None,
         }],
         functions: Some(vec![chat_completion::Function {
             name: String::from("get_coin_price"),
             description: Some(String::from("Get the price of a cryptocurrency")),
-            parameters: Some(chat_completion::FunctionParameters {
+            parameters: chat_completion::FunctionParameters {
                 schema_type: chat_completion::JSONSchemaType::Object,
                 properties: Some(properties),
                 required: Some(vec![String::from("coin")]),
-            }),
+            },
         }]),
         function_call: None,
         temperature: None,
@@ -86,16 +86,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 messages: vec![
                     chat_completion::ChatCompletionMessage {
                         role: chat_completion::MessageRole::user,
-                        content: Some(String::from("What is the price of Ethereum?")),
+                        content: String::from("What is the price of Ethereum?"),
                         name: None,
                         function_call: None,
                     },
                     chat_completion::ChatCompletionMessage {
                         role: chat_completion::MessageRole::function,
-                        content: Some({
+                        content: {
                             let price = get_coin_price(&coin).await;
                             format!("{{\"price\": {}}}", price)
-                        }),
+                        },
                         name: Some(String::from("get_coin_price")),
                         function_call: None,
                     },
