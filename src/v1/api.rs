@@ -26,15 +26,23 @@ use crate::v1::moderation::{CreateModerationRequest, CreateModerationResponse};
 
 use reqwest::Response;
 
-const APU_URL_V1: &str = "https://api.openai.com/v1";
+const API_URL_V1: &str = "https://api.openai.com/v1";
 
 pub struct Client {
+    pub api_endpoint: String,
     pub api_key: String,
 }
 
 impl Client {
     pub fn new(api_key: String) -> Self {
-        Self { api_key }
+        Self::new_with_endpoint(API_URL_V1.to_owned(), api_key)
+    }
+
+    pub fn new_with_endpoint(api_endpoint: String, api_key: String) -> Self {
+        Self {
+            api_endpoint,
+            api_key,
+        }
     }
 
     pub async fn post<T: serde::ser::Serialize>(
@@ -43,7 +51,11 @@ impl Client {
         params: &T,
     ) -> Result<Response, APIError> {
         let client = reqwest::Client::new();
-        let url = format!("{APU_URL_V1}{path}");
+        let url = format!(
+            "{api_endpoint}{path}",
+            api_endpoint = self.api_endpoint,
+            path = path
+        );
         let res = client
             .post(&url)
             .header(reqwest::header::CONTENT_TYPE, "application/json")
@@ -67,7 +79,11 @@ impl Client {
 
     pub async fn get(&self, path: &str) -> Result<Response, APIError> {
         let client = reqwest::Client::new();
-        let url = format!("{APU_URL_V1}{path}");
+        let url = format!(
+            "{api_endpoint}{path}",
+            api_endpoint = self.api_endpoint,
+            path = path
+        );
         let res = client
             .get(&url)
             .header(reqwest::header::CONTENT_TYPE, "application/json")
@@ -90,7 +106,11 @@ impl Client {
 
     pub async fn delete(&self, path: &str) -> Result<Response, APIError> {
         let client = reqwest::Client::new();
-        let url = format!("{APU_URL_V1}{path}");
+        let url = format!(
+            "{api_endpoint}{path}",
+            api_endpoint = self.api_endpoint,
+            path = path
+        );
         let res = client
             .delete(&url)
             .header(reqwest::header::CONTENT_TYPE, "application/json")
