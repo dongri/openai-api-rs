@@ -35,7 +35,9 @@ pub struct Client {
 
 impl Client {
     pub fn new(api_key: String) -> Self {
-        Self::new_with_endpoint(API_URL_V1.to_owned(), api_key)
+        let endpoint =
+            std::env::var("OPENAI_API_ENDPOINT").unwrap_or_else(|_| API_URL_V1.to_owned());
+        Self::new_with_endpoint(endpoint, api_key)
     }
 
     pub fn new_with_endpoint(api_endpoint: String, api_key: String) -> Self {
