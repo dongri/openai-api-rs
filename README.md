@@ -18,6 +18,11 @@ The library needs to be configured with your account's secret key, which is avai
 $ export OPENAI_API_KEY=sk-xxxxxxx
 ```
 
+### Set OPENAI_API_ENDPOINT to environment variable (optional)
+```bash
+$ export OPENAI_API_ENDPOINT=https://api.openai.com/v1
+```
+
 ### Create client
 ```rust
 use openai_api_rs::v1::api::Client;
