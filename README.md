@@ -73,7 +73,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         model: chat_completion::GPT4.to_string(),
         messages: vec![chat_completion::ChatCompletionMessage {
             role: chat_completion::MessageRole::user,
-            content: Some(String::from("What is Bitcoin?")),
+            content: String::from("What is Bitcoin?"),
             name: None,
             function_call: None,
         }],
