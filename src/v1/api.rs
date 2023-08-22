@@ -31,6 +31,7 @@ const API_URL_V1: &str = "https://api.openai.com/v1";
 pub struct Client {
     pub api_endpoint: String,
     pub api_key: String,
+    pub organization: Option<String>,
 }
 
 impl Client {
@@ -43,7 +44,41 @@ impl Client {
         Self {
             api_endpoint,
             api_key,
+            organization: None,
         }
+    }
+
+    pub fn new_with_organization(api_key: String, organization: String) -> Self {
+        let endpoint = std::env::var("OPENAI_API_BASE").unwrap_or_else(|_| API_URL_V1.to_owned());
+        Self {
+            api_endpoint: endpoint,
+            api_key,
+            organization: organization.into(),
+        }
+    }
+
+    pub async fn client_builder(&self) -> Result<reqwest::Client, reqwest::Error> {
+        let mut headers = reqwest::header::HeaderMap::new();
+        headers.insert(
+            reqwest::header::CONTENT_TYPE,
+            reqwest::header::HeaderValue::from_static("application/json"),
+        );
+        headers.insert(
+            reqwest::header::AUTHORIZATION,
+            reqwest::header::HeaderValue::from_str(&("Bearer ".to_owned() + &self.api_key))
+                .unwrap(),
+        );
+        match &self.organization {
+            Some(organization) => headers.insert(
+                reqwest::header::HeaderName::from_static("openai-organization"),
+                reqwest::header::HeaderValue::from_str(organization).unwrap(),
+            ),
+            None => None,
+        };
+        let client = reqwest::Client::builder()
+            .default_headers(headers)
+            .build()?;
+        Ok(client)
     }
 
     pub async fn post<T: serde::ser::Serialize>(
@@ -51,22 +86,16 @@ impl Client {
         path: &str,
         params: &T,
     ) -> Result<Response, APIError> {
-        let client = reqwest::Client::new();
         let url = format!(
             "{api_endpoint}{path}",
             api_endpoint = self.api_endpoint,
             path = path
         );
-        let res = client
-            .post(&url)
-            .header(reqwest::header::CONTENT_TYPE, "application/json")
-            .header(
-                reqwest::header::AUTHORIZATION,
-                "Bearer ".to_owned() + &self.api_key,
-            )
-            .json(&params)
-            .send()
-            .await;
+        let client = match self.client_builder().await {
+            Ok(c) => c,
+            Err(e) => return Err(self.new_error(e)),
+        };
+        let res = client.post(&url).json(&params).send().await;
         match res {
             Ok(res) => match res.status().is_success() {
                 true => Ok(res),
@@ -79,21 +108,16 @@ impl Client {
     }
 
     pub async fn get(&self, path: &str) -> Result<Response, APIError> {
-        let client = reqwest::Client::new();
         let url = format!(
             "{api_endpoint}{path}",
             api_endpoint = self.api_endpoint,
             path = path
         );
-        let res = client
-            .get(&url)
-            .header(reqwest::header::CONTENT_TYPE, "application/json")
-            .header(
-                reqwest::header::AUTHORIZATION,
-                "Bearer ".to_owned() + &self.api_key,
-            )
-            .send()
-            .await;
+        let client = match self.client_builder().await {
+            Ok(c) => c,
+            Err(e) => return Err(self.new_error(e)),
+        };
+        let res = client.get(&url).send().await;
         match res {
             Ok(res) => match res.status().is_success() {
                 true => Ok(res),
@@ -106,21 +130,16 @@ impl Client {
     }
 
     pub async fn delete(&self, path: &str) -> Result<Response, APIError> {
-        let client = reqwest::Client::new();
         let url = format!(
             "{api_endpoint}{path}",
             api_endpoint = self.api_endpoint,
             path = path
         );
-        let res = client
-            .delete(&url)
-            .header(reqwest::header::CONTENT_TYPE, "application/json")
-            .header(
-                reqwest::header::AUTHORIZATION,
-                "Bearer ".to_owned() + &self.api_key,
-            )
-            .send()
-            .await;
+        let client = match self.client_builder().await {
+            Ok(c) => c,
+            Err(e) => return Err(self.new_error(e)),
+        };
+        let res = client.delete(&url).send().await;
         match res {
             Ok(res) => match res.status().is_success() {
                 true => Ok(res),
