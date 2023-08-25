@@ -2,8 +2,7 @@ use openai_api_rs::v1::api::Client;
 use openai_api_rs::v1::completion::{self, CompletionRequest};
 use std::env;
 
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     let client = Client::new(env::var("OPENAI_API_KEY").unwrap().to_string());
     let req = CompletionRequest {
         model: completion::GPT3_TEXT_DAVINCI_003.to_string(),
@@ -23,7 +22,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         logit_bias: None,
         user: None,
     };
-    let result = client.completion(req).await?;
+    let result = client.completion(req)?;
     println!("{:}", result.choices[0].text);
 
     Ok(())

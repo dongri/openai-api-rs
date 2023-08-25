@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::{env, vec};
 
-async fn get_coin_price(coin: &str) -> f64 {
+fn get_coin_price(coin: &str) -> f64 {
     let coin = coin.to_lowercase();
     match coin.as_str() {
         "btc" | "bitcoin" => 10000.0,
@@ -13,8 +13,7 @@ async fn get_coin_price(coin: &str) -> f64 {
     }
 }
 
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     let client = Client::new(env::var("OPENAI_API_KEY").unwrap().to_string());
 
     let mut properties = HashMap::new();
@@ -60,7 +59,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         user: None,
     };
 
-    let result = client.chat_completion(req).await?;
+    let result = client.chat_completion(req)?;
 
     match result.choices[0].finish_reason {
         chat_completion::FinishReason::stop => {
@@ -82,7 +81,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             let c: Currency = serde_json::from_str(&arguments)?;
             let coin = c.coin;
             if name == "get_coin_price" {
-                let price = get_coin_price(&coin).await;
+                let price = get_coin_price(&coin);
                 println!("{} price: {}", coin, price);
             }
         }
