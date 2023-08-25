@@ -24,7 +24,7 @@ use crate::v1::image::{
 };
 use crate::v1::moderation::{CreateModerationRequest, CreateModerationResponse};
 
-use reqwest::Response;
+use minreq::Response;
 
 const API_URL_V1: &str = "https://api.openai.com/v1";
 
@@ -57,31 +57,7 @@ impl Client {
         }
     }
 
-    pub async fn client_builder(&self) -> Result<reqwest::Client, reqwest::Error> {
-        let mut headers = reqwest::header::HeaderMap::new();
-        headers.insert(
-            reqwest::header::CONTENT_TYPE,
-            reqwest::header::HeaderValue::from_static("application/json"),
-        );
-        headers.insert(
-            reqwest::header::AUTHORIZATION,
-            reqwest::header::HeaderValue::from_str(&("Bearer ".to_owned() + &self.api_key))
-                .unwrap(),
-        );
-        match &self.organization {
-            Some(organization) => headers.insert(
-                reqwest::header::HeaderName::from_static("openai-organization"),
-                reqwest::header::HeaderValue::from_str(organization).unwrap(),
-            ),
-            None => None,
-        };
-        let client = reqwest::Client::builder()
-            .default_headers(headers)
-            .build()?;
-        Ok(client)
-    }
-
-    pub async fn post<T: serde::ser::Serialize>(
+    pub fn post<T: serde::ser::Serialize>(
         &self,
         path: &str,
         params: &T,
@@ -91,311 +67,322 @@ impl Client {
             api_endpoint = self.api_endpoint,
             path = path
         );
-        let client = match self.client_builder().await {
-            Ok(c) => c,
-            Err(e) => return Err(self.new_error(e)),
-        };
-        let res = client.post(&url).json(&params).send().await;
+
+        let mut request = minreq::post(url)
+            .with_header("Content-Type", "application/json")
+            .with_header("Authorization", format!("Bearer {}", self.api_key));
+
+        if let Some(organization) = &self.organization {
+            request = request.with_header("openai-organization", organization);
+        }
+
+        let res = request.with_json(params).unwrap().send();
+
         match res {
-            Ok(res) => match res.status().is_success() {
-                true => Ok(res),
-                false => Err(APIError {
-                    message: format!("{}: {}", res.status(), res.text().await.unwrap()),
-                }),
-            },
+            Ok(res) => {
+                if (200..=299).contains(&res.status_code) {
+                    Ok(res)
+                } else {
+                    Err(APIError {
+                        message: format!("{}: {}", res.status_code, res.as_str().unwrap()),
+                    })
+                }
+            }
             Err(e) => Err(self.new_error(e)),
         }
     }
 
-    pub async fn get(&self, path: &str) -> Result<Response, APIError> {
+    pub fn get(&self, path: &str) -> Result<Response, APIError> {
         let url = format!(
             "{api_endpoint}{path}",
             api_endpoint = self.api_endpoint,
             path = path
         );
-        let client = match self.client_builder().await {
-            Ok(c) => c,
-            Err(e) => return Err(self.new_error(e)),
-        };
-        let res = client.get(&url).send().await;
+
+        let mut request = minreq::get(url)
+            .with_header("Content-Type", "application/json")
+            .with_header("Authorization", format!("Bearer {}", self.api_key));
+
+        if let Some(organization) = &self.organization {
+            request = request.with_header("openai-organization", organization);
+        }
+
+        let res = request.send();
+
         match res {
-            Ok(res) => match res.status().is_success() {
-                true => Ok(res),
-                false => Err(APIError {
-                    message: format!("{}: {}", res.status(), res.text().await.unwrap()),
-                }),
-            },
+            Ok(res) => {
+                if (200..=299).contains(&res.status_code) {
+                    Ok(res)
+                } else {
+                    Err(APIError {
+                        message: format!("{}: {}", res.status_code, res.as_str().unwrap()),
+                    })
+                }
+            }
             Err(e) => Err(self.new_error(e)),
         }
     }
 
-    pub async fn delete(&self, path: &str) -> Result<Response, APIError> {
+    pub fn delete(&self, path: &str) -> Result<Response, APIError> {
         let url = format!(
             "{api_endpoint}{path}",
             api_endpoint = self.api_endpoint,
             path = path
         );
-        let client = match self.client_builder().await {
-            Ok(c) => c,
-            Err(e) => return Err(self.new_error(e)),
-        };
-        let res = client.delete(&url).send().await;
+
+        let mut request = minreq::delete(url)
+            .with_header("Content-Type", "application/json")
+            .with_header("Authorization", format!("Bearer {}", self.api_key));
+
+        if let Some(organization) = &self.organization {
+            request = request.with_header("openai-organization", organization);
+        }
+
+        let res = request.send();
+
         match res {
-            Ok(res) => match res.status().is_success() {
-                true => Ok(res),
-                false => Err(APIError {
-                    message: format!("{}: {}", res.status(), res.text().await.unwrap()),
-                }),
-            },
+            Ok(res) => {
+                if (200..=299).contains(&res.status_code) {
+                    Ok(res)
+                } else {
+                    Err(APIError {
+                        message: format!("{}: {}", res.status_code, res.as_str().unwrap()),
+                    })
+                }
+            }
             Err(e) => Err(self.new_error(e)),
         }
     }
 
-    pub async fn completion(&self, req: CompletionRequest) -> Result<CompletionResponse, APIError> {
-        let res = self.post("/completions", &req).await?;
-        let r = res.json::<CompletionResponse>().await;
+    pub fn completion(&self, req: CompletionRequest) -> Result<CompletionResponse, APIError> {
+        let res = self.post("/completions", &req)?;
+        let r = res.json::<CompletionResponse>();
         match r {
             Ok(r) => Ok(r),
             Err(e) => Err(self.new_error(e)),
         }
     }
 
-    pub async fn edit(&self, req: EditRequest) -> Result<EditResponse, APIError> {
-        let res = self.post("/edits", &req).await?;
-        let r = res.json::<EditResponse>().await;
+    pub fn edit(&self, req: EditRequest) -> Result<EditResponse, APIError> {
+        let res = self.post("/edits", &req)?;
+        let r = res.json::<EditResponse>();
         match r {
             Ok(r) => Ok(r),
             Err(e) => Err(self.new_error(e)),
         }
     }
 
-    pub async fn image_generation(
+    pub fn image_generation(
         &self,
         req: ImageGenerationRequest,
     ) -> Result<ImageGenerationResponse, APIError> {
-        let res = self.post("/images/generations", &req).await?;
-        let r = res.json::<ImageGenerationResponse>().await;
+        let res = self.post("/images/generations", &req)?;
+        let r = res.json::<ImageGenerationResponse>();
         match r {
             Ok(r) => Ok(r),
             Err(e) => Err(self.new_error(e)),
         }
     }
 
-    pub async fn image_edit(&self, req: ImageEditRequest) -> Result<ImageEditResponse, APIError> {
-        let res = self.post("/images/edits", &req).await?;
-        let r = res.json::<ImageEditResponse>().await;
+    pub fn image_edit(&self, req: ImageEditRequest) -> Result<ImageEditResponse, APIError> {
+        let res = self.post("/images/edits", &req)?;
+        let r = res.json::<ImageEditResponse>();
         match r {
             Ok(r) => Ok(r),
             Err(e) => Err(self.new_error(e)),
         }
     }
 
-    pub async fn image_variation(
+    pub fn image_variation(
         &self,
         req: ImageVariationRequest,
     ) -> Result<ImageVariationResponse, APIError> {
-        let res = self.post("/images/variations", &req).await?;
-        let r = res.json::<ImageVariationResponse>().await;
+        let res = self.post("/images/variations", &req)?;
+        let r = res.json::<ImageVariationResponse>();
         match r {
             Ok(r) => Ok(r),
             Err(e) => Err(self.new_error(e)),
         }
     }
 
-    pub async fn embedding(&self, req: EmbeddingRequest) -> Result<EmbeddingResponse, APIError> {
-        let res = self.post("/embeddings", &req).await?;
-        let r = res.json::<EmbeddingResponse>().await;
+    pub fn embedding(&self, req: EmbeddingRequest) -> Result<EmbeddingResponse, APIError> {
+        let res = self.post("/embeddings", &req)?;
+        let r = res.json::<EmbeddingResponse>();
         match r {
             Ok(r) => Ok(r),
             Err(e) => Err(self.new_error(e)),
         }
     }
 
-    pub async fn file_list(&self) -> Result<FileListResponse, APIError> {
-        let res = self.get("/files").await?;
-        let r = res.json::<FileListResponse>().await;
+    pub fn file_list(&self) -> Result<FileListResponse, APIError> {
+        let res = self.get("/files")?;
+        let r = res.json::<FileListResponse>();
         match r {
             Ok(r) => Ok(r),
             Err(e) => Err(self.new_error(e)),
         }
     }
 
-    pub async fn file_upload(
-        &self,
-        req: FileUploadRequest,
-    ) -> Result<FileUploadResponse, APIError> {
-        let res = self.post("/files", &req).await?;
-        let r = res.json::<FileUploadResponse>().await;
+    pub fn file_upload(&self, req: FileUploadRequest) -> Result<FileUploadResponse, APIError> {
+        let res = self.post("/files", &req)?;
+        let r = res.json::<FileUploadResponse>();
         match r {
             Ok(r) => Ok(r),
             Err(e) => Err(self.new_error(e)),
         }
     }
 
-    pub async fn file_delete(
-        &self,
-        req: FileDeleteRequest,
-    ) -> Result<FileDeleteResponse, APIError> {
-        let res = self
-            .delete(&format!("{}/{}", "/files", req.file_id))
-            .await?;
-        let r = res.json::<FileDeleteResponse>().await;
+    pub fn file_delete(&self, req: FileDeleteRequest) -> Result<FileDeleteResponse, APIError> {
+        let res = self.delete(&format!("{}/{}", "/files", req.file_id))?;
+        let r = res.json::<FileDeleteResponse>();
         match r {
             Ok(r) => Ok(r),
             Err(e) => Err(self.new_error(e)),
         }
     }
 
-    pub async fn file_retrieve(
+    pub fn file_retrieve(
         &self,
         req: FileRetrieveRequest,
     ) -> Result<FileRetrieveResponse, APIError> {
-        let res = self.get(&format!("{}/{}", "/files", req.file_id)).await?;
-        let r = res.json::<FileRetrieveResponse>().await;
+        let res = self.get(&format!("{}/{}", "/files", req.file_id))?;
+        let r = res.json::<FileRetrieveResponse>();
         match r {
             Ok(r) => Ok(r),
             Err(e) => Err(self.new_error(e)),
         }
     }
 
-    pub async fn file_retrieve_content(
+    pub fn file_retrieve_content(
         &self,
         req: FileRetrieveContentRequest,
     ) -> Result<FileRetrieveContentResponse, APIError> {
-        let res = self
-            .get(&format!("{}/{}/content", "/files", req.file_id))
-            .await?;
-        let r = res.json::<FileRetrieveContentResponse>().await;
+        let res = self.get(&format!("{}/{}/content", "/files", req.file_id))?;
+        let r = res.json::<FileRetrieveContentResponse>();
         match r {
             Ok(r) => Ok(r),
             Err(e) => Err(self.new_error(e)),
         }
     }
 
-    pub async fn chat_completion(
+    pub fn chat_completion(
         &self,
         req: ChatCompletionRequest,
     ) -> Result<ChatCompletionResponse, APIError> {
-        let res = self.post("/chat/completions", &req).await?;
-        let r = res.json::<ChatCompletionResponse>().await;
+        let res = self.post("/chat/completions", &req)?;
+        let r = res.json::<ChatCompletionResponse>();
         match r {
             Ok(r) => Ok(r),
             Err(e) => Err(self.new_error(e)),
         }
     }
 
-    pub async fn audio_transcription(
+    pub fn audio_transcription(
         &self,
         req: AudioTranscriptionRequest,
     ) -> Result<AudioTranscriptionResponse, APIError> {
-        let res = self.post("/audio/transcriptions", &req).await?;
-        let r = res.json::<AudioTranscriptionResponse>().await;
+        let res = self.post("/audio/transcriptions", &req)?;
+        let r = res.json::<AudioTranscriptionResponse>();
         match r {
             Ok(r) => Ok(r),
             Err(e) => Err(self.new_error(e)),
         }
     }
 
-    pub async fn audio_translation(
+    pub fn audio_translation(
         &self,
         req: AudioTranslationRequest,
     ) -> Result<AudioTranslationResponse, APIError> {
-        let res = self.post("/audio/translations", &req).await?;
-        let r = res.json::<AudioTranslationResponse>().await;
+        let res = self.post("/audio/translations", &req)?;
+        let r = res.json::<AudioTranslationResponse>();
         match r {
             Ok(r) => Ok(r),
             Err(e) => Err(self.new_error(e)),
         }
     }
 
-    pub async fn create_fine_tune(
+    pub fn create_fine_tune(
         &self,
         req: CreateFineTuneRequest,
     ) -> Result<CreateFineTuneResponse, APIError> {
-        let res = self.post("/fine-tunes", &req).await?;
-        let r = res.json::<CreateFineTuneResponse>().await;
+        let res = self.post("/fine-tunes", &req)?;
+        let r = res.json::<CreateFineTuneResponse>();
         match r {
             Ok(r) => Ok(r),
             Err(e) => Err(self.new_error(e)),
         }
     }
 
-    pub async fn list_fine_tune(&self) -> Result<ListFineTuneResponse, APIError> {
-        let res = self.get("/fine-tunes").await?;
-        let r = res.json::<ListFineTuneResponse>().await;
+    pub fn list_fine_tune(&self) -> Result<ListFineTuneResponse, APIError> {
+        let res = self.get("/fine-tunes")?;
+        let r = res.json::<ListFineTuneResponse>();
         match r {
             Ok(r) => Ok(r),
             Err(e) => Err(self.new_error(e)),
         }
     }
 
-    pub async fn retrieve_fine_tune(
+    pub fn retrieve_fine_tune(
         &self,
         req: RetrieveFineTuneRequest,
     ) -> Result<RetrieveFineTuneResponse, APIError> {
-        let res = self
-            .get(&format!("/fine_tunes/{}", req.fine_tune_id))
-            .await?;
-        let r = res.json::<RetrieveFineTuneResponse>().await;
+        let res = self.get(&format!("/fine_tunes/{}", req.fine_tune_id))?;
+        let r = res.json::<RetrieveFineTuneResponse>();
         match r {
             Ok(r) => Ok(r),
             Err(e) => Err(self.new_error(e)),
         }
     }
 
-    pub async fn cancel_fine_tune(
+    pub fn cancel_fine_tune(
         &self,
         req: CancelFineTuneRequest,
     ) -> Result<CancelFineTuneResponse, APIError> {
-        let res = self
-            .post(&format!("/fine_tunes/{}/cancel", req.fine_tune_id), &req)
-            .await?;
-        let r = res.json::<CancelFineTuneResponse>().await;
+        let res = self.post(&format!("/fine_tunes/{}/cancel", req.fine_tune_id), &req)?;
+        let r = res.json::<CancelFineTuneResponse>();
         match r {
             Ok(r) => Ok(r),
             Err(e) => Err(self.new_error(e)),
         }
     }
 
-    pub async fn list_fine_tune_events(
+    pub fn list_fine_tune_events(
         &self,
         req: ListFineTuneEventsRequest,
     ) -> Result<ListFineTuneEventsResponse, APIError> {
-        let res = self
-            .get(&format!("/fine-tunes/{}/events", req.fine_tune_id))
-            .await?;
-        let r = res.json::<ListFineTuneEventsResponse>().await;
+        let res = self.get(&format!("/fine-tunes/{}/events", req.fine_tune_id))?;
+        let r = res.json::<ListFineTuneEventsResponse>();
         match r {
             Ok(r) => Ok(r),
             Err(e) => Err(self.new_error(e)),
         }
     }
 
-    pub async fn delete_fine_tune(
+    pub fn delete_fine_tune(
         &self,
         req: DeleteFineTuneModelRequest,
     ) -> Result<DeleteFineTuneModelResponse, APIError> {
-        let res = self.delete(&format!("/models/{}", req.model_id)).await?;
-        let r = res.json::<DeleteFineTuneModelResponse>().await;
+        let res = self.delete(&format!("/models/{}", req.model_id))?;
+        let r = res.json::<DeleteFineTuneModelResponse>();
         match r {
             Ok(r) => Ok(r),
             Err(e) => Err(self.new_error(e)),
         }
     }
 
-    pub async fn create_moderation(
+    pub fn create_moderation(
         &self,
         req: CreateModerationRequest,
     ) -> Result<CreateModerationResponse, APIError> {
-        let res = self.post("/moderations", &req).await?;
-        let r = res.json::<CreateModerationResponse>().await;
+        let res = self.post("/moderations", &req)?;
+        let r = res.json::<CreateModerationResponse>();
         match r {
             Ok(r) => Ok(r),
             Err(e) => Err(self.new_error(e)),
         }
     }
 
-    fn new_error(&self, err: reqwest::Error) -> APIError {
+    fn new_error(&self, err: minreq::Error) -> APIError {
         APIError {
             message: err.to_string(),
         }
