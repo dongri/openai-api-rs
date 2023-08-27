@@ -57,6 +57,16 @@ impl Client {
         }
     }
 
+    pub fn build_request(&self, request: minreq::Request) -> minreq::Request {
+        let mut request = request
+            .with_header("Content-Type", "application/json")
+            .with_header("Authorization", format!("Bearer {}", self.api_key));
+        if let Some(organization) = &self.organization {
+            request = request.with_header("openai-organization", organization);
+        }
+        request
+    }
+
     pub fn post<T: serde::ser::Serialize>(
         &self,
         path: &str,
@@ -68,16 +78,8 @@ impl Client {
             path = path
         );
 
-        let mut request = minreq::post(url)
-            .with_header("Content-Type", "application/json")
-            .with_header("Authorization", format!("Bearer {}", self.api_key));
-
-        if let Some(organization) = &self.organization {
-            request = request.with_header("openai-organization", organization);
-        }
-
+        let request = self.build_request(minreq::post(url));
         let res = request.with_json(params).unwrap().send();
-
         match res {
             Ok(res) => {
                 if (200..=299).contains(&res.status_code) {
@@ -99,16 +101,8 @@ impl Client {
             path = path
         );
 
-        let mut request = minreq::get(url)
-            .with_header("Content-Type", "application/json")
-            .with_header("Authorization", format!("Bearer {}", self.api_key));
-
-        if let Some(organization) = &self.organization {
-            request = request.with_header("openai-organization", organization);
-        }
-
+        let request = self.build_request(minreq::get(url));
         let res = request.send();
-
         match res {
             Ok(res) => {
                 if (200..=299).contains(&res.status_code) {
@@ -130,16 +124,8 @@ impl Client {
             path = path
         );
 
-        let mut request = minreq::delete(url)
-            .with_header("Content-Type", "application/json")
-            .with_header("Authorization", format!("Bearer {}", self.api_key));
-
-        if let Some(organization) = &self.organization {
-            request = request.with_header("openai-organization", organization);
-        }
-
+        let request = self.build_request(minreq::delete(url));
         let res = request.send();
-
         match res {
             Ok(res) => {
                 if (200..=299).contains(&res.status_code) {
