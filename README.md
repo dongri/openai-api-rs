@@ -7,7 +7,7 @@ Check out the [docs.rs](https://docs.rs/openai-api-rs/).
 Cargo.toml
 ```toml
 [dependencies]
-openai-api-rs = "0.1"
+openai-api-rs = "1.0"
 ```
 
 ## Usage
@@ -56,7 +56,7 @@ let req = ChatCompletionRequest {
 
 ### Send request
 ```rust
-let result = client.completion(req).await?;
+let result = client.completion(req)?;
 println!("{:?}", result.choices[0].text);
 ```
 
@@ -66,8 +66,7 @@ use openai_api_rs::v1::api::Client;
 use openai_api_rs::v1::chat_completion::{self, ChatCompletionRequest};
 use std::env;
 
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     let client = Client::new(env::var("OPENAI_API_KEY").unwrap().to_string());
     let req = ChatCompletionRequest {
         model: chat_completion::GPT4.to_string(),
@@ -90,7 +89,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         logit_bias: None,
         user: None,
     };
-    let result = client.chat_completion(req).await?;
+    let result = client.chat_completion(req)?;
     println!("{:?}", result.choices[0].message.content);
     Ok(())
 }
