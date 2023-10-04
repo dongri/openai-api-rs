@@ -14,13 +14,20 @@ pub const GPT4_32K_0314: &str = "gpt-4-32k-0314";
 pub const GPT4_0613: &str = "gpt-4-0613";
 
 #[derive(Debug, Serialize)]
+#[allow(non_camel_case_types)]
+pub enum FunctionCallType {
+    auto,
+    function { name: String },
+}
+
+#[derive(Debug, Serialize)]
 pub struct ChatCompletionRequest {
     pub model: String,
     pub messages: Vec<ChatCompletionMessage>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub functions: Option<Vec<Function>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub function_call: Option<String>,
+    pub function_call: Option<FunctionCallType>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub temperature: Option<f64>,
     #[serde(skip_serializing_if = "Option::is_none")]

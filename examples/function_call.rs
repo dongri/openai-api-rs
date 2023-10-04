@@ -1,5 +1,5 @@
 use openai_api_rs::v1::api::Client;
-use openai_api_rs::v1::chat_completion::{self, ChatCompletionRequest};
+use openai_api_rs::v1::chat_completion::{self, ChatCompletionRequest, FunctionCallType};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::{env, vec};
@@ -46,7 +46,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 required: Some(vec![String::from("coin")]),
             },
         }]),
-        function_call: Some("auto".to_string()),
+        function_call: Some(FunctionCallType::auto), //Some(FunctionCallType::Function { name: "test".to_string() })
         temperature: None,
         top_p: None,
         n: None,
