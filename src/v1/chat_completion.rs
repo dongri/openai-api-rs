@@ -16,6 +16,7 @@ pub const GPT4_0613: &str = "gpt-4-0613";
 #[derive(Debug, Serialize)]
 #[allow(non_camel_case_types)]
 pub enum FunctionCallType {
+    none,
     auto,
     function { name: String },
 }
