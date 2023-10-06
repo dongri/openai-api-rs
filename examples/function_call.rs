@@ -46,7 +46,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 required: Some(vec![String::from("coin")]),
             },
         }]),
-        function_call: Some(FunctionCallType::auto), //Some(FunctionCallType::Function { name: "test".to_string() })
+        function_call: Some(FunctionCallType::Auto), // Some(FunctionCallType::Function { name: "test".to_string() }),
         temperature: None,
         top_p: None,
         n: None,
@@ -58,6 +58,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         logit_bias: None,
         user: None,
     };
+
+    // debug reuqest json
+    // let serialized = serde_json::to_string(&req).unwrap();
+    // println!("{}", serialized);
 
     let result = client.chat_completion(req)?;
 

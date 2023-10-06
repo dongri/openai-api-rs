@@ -1,4 +1,5 @@
-use serde::{Deserialize, Serialize};
+use serde::ser::SerializeMap;
+use serde::{Deserialize, Serialize, Serializer};
 use std::collections::HashMap;
 
 use crate::v1::common;
@@ -14,11 +15,10 @@ pub const GPT4_32K_0314: &str = "gpt-4-32k-0314";
 pub const GPT4_0613: &str = "gpt-4-0613";
 
 #[derive(Debug, Serialize)]
-#[allow(non_camel_case_types)]
 pub enum FunctionCallType {
-    none,
-    auto,
-    function { name: String },
+    None,
+    Auto,
+    Function { name: String },
 }
 
 #[derive(Debug, Serialize)]
@@ -28,6 +28,7 @@ pub struct ChatCompletionRequest {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub functions: Option<Vec<Function>>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(serialize_with = "serialize_function_call")]
     pub function_call: Option<FunctionCallType>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub temperature: Option<f64>,
@@ -159,4 +160,23 @@ pub struct FunctionCall {
     pub name: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub arguments: Option<String>,
+}
+
+fn serialize_function_call<S>(
+    value: &Option<FunctionCallType>,
+    serializer: S,
+) -> Result<S::Ok, S::Error>
+where
+    S: Serializer,
+{
+    match value {
+        Some(FunctionCallType::None) => serializer.serialize_str("none"),
+        Some(FunctionCallType::Auto) => serializer.serialize_str("auto"),
+        Some(FunctionCallType::Function { name }) => {
+            let mut map = serializer.serialize_map(Some(1))?;
+            map.serialize_entry("name", name)?;
+            map.end()
+        }
+        None => serializer.serialize_none(),
+    }
 }
