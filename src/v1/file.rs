@@ -22,6 +22,12 @@ pub struct FileUploadRequest {
     pub purpose: String,
 }
 
+impl FileUploadRequest {
+    pub fn new(file: String, purpose: String) -> Self {
+        Self { file, purpose }
+    }
+}
+
 #[derive(Debug, Deserialize)]
 pub struct FileUploadResponse {
     pub id: String,
@@ -37,6 +43,12 @@ pub struct FileDeleteRequest {
     pub file_id: String,
 }
 
+impl FileDeleteRequest {
+    pub fn new(file_id: String) -> Self {
+        Self { file_id }
+    }
+}
+
 #[derive(Debug, Deserialize)]
 pub struct FileDeleteResponse {
     pub id: String,
@@ -47,6 +59,12 @@ pub struct FileDeleteResponse {
 #[derive(Debug, Serialize)]
 pub struct FileRetrieveRequest {
     pub file_id: String,
+}
+
+impl FileRetrieveRequest {
+    pub fn new(file_id: String) -> Self {
+        Self { file_id }
+    }
 }
 
 #[derive(Debug, Deserialize)]
@@ -62,6 +80,12 @@ pub struct FileRetrieveResponse {
 #[derive(Debug, Serialize)]
 pub struct FileRetrieveContentRequest {
     pub file_id: String,
+}
+
+impl FileRetrieveContentRequest {
+    pub fn new(file_id: String) -> Self {
+        Self { file_id }
+    }
 }
 
 #[derive(Debug, Deserialize)]

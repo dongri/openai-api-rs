@@ -29,35 +29,25 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }),
     );
 
-    let req = ChatCompletionRequest {
-        model: chat_completion::GPT3_5_TURBO_0613.to_string(),
-        messages: vec![chat_completion::ChatCompletionMessage {
+    let req = ChatCompletionRequest::new(
+        chat_completion::GPT3_5_TURBO_0613.to_string(),
+        vec![chat_completion::ChatCompletionMessage {
             role: chat_completion::MessageRole::user,
             content: String::from("What is the price of Ethereum?"),
             name: None,
             function_call: None,
         }],
-        functions: Some(vec![chat_completion::Function {
-            name: String::from("get_coin_price"),
-            description: Some(String::from("Get the price of a cryptocurrency")),
-            parameters: chat_completion::FunctionParameters {
-                schema_type: chat_completion::JSONSchemaType::Object,
-                properties: Some(properties),
-                required: Some(vec![String::from("coin")]),
-            },
-        }]),
-        function_call: Some(FunctionCallType::Auto), // Some(FunctionCallType::Function { name: "test".to_string() }),
-        temperature: None,
-        top_p: None,
-        n: None,
-        stream: None,
-        stop: None,
-        max_tokens: None,
-        presence_penalty: None,
-        frequency_penalty: None,
-        logit_bias: None,
-        user: None,
-    };
+    )
+    .functions(vec![chat_completion::Function {
+        name: String::from("get_coin_price"),
+        description: Some(String::from("Get the price of a cryptocurrency")),
+        parameters: chat_completion::FunctionParameters {
+            schema_type: chat_completion::JSONSchemaType::Object,
+            properties: Some(properties),
+            required: Some(vec![String::from("coin")]),
+        },
+    }])
+    .function_call(FunctionCallType::Auto);
 
     // debug reuqest json
     // let serialized = serde_json::to_string(&req).unwrap();

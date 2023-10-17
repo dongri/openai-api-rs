@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::option::Option;
 
+use crate::impl_builder_methods;
 use crate::v1::common;
 
 pub const GPT3_TEXT_DAVINCI_003: &str = "text-davinci-003";
@@ -50,6 +51,47 @@ pub struct CompletionRequest {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub user: Option<String>,
 }
+
+impl CompletionRequest {
+    pub fn new(model: String, prompt: String) -> Self {
+        Self {
+            model,
+            prompt,
+            suffix: None,
+            max_tokens: None,
+            temperature: None,
+            top_p: None,
+            n: None,
+            stream: None,
+            logprobs: None,
+            echo: None,
+            stop: None,
+            presence_penalty: None,
+            frequency_penalty: None,
+            best_of: None,
+            logit_bias: None,
+            user: None,
+        }
+    }
+}
+
+impl_builder_methods!(
+    CompletionRequest,
+    suffix: String,
+    max_tokens: i32,
+    temperature: f32,
+    top_p: f32,
+    n: i32,
+    stream: bool,
+    logprobs: i32,
+    echo: bool,
+    stop: Vec<String>,
+    presence_penalty: f32,
+    frequency_penalty: f32,
+    best_of: i32,
+    logit_bias: HashMap<String, i32>,
+    user: String
+);
 
 #[derive(Debug, Deserialize)]
 pub struct CompletionChoice {
