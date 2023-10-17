@@ -1,6 +1,8 @@
 use serde::{Deserialize, Serialize};
 use std::option::Option;
 
+use crate::impl_builder_methods;
+
 #[derive(Debug, Deserialize)]
 pub struct ImageData {
     pub url: String,
@@ -18,6 +20,26 @@ pub struct ImageGenerationRequest {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub user: Option<String>,
 }
+
+impl ImageGenerationRequest {
+    pub fn new(prompt: String) -> Self {
+        Self {
+            prompt,
+            n: None,
+            size: None,
+            response_format: None,
+            user: None,
+        }
+    }
+}
+
+impl_builder_methods!(
+    ImageGenerationRequest,
+    n: i32,
+    size: String,
+    response_format: String,
+    user: String
+);
 
 #[derive(Debug, Deserialize)]
 pub struct ImageGenerationResponse {
@@ -41,6 +63,29 @@ pub struct ImageEditRequest {
     pub user: Option<String>,
 }
 
+impl ImageEditRequest {
+    pub fn new(image: String, prompt: String) -> Self {
+        Self {
+            image,
+            prompt,
+            mask: None,
+            n: None,
+            size: None,
+            response_format: None,
+            user: None,
+        }
+    }
+}
+
+impl_builder_methods!(
+    ImageEditRequest,
+    mask: String,
+    n: i32,
+    size: String,
+    response_format: String,
+    user: String
+);
+
 #[derive(Debug, Deserialize)]
 pub struct ImageEditResponse {
     pub created: i64,
@@ -59,6 +104,26 @@ pub struct ImageVariationRequest {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub user: Option<String>,
 }
+
+impl ImageVariationRequest {
+    pub fn new(image: String) -> Self {
+        Self {
+            image,
+            n: None,
+            size: None,
+            response_format: None,
+            user: None,
+        }
+    }
+}
+
+impl_builder_methods!(
+    ImageVariationRequest,
+    n: i32,
+    size: String,
+    response_format: String,
+    user: String
+);
 
 #[derive(Debug, Deserialize)]
 pub struct ImageVariationResponse {

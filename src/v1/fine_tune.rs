@@ -1,5 +1,7 @@
 use serde::{Deserialize, Serialize};
 
+use crate::impl_builder_methods;
+
 #[derive(Debug, Serialize)]
 pub struct CreateFineTuneRequest {
     pub training_file: String,
@@ -26,6 +28,40 @@ pub struct CreateFineTuneRequest {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub suffix: Option<String>,
 }
+
+impl CreateFineTuneRequest {
+    pub fn new(training_file: String) -> Self {
+        Self {
+            training_file,
+            validation_file: None,
+            model: None,
+            n_epochs: None,
+            batch_size: None,
+            learning_rate_multiplier: None,
+            prompt_loss_weight: None,
+            compute_classification_metrics: None,
+            classification_n_classes: None,
+            classification_positive_class: None,
+            classification_betas: None,
+            suffix: None,
+        }
+    }
+}
+
+impl_builder_methods!(
+    CreateFineTuneRequest,
+    validation_file: String,
+    model: String,
+    n_epochs: i32,
+    batch_size: i32,
+    learning_rate_multiplier: f32,
+    prompt_loss_weight: f32,
+    compute_classification_metrics: bool,
+    classification_n_classes: i32,
+    classification_positive_class: String,
+    classification_betas: Vec<f32>,
+    suffix: String
+);
 
 #[derive(Debug, Deserialize)]
 pub struct CreateFineTuneResponse {
@@ -134,6 +170,12 @@ pub struct RetrieveFineTuneRequest {
     pub fine_tune_id: String,
 }
 
+impl RetrieveFineTuneRequest {
+    pub fn new(fine_tune_id: String) -> Self {
+        Self { fine_tune_id }
+    }
+}
+
 #[derive(Debug, Deserialize)]
 pub struct RetrieveFineTuneResponse {
     pub id: String,
@@ -154,6 +196,12 @@ pub struct RetrieveFineTuneResponse {
 #[derive(Debug, Deserialize, Serialize)]
 pub struct CancelFineTuneRequest {
     pub fine_tune_id: String,
+}
+
+impl CancelFineTuneRequest {
+    pub fn new(fine_tune_id: String) -> Self {
+        Self { fine_tune_id }
+    }
 }
 
 #[derive(Debug, Deserialize)]
@@ -178,6 +226,12 @@ pub struct ListFineTuneEventsRequest {
     pub fine_tune_id: String,
 }
 
+impl ListFineTuneEventsRequest {
+    pub fn new(fine_tune_id: String) -> Self {
+        Self { fine_tune_id }
+    }
+}
+
 #[derive(Debug, Deserialize)]
 pub struct ListFineTuneEventsResponse {
     pub object: String,
@@ -187,6 +241,12 @@ pub struct ListFineTuneEventsResponse {
 #[derive(Debug, Deserialize)]
 pub struct DeleteFineTuneModelRequest {
     pub model_id: String,
+}
+
+impl DeleteFineTuneModelRequest {
+    pub fn new(model_id: String) -> Self {
+        Self { model_id }
+    }
 }
 
 #[derive(Debug, Deserialize)]

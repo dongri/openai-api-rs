@@ -33,25 +33,13 @@ let client = Client::new(env::var("OPENAI_API_KEY").unwrap().to_string());
 ### Create request
 ```rust
 use openai_api_rs::v1::chat_completion::{self, ChatCompletionRequest};
-let req = ChatCompletionRequest {
-    model: chat_completion::GPT4.to_string(),
-    messages: vec![chat_completion::ChatCompletionMessage {
+let req = ChatCompletionRequest::new(
+    chat_completion::GPT4.to_string(),
+    vec![chat_completion::ChatCompletionMessage {
         role: chat_completion::MessageRole::user,
         content: String::from("Hello OpenAI!"),
     }],
-    functions: None,
-    function_call: None,
-    temperature: None,
-    top_p: None,
-    n: None,
-    stream: None,
-    stop: None,
-    max_tokens: None,
-    presence_penalty: None,
-    frequency_penalty: None,
-    logit_bias: None,
-    user: None,
-};
+);
 ```
 
 ### Send request
@@ -68,27 +56,15 @@ use std::env;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let client = Client::new(env::var("OPENAI_API_KEY").unwrap().to_string());
-    let req = ChatCompletionRequest {
-        model: chat_completion::GPT4.to_string(),
-        messages: vec![chat_completion::ChatCompletionMessage {
+    let req = ChatCompletionRequest::new(
+        chat_completion::GPT4.to_string(),
+        vec![chat_completion::ChatCompletionMessage {
             role: chat_completion::MessageRole::user,
             content: String::from("What is Bitcoin?"),
             name: None,
             function_call: None,
         }],
-        functions: None,
-        function_call: None,
-        temperature: None,
-        top_p: None,
-        n: None,
-        stream: None,
-        stop: None,
-        max_tokens: None,
-        presence_penalty: None,
-        frequency_penalty: None,
-        logit_bias: None,
-        user: None,
-    };
+    );
     let result = client.chat_completion(req)?;
     println!("{:?}", result.choices[0].message.content);
     Ok(())

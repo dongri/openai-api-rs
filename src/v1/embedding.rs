@@ -1,6 +1,8 @@
 use serde::{Deserialize, Serialize};
 use std::option::Option;
 
+use crate::impl_builder_methods;
+
 #[derive(Debug, Deserialize)]
 pub struct EmbeddingData {
     pub object: String,
@@ -15,6 +17,21 @@ pub struct EmbeddingRequest {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub user: Option<String>,
 }
+
+impl EmbeddingRequest {
+    pub fn new(model: String, input: String) -> Self {
+        Self {
+            model,
+            input,
+            user: None,
+        }
+    }
+}
+
+impl_builder_methods!(
+    EmbeddingRequest,
+    user: String
+);
 
 #[derive(Debug, Deserialize)]
 pub struct EmbeddingResponse {

@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::option::Option;
 
+use crate::impl_builder_methods;
 use crate::v1::common;
 
 #[derive(Debug, Serialize)]
@@ -16,6 +17,27 @@ pub struct EditRequest {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub top_p: Option<f32>,
 }
+
+impl EditRequest {
+    pub fn new(model: String, instruction: String) -> Self {
+        Self {
+            model,
+            instruction,
+            input: None,
+            n: None,
+            temperature: None,
+            top_p: None,
+        }
+    }
+}
+
+impl_builder_methods!(
+    EditRequest,
+    input: String,
+    n: i32,
+    temperature: f32,
+    top_p: f32
+);
 
 #[derive(Debug, Deserialize)]
 pub struct EditChoice {

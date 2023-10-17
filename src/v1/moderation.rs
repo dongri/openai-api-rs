@@ -1,11 +1,24 @@
 use serde::{Deserialize, Serialize};
 
+use crate::impl_builder_methods;
+
 #[derive(Debug, Serialize)]
 pub struct CreateModerationRequest {
     pub input: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub model: Option<String>,
 }
+
+impl CreateModerationRequest {
+    pub fn new(input: String) -> Self {
+        Self { input, model: None }
+    }
+}
+
+impl_builder_methods!(
+    CreateModerationRequest,
+    model: String
+);
 
 #[derive(Debug, Deserialize)]
 pub struct CreateModerationResponse {

@@ -2,6 +2,7 @@ use serde::ser::SerializeMap;
 use serde::{Deserialize, Serialize, Serializer};
 use std::collections::HashMap;
 
+use crate::impl_builder_methods;
 use crate::v1::common;
 
 pub const GPT3_5_TURBO: &str = "gpt-3.5-turbo";
@@ -51,6 +52,43 @@ pub struct ChatCompletionRequest {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub user: Option<String>,
 }
+
+impl ChatCompletionRequest {
+    pub fn new(model: String, messages: Vec<ChatCompletionMessage>) -> Self {
+        Self {
+            model,
+            messages,
+            functions: None,
+            function_call: None,
+            temperature: None,
+            top_p: None,
+            stream: None,
+            n: None,
+            stop: None,
+            max_tokens: None,
+            presence_penalty: None,
+            frequency_penalty: None,
+            logit_bias: None,
+            user: None,
+        }
+    }
+}
+
+impl_builder_methods!(
+    ChatCompletionRequest,
+    functions: Vec<Function>,
+    function_call: FunctionCallType,
+    temperature: f64,
+    top_p: f64,
+    n: i64,
+    stream: bool,
+    stop: Vec<String>,
+    max_tokens: i64,
+    presence_penalty: f64,
+    frequency_penalty: f64,
+    logit_bias: HashMap<String, i32>,
+    user: String
+);
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[allow(non_camel_case_types)]
