@@ -10,13 +10,13 @@ pub struct Usage {
 #[macro_export]
 macro_rules! impl_builder_methods {
     ($builder:ident, $($field:ident: $field_type:ty),*) => {
-        $(
-            impl $builder {
+        impl $builder {
+            $(
                 pub fn $field(mut self, $field: $field_type) -> Self {
                     self.$field = Some($field);
                     self
                 }
-            }
-        )*
+            )*
+        }
     };
 }
