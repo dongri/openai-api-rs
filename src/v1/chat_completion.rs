@@ -6,7 +6,7 @@ use crate::impl_builder_methods;
 use crate::v1::common;
 
 pub const GPT3_5_TURBO: &str = "gpt-3.5-turbo";
-pub const GPT3_5_TURBO_16K: &str = ""gpt-3.5-turbo-16k"";
+pub const GPT3_5_TURBO_16K: &str = "gpt-3.5-turbo-16k";
 pub const GPT3_5_TURBO_0301: &str = "gpt-3.5-turbo-0301";
 pub const GPT3_5_TURBO_0613: &str = "gpt-3.5-turbo-0613";
 
