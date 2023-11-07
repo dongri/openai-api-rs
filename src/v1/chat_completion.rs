@@ -49,6 +49,8 @@ pub struct ChatCompletionRequest {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub n: Option<i64>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub response_format: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub stream: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub stop: Option<Vec<String>>,
@@ -75,6 +77,7 @@ impl ChatCompletionRequest {
             top_p: None,
             stream: None,
             n: None,
+            response_format: None,
             stop: None,
             max_tokens: None,
             presence_penalty: None,
@@ -92,6 +95,7 @@ impl_builder_methods!(
     temperature: f64,
     top_p: f64,
     n: i64,
+    response_format: String,
     stream: bool,
     stop: Vec<String>,
     max_tokens: i64,
