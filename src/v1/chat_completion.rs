@@ -1,5 +1,6 @@
 use serde::ser::SerializeMap;
 use serde::{Deserialize, Serialize, Serializer};
+use serde_json::Value;
 use std::collections::HashMap;
 
 use crate::impl_builder_methods;
@@ -49,7 +50,7 @@ pub struct ChatCompletionRequest {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub n: Option<i64>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub response_format: Option<String>,
+    pub response_format: Option<Value>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub stream: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -95,7 +96,7 @@ impl_builder_methods!(
     temperature: f64,
     top_p: f64,
     n: i64,
-    response_format: String,
+    response_format: Value,
     stream: bool,
     stop: Vec<String>,
     max_tokens: i64,
