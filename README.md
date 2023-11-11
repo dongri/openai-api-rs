@@ -7,7 +7,7 @@ Check out the [docs.rs](https://docs.rs/openai-api-rs/).
 Cargo.toml
 ```toml
 [dependencies]
-openai-api-rs = "2.0.5"
+openai-api-rs = "2.1.0"
 ```
 
 ## Usage
@@ -33,8 +33,9 @@ let client = Client::new(env::var("OPENAI_API_KEY").unwrap().to_string());
 ### Create request
 ```rust
 use openai_api_rs::v1::chat_completion::{self, ChatCompletionRequest};
+use openai_api_rs::v1::common::GPT4;
 let req = ChatCompletionRequest::new(
-    chat_completion::GPT4.to_string(),
+    GPT4.to_string(),
     vec![chat_completion::ChatCompletionMessage {
         role: chat_completion::MessageRole::user,
         content: String::from("Hello OpenAI!"),
@@ -52,12 +53,13 @@ println!("{:?}", result.choices[0].text);
 ```rust
 use openai_api_rs::v1::api::Client;
 use openai_api_rs::v1::chat_completion::{self, ChatCompletionRequest};
+use openai_api_rs::v1::common::GPT4;
 use std::env;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let client = Client::new(env::var("OPENAI_API_KEY").unwrap().to_string());
     let req = ChatCompletionRequest::new(
-        chat_completion::GPT4.to_string(),
+        GPT4.to_string(),
         vec![chat_completion::ChatCompletionMessage {
             role: chat_completion::MessageRole::user,
             content: String::from("What is Bitcoin?"),
@@ -85,6 +87,7 @@ Check out the [full API documentation](https://platform.openai.com/docs/api-refe
 - [x] [Fine-tunes](https://platform.openai.com/docs/api-reference/fine-tunes)
 - [x] [Moderations](https://platform.openai.com/docs/api-reference/moderations)
 - [x] [Function calling](https://platform.openai.com/docs/guides/gpt/function-calling)
+- [x] [Assistants](https://platform.openai.com/docs/assistants/overview)
 
 ## License
 This project is licensed under [MIT license](https://github.com/dongri/openai-api-rs/blob/main/LICENSE).
