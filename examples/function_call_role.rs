@@ -1,5 +1,6 @@
 use openai_api_rs::v1::api::Client;
 use openai_api_rs::v1::chat_completion::{self, ChatCompletionRequest};
+use openai_api_rs::v1::common::GPT3_5_TURBO_0613;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::{env, vec};
@@ -30,7 +31,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     );
 
     let req = ChatCompletionRequest::new(
-        chat_completion::GPT3_5_TURBO_0613.to_string(),
+        GPT3_5_TURBO_0613.to_string(),
         vec![chat_completion::ChatCompletionMessage {
             role: chat_completion::MessageRole::user,
             content: String::from("What is the price of Ethereum?"),
@@ -70,7 +71,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             let coin = c.coin;
 
             let req = ChatCompletionRequest::new(
-                chat_completion::GPT3_5_TURBO_0613.to_string(),
+                GPT3_5_TURBO_0613.to_string(),
                 vec![
                     chat_completion::ChatCompletionMessage {
                         role: chat_completion::MessageRole::user,

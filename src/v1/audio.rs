@@ -4,7 +4,7 @@ use crate::impl_builder_methods;
 
 pub const WHISPER_1: &str = "whisper-1";
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Clone)]
 pub struct AudioTranscriptionRequest {
     pub file: String,
     pub model: String,
@@ -44,7 +44,7 @@ pub struct AudioTranscriptionResponse {
     pub text: String,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Clone)]
 pub struct AudioTranslationRequest {
     pub file: String,
     pub model: String,
