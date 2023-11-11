@@ -4,7 +4,7 @@ use std::option::Option;
 use crate::impl_builder_methods;
 use crate::v1::common;
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Clone)]
 pub struct EditRequest {
     pub model: String,
     #[serde(skip_serializing_if = "Option::is_none")]

@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::impl_builder_methods;
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Clone)]
 pub struct CreateModerationRequest {
     pub input: String,
     #[serde(skip_serializing_if = "Option::is_none")]

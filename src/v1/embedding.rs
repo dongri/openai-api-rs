@@ -10,7 +10,7 @@ pub struct EmbeddingData {
     pub index: i32,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Clone)]
 pub struct EmbeddingRequest {
     pub model: String,
     pub input: String,
