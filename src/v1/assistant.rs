@@ -56,7 +56,7 @@ pub struct AssistantObject {
     pub model: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub instructions: Option<String>,
-    pub tools: Vec<String>,
+    pub tools: Vec<HashMap<String, String>>,
     pub file_ids: Vec<String>,
     pub metadata: HashMap<String, String>,
 }
