@@ -14,11 +14,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     tools.insert("type".to_string(), "code_interpreter".to_string());
 
     let req = AssistantRequest::new(GPT4_1106_PREVIEW.to_string());
-    let req = req.clone().description("this is a test assistant".to_string());
+    let req = req
+        .clone()
+        .description("this is a test assistant".to_string());
     let req = req.clone().instructions("You are a personal math tutor. When asked a question, write and run Python code to answer the question.".to_string());
     let req = req.clone().tools(vec![tools]);
     println!("{:?}", req);
-    
+
     let result = client.create_assistant(req)?;
     println!("{:?}", result.id);
 
