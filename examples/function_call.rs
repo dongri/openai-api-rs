@@ -50,21 +50,25 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }])
     .function_call(FunctionCallType::Auto);
 
-    // debug reuqest json
+    // debug request json
     // let serialized = serde_json::to_string(&req).unwrap();
     // println!("{}", serialized);
 
     let result = client.chat_completion(req)?;
 
     match result.choices[0].finish_reason {
-        chat_completion::FinishReason::stop => {
+        None => {
+            println!("No finish_reason");
+            println!("{:?}", result.choices[0].message.content);
+        }
+        Some(chat_completion::FinishReason::stop) => {
             println!("Stop");
             println!("{:?}", result.choices[0].message.content);
         }
-        chat_completion::FinishReason::length => {
+        Some(chat_completion::FinishReason::length) => {
             println!("Length");
         }
-        chat_completion::FinishReason::function_call => {
+        Some(chat_completion::FinishReason::function_call) => {
             println!("FunctionCall");
             #[derive(Serialize, Deserialize)]
             struct Currency {
@@ -80,10 +84,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 println!("{} price: {}", coin, price);
             }
         }
-        chat_completion::FinishReason::content_filter => {
+        Some(chat_completion::FinishReason::content_filter) => {
             println!("ContentFilter");
         }
-        chat_completion::FinishReason::null => {
+        Some(chat_completion::FinishReason::null) => {
             println!("Null");
         }
     }
