@@ -38,6 +38,7 @@ impl ImageGenerationRequest {
 
 impl_builder_methods!(
     ImageGenerationRequest,
+    model: String,
     n: i32,
     size: String,
     response_format: String,
@@ -57,6 +58,8 @@ pub struct ImageEditRequest {
     pub mask: Option<String>,
     pub prompt: String,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub model: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub n: Option<i32>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub size: Option<String>,
@@ -72,6 +75,7 @@ impl ImageEditRequest {
             image,
             prompt,
             mask: None,
+            model: None,
             n: None,
             size: None,
             response_format: None,
@@ -83,6 +87,7 @@ impl ImageEditRequest {
 impl_builder_methods!(
     ImageEditRequest,
     mask: String,
+    model: String,
     n: i32,
     size: String,
     response_format: String,
@@ -101,6 +106,8 @@ pub struct ImageVariationRequest {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub n: Option<i32>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub model: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub size: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub response_format: Option<String>,
@@ -112,6 +119,7 @@ impl ImageVariationRequest {
     pub fn new(image: String) -> Self {
         Self {
             image,
+            model: None,
             n: None,
             size: None,
             response_format: None,
@@ -122,6 +130,7 @@ impl ImageVariationRequest {
 
 impl_builder_methods!(
     ImageVariationRequest,
+    model: String,
     n: i32,
     size: String,
     response_format: String,
