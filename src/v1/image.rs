@@ -12,6 +12,8 @@ pub struct ImageData {
 pub struct ImageGenerationRequest {
     pub prompt: String,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub model: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub n: Option<i32>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub size: Option<String>,
@@ -25,6 +27,7 @@ impl ImageGenerationRequest {
     pub fn new(prompt: String) -> Self {
         Self {
             prompt,
+            model: None,
             n: None,
             size: None,
             response_format: None,

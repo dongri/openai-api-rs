@@ -41,3 +41,7 @@ pub const GPT4_32K_0613: &str = "gpt-4-32k-0613";
 // - legacy
 pub const GPT4_0314: &str = "gpt-4-0314";
 pub const GPT4_32K_0314: &str = "gpt-4-32k-0314";
+
+// https://platform.openai.com/docs/api-reference/images/object
+pub const DALL_E_2: &str = "dall-e-2";
+pub const DALL_E_3: &str = "dall-e-3";
