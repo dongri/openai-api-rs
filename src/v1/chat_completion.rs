@@ -44,6 +44,8 @@ pub struct ChatCompletionRequest {
     pub logit_bias: Option<HashMap<String, i32>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub user: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub seed: Option<i64>,
 }
 
 impl ChatCompletionRequest {
@@ -64,6 +66,7 @@ impl ChatCompletionRequest {
             frequency_penalty: None,
             logit_bias: None,
             user: None,
+            seed: None,
         }
     }
 }
@@ -82,7 +85,8 @@ impl_builder_methods!(
     presence_penalty: f64,
     frequency_penalty: f64,
     logit_bias: HashMap<String, i32>,
-    user: String
+    user: String,
+    seed: i64
 );
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
