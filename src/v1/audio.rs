@@ -79,3 +79,39 @@ impl_builder_methods!(
 pub struct AudioTranslationResponse {
     pub text: String,
 }
+
+pub const TTS_1: &str = "tts-1";
+pub const TTS_1_HD: &str = "tts-1-hd";
+
+pub const VOICE_ALLOY: &str = "alloy";
+pub const VOICE_ECHO: &str = "echo";
+pub const VOICE_FABLE: &str = "fable";
+pub const VOICE_ONYX: &str = "onyx";
+pub const VOICE_NOVA: &str = "nova";
+pub const VOICE_SHIMMER: &str = "shimmer";
+
+#[derive(Debug, Serialize, Clone)]
+pub struct AudioSpeechRequest {
+    pub model: String,
+    pub input: String,
+    pub voice: String,
+    pub output: String,
+}
+
+impl AudioSpeechRequest {
+    pub fn new(model: String, input: String, voice: String, output: String) -> Self {
+        Self {
+            model,
+            input,
+            voice,
+            output,
+        }
+    }
+}
+
+impl_builder_methods!(AudioSpeechRequest,);
+
+#[derive(Debug, Deserialize)]
+pub struct AudioSpeechResponse {
+    pub result: bool,
+}

@@ -3,8 +3,8 @@ use crate::v1::assistant::{
     ListAssistant, ListAssistantFile,
 };
 use crate::v1::audio::{
-    AudioTranscriptionRequest, AudioTranscriptionResponse, AudioTranslationRequest,
-    AudioTranslationResponse,
+    AudioSpeechRequest, AudioSpeechResponse, AudioTranscriptionRequest, AudioTranscriptionResponse,
+    AudioTranslationRequest, AudioTranslationResponse,
 };
 use crate::v1::chat_completion::{ChatCompletionRequest, ChatCompletionResponse};
 use crate::v1::completion::{CompletionRequest, CompletionResponse};
@@ -38,6 +38,9 @@ use crate::v1::run::{
 use crate::v1::thread::{CreateThreadRequest, ModifyThreadRequest, ThreadObject};
 
 use minreq::Response;
+use std::fs::{create_dir_all, File};
+use std::io::Write;
+use std::path::Path;
 
 const API_URL_V1: &str = "https://api.openai.com/v1";
 
@@ -298,6 +301,39 @@ impl Client {
             Ok(r) => Ok(r),
             Err(e) => Err(self.new_error(e)),
         }
+    }
+
+    pub fn audio_speech(&self, req: AudioSpeechRequest) -> Result<AudioSpeechResponse, APIError> {
+        let res = self.post("/audio/speech", &req)?;
+        let bytes = res.as_bytes();
+        let path = req.output.as_str();
+        let path = Path::new(path);
+        if let Some(parent) = path.parent() {
+            match create_dir_all(parent) {
+                Ok(_) => {}
+                Err(e) => {
+                    return Err(APIError {
+                        message: e.to_string(),
+                    })
+                }
+            }
+        }
+        match File::create(path) {
+            Ok(mut file) => match file.write_all(bytes) {
+                Ok(_) => {}
+                Err(e) => {
+                    return Err(APIError {
+                        message: e.to_string(),
+                    })
+                }
+            },
+            Err(e) => {
+                return Err(APIError {
+                    message: e.to_string(),
+                })
+            }
+        }
+        Ok(AudioSpeechResponse { result: true })
     }
 
     pub fn create_fine_tune(
