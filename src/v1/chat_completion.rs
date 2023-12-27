@@ -18,9 +18,17 @@ pub struct ChatCompletionRequest {
     pub model: String,
     pub messages: Vec<ChatCompletionMessage>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[deprecated(
+        since = "2.1.5",
+        note = "This field is deprecated. Use `tools` instead."
+    )]
     pub functions: Option<Vec<Function>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(serialize_with = "serialize_function_call")]
+    #[deprecated(
+        since = "2.1.5",
+        note = "This field is deprecated. Use `tool_choice` instead."
+    )]
     pub function_call: Option<FunctionCallType>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub temperature: Option<f64>,
