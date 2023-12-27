@@ -109,7 +109,7 @@ impl_builder_methods!(
     logit_bias: HashMap<String, i32>,
     user: String,
     seed: i64,
-    tools: Tool,
+    tools: Vec<Tool>,
     tool_choice: ToolChoiceType
 );
 
