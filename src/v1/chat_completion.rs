@@ -135,6 +135,7 @@ pub struct ChatCompletionResponse {
     pub model: String,
     pub choices: Vec<ChatCompletionChoice>,
     pub usage: common::Usage,
+    pub system_fingerprint: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
