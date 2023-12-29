@@ -23,10 +23,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         Box::new(chat_completion::JSONSchemaDefine {
             schema_type: Some(chat_completion::JSONSchemaType::String),
             description: Some("The cryptocurrency to get the price of".to_string()),
-            enum_values: None,
-            properties: None,
-            required: None,
-            items: None,
+            ..Default::default()
         }),
     );
 
