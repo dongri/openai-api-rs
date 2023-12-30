@@ -197,6 +197,19 @@ pub struct JSONSchemaDefine {
     pub items: Option<Box<JSONSchemaDefine>>,
 }
 
+impl Default for JSONSchemaDefine {
+    fn default() -> Self {
+        Self {
+            schema_type: None,
+            description: None,
+            enum_values: None,
+            properties: None,
+            required: None,
+            items: None,
+        }
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct FunctionParameters {
     #[serde(rename = "type")]
