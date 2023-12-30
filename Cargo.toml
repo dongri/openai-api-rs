@@ -1,6 +1,6 @@
 [package]
 name = "openai-api-rs"
-version = "2.1.6"
+version = "2.1.7"
 edition = "2021"
 authors = ["Dongri Jin <dongrify@gmail.com>"]
 license = "MIT"
