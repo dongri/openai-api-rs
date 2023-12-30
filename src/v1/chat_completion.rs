@@ -181,7 +181,7 @@ pub enum JSONSchemaType {
     Boolean,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct JSONSchemaDefine {
     #[serde(rename = "type")]
     pub schema_type: Option<JSONSchemaType>,
@@ -195,19 +195,6 @@ pub struct JSONSchemaDefine {
     pub required: Option<Vec<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub items: Option<Box<JSONSchemaDefine>>,
-}
-
-impl Default for JSONSchemaDefine {
-    fn default() -> Self {
-        Self {
-            schema_type: None,
-            description: None,
-            enum_values: None,
-            properties: None,
-            required: None,
-            items: None,
-        }
-    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
