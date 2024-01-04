@@ -263,7 +263,7 @@ where
         Some(ToolChoiceType::Auto) => serializer.serialize_str("auto"),
         Some(ToolChoiceType::ToolChoice { tool }) => {
             let mut map = serializer.serialize_map(Some(2))?;
-            map.serialize_entry("type", &tool.tool_type)?;
+            map.serialize_entry("type", &tool.r#type)?;
             map.serialize_entry("function", &tool.function)?;
             map.end()
         }
@@ -273,7 +273,12 @@ where
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Tool {
-    #[serde(rename = "type")]
-    tool_type: String,
-    function: Function,
+    pub r#type: ToolType,
+    pub function: Function,
+}
+
+#[derive(Debug, Serialize, Deserialize, Copy, Clone)]
+#[serde(rename_all = "snake_case")]
+pub enum ToolType {
+    Function,
 }
