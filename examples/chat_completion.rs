@@ -12,7 +12,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             role: chat_completion::MessageRole::user,
             content: String::from("What is Bitcoin?"),
             name: None,
-            function_call: None,
         }],
     );
 

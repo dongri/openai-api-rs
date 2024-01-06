@@ -7,13 +7,6 @@ use crate::impl_builder_methods;
 use crate::v1::common;
 
 #[derive(Debug, Serialize, Clone)]
-pub enum FunctionCallType {
-    None,
-    Auto,
-    Function { name: String },
-}
-
-#[derive(Debug, Serialize, Clone)]
 pub enum ToolChoiceType {
     None,
     Auto,
@@ -24,19 +17,6 @@ pub enum ToolChoiceType {
 pub struct ChatCompletionRequest {
     pub model: String,
     pub messages: Vec<ChatCompletionMessage>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    #[deprecated(
-        since = "2.1.5",
-        note = "This field is deprecated. Use `tools` instead."
-    )]
-    pub functions: Option<Vec<Function>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    #[serde(serialize_with = "serialize_function_call")]
-    #[deprecated(
-        since = "2.1.5",
-        note = "This field is deprecated. Use `tool_choice` instead."
-    )]
-    pub function_call: Option<FunctionCallType>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub temperature: Option<f64>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -73,8 +53,6 @@ impl ChatCompletionRequest {
         Self {
             model,
             messages,
-            functions: None,
-            function_call: None,
             temperature: None,
             top_p: None,
             stream: None,
@@ -95,8 +73,6 @@ impl ChatCompletionRequest {
 
 impl_builder_methods!(
     ChatCompletionRequest,
-    functions: Vec<Function>,
-    function_call: FunctionCallType,
     temperature: f64,
     top_p: f64,
     n: i64,
@@ -128,8 +104,6 @@ pub struct ChatCompletionMessage {
     pub content: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub function_call: Option<FunctionCall>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -140,7 +114,7 @@ pub struct ChatCompletionMessageForResponse {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub function_call: Option<FunctionCall>,
+    pub tool_calls: Option<Vec<ToolCall>>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -212,8 +186,8 @@ pub struct FunctionParameters {
 pub enum FinishReason {
     stop,
     length,
-    function_call,
     content_filter,
+    tool_calls,
     null,
 }
 
@@ -225,30 +199,18 @@ pub struct FinishDetails {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct FunctionCall {
+pub struct ToolCall {
+    pub id: String,
+    pub r#type: String,
+    pub function: ToolCallFunction,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ToolCallFunction {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub arguments: Option<String>,
-}
-
-fn serialize_function_call<S>(
-    value: &Option<FunctionCallType>,
-    serializer: S,
-) -> Result<S::Ok, S::Error>
-where
-    S: Serializer,
-{
-    match value {
-        Some(FunctionCallType::None) => serializer.serialize_str("none"),
-        Some(FunctionCallType::Auto) => serializer.serialize_str("auto"),
-        Some(FunctionCallType::Function { name }) => {
-            let mut map = serializer.serialize_map(Some(1))?;
-            map.serialize_entry("name", name)?;
-            map.end()
-        }
-        None => serializer.serialize_none(),
-    }
 }
 
 fn serialize_tool_choice<S>(
