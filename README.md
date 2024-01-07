@@ -7,7 +7,7 @@ Check out the [docs.rs](https://docs.rs/openai-api-rs/).
 Cargo.toml
 ```toml
 [dependencies]
-openai-api-rs = "3.0.0"
+openai-api-rs = "3.0.1"
 ```
 
 ## Usage
@@ -38,7 +38,8 @@ let req = ChatCompletionRequest::new(
     GPT4.to_string(),
     vec![chat_completion::ChatCompletionMessage {
         role: chat_completion::MessageRole::user,
-        content: String::from("Hello OpenAI!"),
+        content: chat_completion::Content::Text(String::from("Hello OpenAI!")),
+        name: None,
     }],
 );
 ```
@@ -62,7 +63,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         GPT4.to_string(),
         vec![chat_completion::ChatCompletionMessage {
             role: chat_completion::MessageRole::user,
-            content: String::from("What is Bitcoin?"),
+            content: chat_completion::Content::Text(String::from("What is Bitcoin?")),
             name: None,
         }],
     );
