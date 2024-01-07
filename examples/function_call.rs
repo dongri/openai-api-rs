@@ -31,7 +31,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         GPT3_5_TURBO_0613.to_string(),
         vec![chat_completion::ChatCompletionMessage {
             role: chat_completion::MessageRole::user,
-            content: String::from("What is the price of Ethereum?"),
+            content: chat_completion::Content::Text(String::from("What is the price of Ethereum?")),
             name: None,
         }],
     )

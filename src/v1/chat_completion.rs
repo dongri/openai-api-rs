@@ -98,10 +98,51 @@ pub enum MessageRole {
     function,
 }
 
+#[derive(Debug, Deserialize, Clone)]
+pub enum Content {
+    Text(String),
+    ImageUrl(Vec<ImageUrl>),
+}
+
+impl serde::Serialize for Content {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        match *self {
+            Content::Text(ref text) => serializer.serialize_str(text),
+            Content::ImageUrl(ref image_url) => image_url.serialize(serializer),
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[allow(non_camel_case_types)]
+pub enum ContentType {
+    text,
+    image_url,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[allow(non_camel_case_types)]
+pub struct ImageUrlType {
+    pub url: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[allow(non_camel_case_types)]
+pub struct ImageUrl {
+    pub r#type: ContentType,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub text: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub image_url: Option<ImageUrlType>,
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ChatCompletionMessage {
     pub role: MessageRole,
-    pub content: String,
+    pub content: Content,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
 }
