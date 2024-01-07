@@ -36,4 +36,4 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-// OPENAI_API_KEY=xxxx cargo run --package openai-api-rs --example chat_completion
+// OPENAI_API_KEY=xxxx cargo run --package openai-api-rs --example vision
