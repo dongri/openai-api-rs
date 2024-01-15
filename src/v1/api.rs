@@ -16,11 +16,9 @@ use crate::v1::file::{
     FileRetrieveContentResponse, FileRetrieveRequest, FileRetrieveResponse, FileUploadRequest,
     FileUploadResponse,
 };
-use crate::v1::fine_tune::{
-    CancelFineTuneRequest, CancelFineTuneResponse, CreateFineTuneRequest, CreateFineTuneResponse,
-    DeleteFineTuneModelRequest, DeleteFineTuneModelResponse, ListFineTuneEventsRequest,
-    ListFineTuneEventsResponse, ListFineTuneResponse, RetrieveFineTuneRequest,
-    RetrieveFineTuneResponse,
+use crate::v1::fine_tuning::{
+    CreateFineTuningJobRequest, ListFineTuningJobEventsRequest, RetrieveFineTuningJobRequest, CancelFineTuningJobRequest,
+    FineTuningPagination, FineTuningJobObject, FineTuningJobEvent,
 };
 use crate::v1::image::{
     ImageEditRequest, ImageEditResponse, ImageGenerationRequest, ImageGenerationResponse,
@@ -336,69 +334,57 @@ impl Client {
         Ok(AudioSpeechResponse { result: true })
     }
 
-    pub fn create_fine_tune(
+    pub fn create_fine_tuning_job(
         &self,
-        req: CreateFineTuneRequest,
-    ) -> Result<CreateFineTuneResponse, APIError> {
-        let res = self.post("/fine-tunes", &req)?;
-        let r = res.json::<CreateFineTuneResponse>();
+        req: CreateFineTuningJobRequest,
+    ) -> Result<FineTuningJobObject, APIError> {
+        let res = self.post("/fine_tuning/jobs", &req)?;
+        let r = res.json::<FineTuningJobObject>();
         match r {
             Ok(r) => Ok(r),
             Err(e) => Err(self.new_error(e)),
         }
     }
 
-    pub fn list_fine_tune(&self) -> Result<ListFineTuneResponse, APIError> {
-        let res = self.get("/fine-tunes")?;
-        let r = res.json::<ListFineTuneResponse>();
+    pub fn list_fine_tuning_jobs(&self) -> Result<FineTuningPagination<FineTuningJobObject>, APIError> {
+        let res = self.get("/fine_tuning/jobs")?;
+        let r = res.json::<FineTuningPagination<FineTuningJobObject>>();
         match r {
             Ok(r) => Ok(r),
             Err(e) => Err(self.new_error(e)),
         }
     }
 
-    pub fn retrieve_fine_tune(
+    pub fn list_fine_tuning_job_events(
         &self,
-        req: RetrieveFineTuneRequest,
-    ) -> Result<RetrieveFineTuneResponse, APIError> {
-        let res = self.get(&format!("/fine_tunes/{}", req.fine_tune_id))?;
-        let r = res.json::<RetrieveFineTuneResponse>();
+        req: ListFineTuningJobEventsRequest,
+    ) -> Result<FineTuningPagination<FineTuningJobEvent>, APIError> {
+        let res = self.get(&format!("/fine_tuning/jobs/{}/events", req.fine_tuning_job_id))?;
+        let r = res.json::<FineTuningPagination<FineTuningJobEvent>>();
         match r {
             Ok(r) => Ok(r),
             Err(e) => Err(self.new_error(e)),
         }
     }
 
-    pub fn cancel_fine_tune(
+    pub fn retrieve_fine_tuning_job(
         &self,
-        req: CancelFineTuneRequest,
-    ) -> Result<CancelFineTuneResponse, APIError> {
-        let res = self.post(&format!("/fine_tunes/{}/cancel", req.fine_tune_id), &req)?;
-        let r = res.json::<CancelFineTuneResponse>();
+        req: RetrieveFineTuningJobRequest,
+    ) -> Result<FineTuningJobObject, APIError> {
+        let res = self.get(&format!("/fine_tuning/jobs/{}", req.fine_tuning_job_id))?;
+        let r = res.json::<FineTuningJobObject>();
         match r {
             Ok(r) => Ok(r),
             Err(e) => Err(self.new_error(e)),
         }
     }
 
-    pub fn list_fine_tune_events(
+    pub fn cancel_fine_tuning_job(
         &self,
-        req: ListFineTuneEventsRequest,
-    ) -> Result<ListFineTuneEventsResponse, APIError> {
-        let res = self.get(&format!("/fine-tunes/{}/events", req.fine_tune_id))?;
-        let r = res.json::<ListFineTuneEventsResponse>();
-        match r {
-            Ok(r) => Ok(r),
-            Err(e) => Err(self.new_error(e)),
-        }
-    }
-
-    pub fn delete_fine_tune(
-        &self,
-        req: DeleteFineTuneModelRequest,
-    ) -> Result<DeleteFineTuneModelResponse, APIError> {
-        let res = self.delete(&format!("/models/{}", req.model_id))?;
-        let r = res.json::<DeleteFineTuneModelResponse>();
+        req: CancelFineTuningJobRequest,
+    ) -> Result<FineTuningJobObject, APIError> {
+        let res = self.post(&format!("/fine_tuning/jobs/{}/cancel", req.fine_tuning_job_id), &req)?;
+        let r = res.json::<FineTuningJobObject>();
         match r {
             Ok(r) => Ok(r),
             Err(e) => Err(self.new_error(e)),
