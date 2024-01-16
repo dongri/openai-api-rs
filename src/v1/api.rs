@@ -17,8 +17,9 @@ use crate::v1::file::{
     FileUploadResponse,
 };
 use crate::v1::fine_tuning::{
-    CreateFineTuningJobRequest, ListFineTuningJobEventsRequest, RetrieveFineTuningJobRequest, CancelFineTuningJobRequest,
-    FineTuningPagination, FineTuningJobObject, FineTuningJobEvent,
+    CancelFineTuningJobRequest, CreateFineTuningJobRequest, FineTuningJobEvent,
+    FineTuningJobObject, FineTuningPagination, ListFineTuningJobEventsRequest,
+    RetrieveFineTuningJobRequest,
 };
 use crate::v1::image::{
     ImageEditRequest, ImageEditResponse, ImageGenerationRequest, ImageGenerationResponse,
@@ -346,7 +347,9 @@ impl Client {
         }
     }
 
-    pub fn list_fine_tuning_jobs(&self) -> Result<FineTuningPagination<FineTuningJobObject>, APIError> {
+    pub fn list_fine_tuning_jobs(
+        &self,
+    ) -> Result<FineTuningPagination<FineTuningJobObject>, APIError> {
         let res = self.get("/fine_tuning/jobs")?;
         let r = res.json::<FineTuningPagination<FineTuningJobObject>>();
         match r {
@@ -359,7 +362,10 @@ impl Client {
         &self,
         req: ListFineTuningJobEventsRequest,
     ) -> Result<FineTuningPagination<FineTuningJobEvent>, APIError> {
-        let res = self.get(&format!("/fine_tuning/jobs/{}/events", req.fine_tuning_job_id))?;
+        let res = self.get(&format!(
+            "/fine_tuning/jobs/{}/events",
+            req.fine_tuning_job_id
+        ))?;
         let r = res.json::<FineTuningPagination<FineTuningJobEvent>>();
         match r {
             Ok(r) => Ok(r),
@@ -383,7 +389,10 @@ impl Client {
         &self,
         req: CancelFineTuningJobRequest,
     ) -> Result<FineTuningJobObject, APIError> {
-        let res = self.post(&format!("/fine_tuning/jobs/{}/cancel", req.fine_tuning_job_id), &req)?;
+        let res = self.post(
+            &format!("/fine_tuning/jobs/{}/cancel", req.fine_tuning_job_id),
+            &req,
+        )?;
         let r = res.json::<FineTuningJobObject>();
         match r {
             Ok(r) => Ok(r),

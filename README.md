@@ -7,7 +7,7 @@ Check out the [docs.rs](https://docs.rs/openai-api-rs/).
 Cargo.toml
 ```toml
 [dependencies]
-openai-api-rs = "3.0.1"
+openai-api-rs = "4.0.0"
 ```
 
 ## Usage
@@ -84,7 +84,7 @@ Check out the [full API documentation](https://platform.openai.com/docs/api-refe
 - [x] [Embeddings](https://platform.openai.com/docs/api-reference/embeddings)
 - [x] [Audio](https://platform.openai.com/docs/api-reference/audio)
 - [x] [Files](https://platform.openai.com/docs/api-reference/files)
-- [x] [Fine-tunes](https://platform.openai.com/docs/api-reference/fine-tunes)
+- [x] [Fine-tuning](https://platform.openai.com/docs/api-reference/fine-tuning)
 - [x] [Moderations](https://platform.openai.com/docs/api-reference/moderations)
 - [x] [Function calling](https://platform.openai.com/docs/guides/gpt/function-calling)
 - [x] [Assistants](https://platform.openai.com/docs/assistants/overview)

@@ -2,7 +2,6 @@ use serde::{Deserialize, Serialize};
 
 use crate::impl_builder_methods;
 
-
 #[derive(Debug, Serialize, Clone)]
 pub struct CreateFineTuningJobRequest {
     pub model: String,
@@ -44,7 +43,7 @@ pub struct ListFineTuningJobsRequest {
 }
 
 impl ListFineTuningJobsRequest {
-    pub fn new(fine_tune_id: String) -> Self {
+    pub fn new(_fine_tune_id: String) -> Self {
         Self {
             after: None,
             limit: None,
@@ -144,4 +143,3 @@ pub struct HyperParameters {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub n_epochs: Option<String>,
 }
-
