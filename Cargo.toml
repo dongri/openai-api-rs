@@ -21,4 +21,4 @@ default-features = false
 [dependencies.minreq]
 version = "2"
 default-features = false
-features = ["https-rustls", "json-using-serde"]
+features = ["https-rustls", "json-using-serde", "proxy"]
