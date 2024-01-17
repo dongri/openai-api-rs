@@ -47,6 +47,7 @@ pub struct Client {
     pub api_endpoint: String,
     pub api_key: String,
     pub organization: Option<String>,
+    pub proxy: Option<String>,
 }
 
 impl Client {
@@ -60,6 +61,7 @@ impl Client {
             api_endpoint,
             api_key,
             organization: None,
+            proxy: None,
         }
     }
 
@@ -69,6 +71,17 @@ impl Client {
             api_endpoint: endpoint,
             api_key,
             organization: organization.into(),
+            proxy: None,
+        }
+    }
+
+    pub fn new_with_proxy(api_key: String, proxy: String) -> Self {
+        let endpoint = std::env::var("OPENAI_API_BASE").unwrap_or_else(|_| API_URL_V1.to_owned());
+        Self {
+            api_endpoint: endpoint,
+            api_key,
+            organization: None,
+            proxy: Some(proxy),
         }
     }
 
@@ -81,6 +94,9 @@ impl Client {
         }
         if is_beta {
             request = request.with_header("OpenAI-Beta", "assistants=v1");
+        }
+        if let Some(proxy) = &self.proxy {
+            request = request.with_proxy(minreq::Proxy::new(proxy).unwrap());
         }
         request
     }
