@@ -39,7 +39,7 @@ impl_builder_methods!(
     language: String
 );
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct AudioTranscriptionResponse {
     pub text: String,
 }
@@ -75,7 +75,7 @@ impl_builder_methods!(
     temperature: f32
 );
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct AudioTranslationResponse {
     pub text: String,
 }
@@ -111,7 +111,7 @@ impl AudioSpeechRequest {
 
 impl_builder_methods!(AudioSpeechRequest,);
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct AudioSpeechResponse {
     pub result: bool,
 }

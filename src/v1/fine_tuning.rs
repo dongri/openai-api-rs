@@ -93,14 +93,14 @@ impl CancelFineTuningJobRequest {
     }
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct FineTuningPagination<T> {
     pub object: String,
     pub data: Vec<T>,
     pub has_more: bool,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct FineTuningJobObject {
     pub id: String,
     pub created_at: i64,
@@ -118,14 +118,14 @@ pub struct FineTuningJobObject {
     pub validation_file: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct FineTuningJobError {
     pub code: String,
     pub message: String,
     pub param: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct FineTuningJobEvent {
     pub id: String,
     pub created_at: i64,
@@ -134,7 +134,7 @@ pub struct FineTuningJobEvent {
     pub object: String,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct HyperParameters {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub batch_size: Option<String>,

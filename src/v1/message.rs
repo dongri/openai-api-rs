@@ -53,7 +53,7 @@ impl_builder_methods!(
     metadata: HashMap<String, String>
 );
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct MessageObject {
     pub id: String,
     pub object: String,
@@ -69,7 +69,7 @@ pub struct MessageObject {
     pub metadata: HashMap<String, String>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 #[allow(non_camel_case_types)]
 pub enum MessageRole {
     user,
@@ -78,20 +78,20 @@ pub enum MessageRole {
     function,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct Content {
     #[serde(rename = "type")]
     pub content_type: String,
     pub text: ContentText,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct ContentText {
     pub value: String,
     pub annotations: Vec<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct ListMessage {
     pub object: String,
     pub data: Vec<MessageObject>,
@@ -100,7 +100,7 @@ pub struct ListMessage {
     pub has_more: bool,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct MessageFileObject {
     pub id: String,
     pub object: String,
@@ -108,7 +108,7 @@ pub struct MessageFileObject {
     pub message_id: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct ListMessageFile {
     pub object: String,
     pub data: Vec<MessageFileObject>,

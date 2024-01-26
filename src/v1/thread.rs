@@ -32,7 +32,7 @@ impl_builder_methods!(
   metadata: HashMap<String, String>
 );
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct ThreadObject {
     pub id: String,
     pub object: String,
@@ -40,7 +40,7 @@ pub struct ThreadObject {
     pub metadata: HashMap<String, String>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct Message {
     pub role: MessageRole,
     pub content: String,
@@ -50,7 +50,7 @@ pub struct Message {
     pub metadata: Option<HashMap<String, String>>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 #[allow(non_camel_case_types)]
 pub enum MessageRole {
     user,

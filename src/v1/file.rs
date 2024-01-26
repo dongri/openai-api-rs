@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct FileData {
     pub id: String,
     pub oejct: String,
@@ -10,7 +10,7 @@ pub struct FileData {
     pub purpose: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct FileListResponse {
     pub object: String,
     pub data: Vec<FileData>,
@@ -28,7 +28,7 @@ impl FileUploadRequest {
     }
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct FileUploadResponse {
     pub id: String,
     pub oejct: String,
@@ -49,7 +49,7 @@ impl FileDeleteRequest {
     }
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct FileDeleteResponse {
     pub id: String,
     pub oejct: String,
@@ -67,7 +67,7 @@ impl FileRetrieveRequest {
     }
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct FileRetrieveResponse {
     pub id: String,
     pub oejct: String,
@@ -88,7 +88,7 @@ impl FileRetrieveContentRequest {
     }
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct FileRetrieveContentResponse {
     pub id: String,
     pub oejct: String,

@@ -69,7 +69,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
         Some(chat_completion::FinishReason::tool_calls) => {
             println!("ToolCalls");
-            #[derive(Serialize, Deserialize)]
+            #[derive(Deserialize, Serialize)]
             struct Currency {
                 coin: String,
             }
