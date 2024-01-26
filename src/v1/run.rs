@@ -60,7 +60,7 @@ impl_builder_methods!(
     metadata: HashMap<String, String>
 );
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct RunObject {
     pub id: String,
     pub object: String,
@@ -89,7 +89,7 @@ pub struct RunObject {
     pub metadata: HashMap<String, String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct ListRun {
     pub object: String,
     pub data: Vec<RunObject>,
@@ -113,7 +113,7 @@ pub struct CreateThreadAndRunRequest {
     pub metadata: Option<HashMap<String, String>>,
 }
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct RunStepObject {
     pub id: String,
     pub object: String,
@@ -140,7 +140,7 @@ pub struct RunStepObject {
     pub metadata: HashMap<String, String>,
 }
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct ListRunStep {
     pub object: String,
     pub data: Vec<RunStepObject>,

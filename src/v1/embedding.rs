@@ -3,7 +3,7 @@ use std::option::Option;
 
 use crate::impl_builder_methods;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct EmbeddingData {
     pub object: String,
     pub embedding: Vec<f32>,
@@ -33,7 +33,7 @@ impl_builder_methods!(
     user: String
 );
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct EmbeddingResponse {
     pub object: String,
     pub data: Vec<EmbeddingData>,
@@ -41,7 +41,7 @@ pub struct EmbeddingResponse {
     pub usage: Usage,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct Usage {
     pub prompt_tokens: i32,
     pub total_tokens: i32,

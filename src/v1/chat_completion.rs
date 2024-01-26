@@ -89,7 +89,7 @@ impl_builder_methods!(
     tool_choice: ToolChoiceType
 );
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 #[allow(non_camel_case_types)]
 pub enum MessageRole {
     user,
@@ -116,20 +116,20 @@ impl serde::Serialize for Content {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 #[allow(non_camel_case_types)]
 pub enum ContentType {
     text,
     image_url,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 #[allow(non_camel_case_types)]
 pub struct ImageUrlType {
     pub url: String,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 #[allow(non_camel_case_types)]
 pub struct ImageUrl {
     pub r#type: ContentType,
@@ -139,7 +139,7 @@ pub struct ImageUrl {
     pub image_url: Option<ImageUrlType>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct ChatCompletionMessage {
     pub role: MessageRole,
     pub content: Content,
@@ -147,7 +147,7 @@ pub struct ChatCompletionMessage {
     pub name: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct ChatCompletionMessageForResponse {
     pub role: MessageRole,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -177,7 +177,7 @@ pub struct ChatCompletionResponse {
     pub system_fingerprint: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct Function {
     pub name: String,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -185,7 +185,7 @@ pub struct Function {
     pub parameters: FunctionParameters,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 #[serde(rename_all = "lowercase")]
 pub enum JSONSchemaType {
     Object,
@@ -196,7 +196,7 @@ pub enum JSONSchemaType {
     Boolean,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Deserialize, Serialize, Clone, Default)]
 pub struct JSONSchemaDefine {
     #[serde(rename = "type")]
     pub schema_type: Option<JSONSchemaType>,
@@ -212,7 +212,7 @@ pub struct JSONSchemaDefine {
     pub items: Option<Box<JSONSchemaDefine>>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct FunctionParameters {
     #[serde(rename = "type")]
     pub schema_type: JSONSchemaType,
@@ -222,7 +222,7 @@ pub struct FunctionParameters {
     pub required: Option<Vec<String>>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 #[allow(non_camel_case_types)]
 pub enum FinishReason {
     stop,
@@ -232,21 +232,21 @@ pub enum FinishReason {
     null,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 #[allow(non_camel_case_types)]
 pub struct FinishDetails {
     pub r#type: FinishReason,
     pub stop: String,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct ToolCall {
     pub id: String,
     pub r#type: String,
     pub function: ToolCallFunction,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct ToolCallFunction {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
@@ -274,13 +274,13 @@ where
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct Tool {
     pub r#type: ToolType,
     pub function: Function,
 }
 
-#[derive(Debug, Serialize, Deserialize, Copy, Clone)]
+#[derive(Debug, Deserialize, Serialize, Copy, Clone)]
 #[serde(rename_all = "snake_case")]
 pub enum ToolType {
     Function,

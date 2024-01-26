@@ -20,21 +20,21 @@ impl_builder_methods!(
     model: String
 );
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct CreateModerationResponse {
     pub id: String,
     pub model: String,
     pub results: Vec<ModerationResult>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct ModerationResult {
     pub categories: ModerationCategories,
     pub category_scores: ModerationCategoryScores,
     pub flagged: bool,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct ModerationCategories {
     #[serde(rename = "hate")]
     pub is_hate: bool,
@@ -50,7 +50,7 @@ pub struct ModerationCategories {
     pub is_violence_graphic: bool,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct ModerationCategoryScores {
     #[serde(rename = "hate")]
     pub hate_score: f64,

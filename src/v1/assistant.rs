@@ -44,7 +44,7 @@ impl_builder_methods!(
     metadata: HashMap<String, String>
 );
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct AssistantObject {
     pub id: String,
     pub object: String,
@@ -61,14 +61,14 @@ pub struct AssistantObject {
     pub metadata: HashMap<String, String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct DeletionStatus {
     pub id: String,
     pub object: String,
     pub deleted: bool,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct ListAssistant {
     pub object: String,
     pub data: Vec<AssistantObject>,
@@ -79,7 +79,7 @@ pub struct AssistantFileRequest {
     pub file_id: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct AssistantFileObject {
     pub id: String,
     pub object: String,
@@ -87,7 +87,7 @@ pub struct AssistantFileObject {
     pub assistant_id: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct ListAssistantFile {
     pub object: String,
     pub data: Vec<AssistantFileObject>,
