@@ -158,7 +158,7 @@ pub struct ChatCompletionMessageForResponse {
     pub tool_calls: Option<Vec<ToolCall>>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct ChatCompletionChoice {
     pub index: i64,
     pub message: ChatCompletionMessageForResponse,
@@ -166,7 +166,7 @@ pub struct ChatCompletionChoice {
     pub finish_details: Option<FinishDetails>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct ChatCompletionResponse {
     pub id: String,
     pub object: String,
