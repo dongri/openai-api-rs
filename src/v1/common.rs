@@ -32,6 +32,8 @@ pub const GPT3_5_TURBO_16K_0613: &str = "gpt-3.5-turbo-16k-0613";
 pub const GPT3_5_TURBO_0301: &str = "gpt-3.5-turbo-0301";
 
 // https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo
+pub const GPT4_0125_PREVIEW: &str = "gpt-4-0125-preview";
+pub const GPT4_TURBO_PREVIEW: &str = "gpt-4-turbo-preview";
 pub const GPT4_1106_PREVIEW: &str = "gpt-4-1106-preview";
 pub const GPT4_VISION_PREVIEW: &str = "gpt-4-vision-preview";
 pub const GPT4: &str = "gpt-4";
