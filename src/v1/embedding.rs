@@ -15,6 +15,8 @@ pub struct EmbeddingRequest {
     pub model: String,
     pub input: String,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub dimensions: Option<i32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub user: Option<String>,
 }
 
@@ -23,6 +25,7 @@ impl EmbeddingRequest {
         Self {
             model,
             input,
+            dimensions: None,
             user: None,
         }
     }
