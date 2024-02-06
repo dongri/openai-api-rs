@@ -6,7 +6,7 @@ use std::collections::HashMap;
 use crate::impl_builder_methods;
 use crate::v1::common;
 
-#[derive(Debug, Serialize, Clone)]
+#[derive(Debug, Serialize, Clone, PartialEq, Eq)]
 pub enum ToolChoiceType {
     None,
     Auto,
@@ -89,7 +89,7 @@ impl_builder_methods!(
     tool_choice: ToolChoiceType
 );
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
 #[allow(non_camel_case_types)]
 pub enum MessageRole {
     user,
@@ -98,7 +98,7 @@ pub enum MessageRole {
     function,
 }
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Deserialize, Clone, PartialEq, Eq)]
 pub enum Content {
     Text(String),
     ImageUrl(Vec<ImageUrl>),
@@ -116,20 +116,20 @@ impl serde::Serialize for Content {
     }
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
 #[allow(non_camel_case_types)]
 pub enum ContentType {
     text,
     image_url,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
 #[allow(non_camel_case_types)]
 pub struct ImageUrlType {
     pub url: String,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
 #[allow(non_camel_case_types)]
 pub struct ImageUrl {
     pub r#type: ContentType,
@@ -177,7 +177,7 @@ pub struct ChatCompletionResponse {
     pub system_fingerprint: Option<String>,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
 pub struct Function {
     pub name: String,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -185,7 +185,7 @@ pub struct Function {
     pub parameters: FunctionParameters,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]
 pub enum JSONSchemaType {
     Object,
@@ -196,7 +196,7 @@ pub enum JSONSchemaType {
     Boolean,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone, Default)]
+#[derive(Debug, Deserialize, Serialize, Clone, Default, PartialEq, Eq)]
 pub struct JSONSchemaDefine {
     #[serde(rename = "type")]
     pub schema_type: Option<JSONSchemaType>,
@@ -212,7 +212,7 @@ pub struct JSONSchemaDefine {
     pub items: Option<Box<JSONSchemaDefine>>,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
 pub struct FunctionParameters {
     #[serde(rename = "type")]
     pub schema_type: JSONSchemaType,
@@ -222,7 +222,7 @@ pub struct FunctionParameters {
     pub required: Option<Vec<String>>,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, PartialEq, Eq)]
 #[allow(non_camel_case_types)]
 pub enum FinishReason {
     stop,
@@ -274,13 +274,13 @@ where
     }
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
 pub struct Tool {
     pub r#type: ToolType,
     pub function: Function,
 }
 
-#[derive(Debug, Deserialize, Serialize, Copy, Clone)]
+#[derive(Debug, Deserialize, Serialize, Copy, Clone, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum ToolType {
     Function,
