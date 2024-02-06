@@ -50,7 +50,7 @@ pub struct Message {
     pub metadata: Option<HashMap<String, String>>,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
 #[allow(non_camel_case_types)]
 pub enum MessageRole {
     user,
