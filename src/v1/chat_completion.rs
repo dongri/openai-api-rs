@@ -13,7 +13,7 @@ pub enum ToolChoiceType {
     ToolChoice { tool: Tool },
 }
 
-#[derive(Debug, Serialize, Deserialze, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ChatCompletionRequest {
     pub model: String,
     pub messages: Vec<ChatCompletionMessage>,
