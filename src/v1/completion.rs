@@ -18,7 +18,7 @@ pub const GPT3_CURIE: &str = "curie";
 pub const GPT3_ADA: &str = "ada";
 pub const GPT3_BABBAGE: &str = "babbage";
 
-#[derive(Debug, Serialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct CompletionRequest {
     pub model: String,
     pub prompt: String,
