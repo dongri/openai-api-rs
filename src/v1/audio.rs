@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use serde::{Deserialize, Serialize};
 
 use crate::impl_builder_methods;
@@ -42,6 +44,7 @@ impl_builder_methods!(
 #[derive(Debug, Deserialize, Serialize)]
 pub struct AudioTranscriptionResponse {
     pub text: String,
+    pub headers: Option<HashMap<String, String>>,
 }
 
 #[derive(Debug, Serialize, Clone)]
@@ -78,6 +81,7 @@ impl_builder_methods!(
 #[derive(Debug, Deserialize, Serialize)]
 pub struct AudioTranslationResponse {
     pub text: String,
+    pub headers: Option<HashMap<String, String>>,
 }
 
 pub const TTS_1: &str = "tts-1";
@@ -114,4 +118,5 @@ impl_builder_methods!(AudioSpeechRequest,);
 #[derive(Debug, Deserialize, Serialize)]
 pub struct AudioSpeechResponse {
     pub result: bool,
+    pub headers: Option<HashMap<String, String>>,
 }

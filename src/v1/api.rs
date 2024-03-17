@@ -175,7 +175,10 @@ impl Client {
         let res = self.post("/completions", &req)?;
         let r = res.json::<CompletionResponse>();
         match r {
-            Ok(r) => Ok(r),
+            Ok(mut r) => {
+                r.headers = Some(res.headers);
+                Ok(r)
+            }
             Err(e) => Err(self.new_error(e)),
         }
     }
@@ -184,7 +187,10 @@ impl Client {
         let res = self.post("/edits", &req)?;
         let r = res.json::<EditResponse>();
         match r {
-            Ok(r) => Ok(r),
+            Ok(mut r) => {
+                r.headers = Some(res.headers);
+                Ok(r)
+            }
             Err(e) => Err(self.new_error(e)),
         }
     }
@@ -196,7 +202,10 @@ impl Client {
         let res = self.post("/images/generations", &req)?;
         let r = res.json::<ImageGenerationResponse>();
         match r {
-            Ok(r) => Ok(r),
+            Ok(mut r) => {
+                r.headers = Some(res.headers);
+                Ok(r)
+            }
             Err(e) => Err(self.new_error(e)),
         }
     }
@@ -205,7 +214,10 @@ impl Client {
         let res = self.post("/images/edits", &req)?;
         let r = res.json::<ImageEditResponse>();
         match r {
-            Ok(r) => Ok(r),
+            Ok(mut r) => {
+                r.headers = Some(res.headers);
+                Ok(r)
+            }
             Err(e) => Err(self.new_error(e)),
         }
     }
@@ -217,7 +229,10 @@ impl Client {
         let res = self.post("/images/variations", &req)?;
         let r = res.json::<ImageVariationResponse>();
         match r {
-            Ok(r) => Ok(r),
+            Ok(mut r) => {
+                r.headers = Some(res.headers);
+                Ok(r)
+            }
             Err(e) => Err(self.new_error(e)),
         }
     }
@@ -226,7 +241,10 @@ impl Client {
         let res = self.post("/embeddings", &req)?;
         let r = res.json::<EmbeddingResponse>();
         match r {
-            Ok(r) => Ok(r),
+            Ok(mut r) => {
+                r.headers = Some(res.headers);
+                Ok(r)
+            }
             Err(e) => Err(self.new_error(e)),
         }
     }
@@ -235,7 +253,10 @@ impl Client {
         let res = self.get("/files")?;
         let r = res.json::<FileListResponse>();
         match r {
-            Ok(r) => Ok(r),
+            Ok(mut r) => {
+                r.headers = Some(res.headers);
+                Ok(r)
+            }
             Err(e) => Err(self.new_error(e)),
         }
     }
@@ -244,7 +265,10 @@ impl Client {
         let res = self.post("/files", &req)?;
         let r = res.json::<FileUploadResponse>();
         match r {
-            Ok(r) => Ok(r),
+            Ok(mut r) => {
+                r.headers = Some(res.headers);
+                Ok(r)
+            }
             Err(e) => Err(self.new_error(e)),
         }
     }
@@ -253,7 +277,10 @@ impl Client {
         let res = self.delete(&format!("{}/{}", "/files", req.file_id))?;
         let r = res.json::<FileDeleteResponse>();
         match r {
-            Ok(r) => Ok(r),
+            Ok(mut r) => {
+                r.headers = Some(res.headers);
+                Ok(r)
+            }
             Err(e) => Err(self.new_error(e)),
         }
     }
@@ -265,7 +292,10 @@ impl Client {
         let res = self.get(&format!("{}/{}", "/files", req.file_id))?;
         let r = res.json::<FileRetrieveResponse>();
         match r {
-            Ok(r) => Ok(r),
+            Ok(mut r) => {
+                r.headers = Some(res.headers);
+                Ok(r)
+            }
             Err(e) => Err(self.new_error(e)),
         }
     }
@@ -277,7 +307,10 @@ impl Client {
         let res = self.get(&format!("{}/{}/content", "/files", req.file_id))?;
         let r = res.json::<FileRetrieveContentResponse>();
         match r {
-            Ok(r) => Ok(r),
+            Ok(mut r) => {
+                r.headers = Some(res.headers);
+                Ok(r)
+            }
             Err(e) => Err(self.new_error(e)),
         }
     }
@@ -289,7 +322,10 @@ impl Client {
         let res = self.post("/chat/completions", &req)?;
         let r = res.json::<ChatCompletionResponse>();
         match r {
-            Ok(r) => Ok(r),
+            Ok(mut r) => {
+                r.headers = Some(res.headers);
+                Ok(r)
+            }
             Err(e) => Err(self.new_error(e)),
         }
     }
@@ -301,7 +337,10 @@ impl Client {
         let res = self.post("/audio/transcriptions", &req)?;
         let r = res.json::<AudioTranscriptionResponse>();
         match r {
-            Ok(r) => Ok(r),
+            Ok(mut r) => {
+                r.headers = Some(res.headers);
+                Ok(r)
+            }
             Err(e) => Err(self.new_error(e)),
         }
     }
@@ -313,7 +352,10 @@ impl Client {
         let res = self.post("/audio/translations", &req)?;
         let r = res.json::<AudioTranslationResponse>();
         match r {
-            Ok(r) => Ok(r),
+            Ok(mut r) => {
+                r.headers = Some(res.headers);
+                Ok(r)
+            }
             Err(e) => Err(self.new_error(e)),
         }
     }
@@ -348,7 +390,10 @@ impl Client {
                 })
             }
         }
-        Ok(AudioSpeechResponse { result: true })
+        Ok(AudioSpeechResponse {
+            result: true,
+            headers: Some(res.headers),
+        })
     }
 
     pub fn create_fine_tuning_job(
@@ -358,7 +403,10 @@ impl Client {
         let res = self.post("/fine_tuning/jobs", &req)?;
         let r = res.json::<FineTuningJobObject>();
         match r {
-            Ok(r) => Ok(r),
+            Ok(mut r) => {
+                r.headers = Some(res.headers);
+                Ok(r)
+            }
             Err(e) => Err(self.new_error(e)),
         }
     }
@@ -369,7 +417,10 @@ impl Client {
         let res = self.get("/fine_tuning/jobs")?;
         let r = res.json::<FineTuningPagination<FineTuningJobObject>>();
         match r {
-            Ok(r) => Ok(r),
+            Ok(mut r) => {
+                r.headers = Some(res.headers);
+                Ok(r)
+            }
             Err(e) => Err(self.new_error(e)),
         }
     }
@@ -384,7 +435,10 @@ impl Client {
         ))?;
         let r = res.json::<FineTuningPagination<FineTuningJobEvent>>();
         match r {
-            Ok(r) => Ok(r),
+            Ok(mut r) => {
+                r.headers = Some(res.headers);
+                Ok(r)
+            }
             Err(e) => Err(self.new_error(e)),
         }
     }
@@ -396,7 +450,10 @@ impl Client {
         let res = self.get(&format!("/fine_tuning/jobs/{}", req.fine_tuning_job_id))?;
         let r = res.json::<FineTuningJobObject>();
         match r {
-            Ok(r) => Ok(r),
+            Ok(mut r) => {
+                r.headers = Some(res.headers);
+                Ok(r)
+            }
             Err(e) => Err(self.new_error(e)),
         }
     }
@@ -411,7 +468,10 @@ impl Client {
         )?;
         let r = res.json::<FineTuningJobObject>();
         match r {
-            Ok(r) => Ok(r),
+            Ok(mut r) => {
+                r.headers = Some(res.headers);
+                Ok(r)
+            }
             Err(e) => Err(self.new_error(e)),
         }
     }
@@ -423,7 +483,10 @@ impl Client {
         let res = self.post("/moderations", &req)?;
         let r = res.json::<CreateModerationResponse>();
         match r {
-            Ok(r) => Ok(r),
+            Ok(mut r) => {
+                r.headers = Some(res.headers);
+                Ok(r)
+            }
             Err(e) => Err(self.new_error(e)),
         }
     }
@@ -432,7 +495,10 @@ impl Client {
         let res = self.post("/assistants", &req)?;
         let r = res.json::<AssistantObject>();
         match r {
-            Ok(r) => Ok(r),
+            Ok(mut r) => {
+                r.headers = Some(res.headers);
+                Ok(r)
+            }
             Err(e) => Err(self.new_error(e)),
         }
     }
@@ -441,7 +507,10 @@ impl Client {
         let res = self.get(&format!("/assistants/{}", assistant_id))?;
         let r = res.json::<AssistantObject>();
         match r {
-            Ok(r) => Ok(r),
+            Ok(mut r) => {
+                r.headers = Some(res.headers);
+                Ok(r)
+            }
             Err(e) => Err(self.new_error(e)),
         }
     }
@@ -454,7 +523,10 @@ impl Client {
         let res = self.post(&format!("/assistants/{}", assistant_id), &req)?;
         let r = res.json::<AssistantObject>();
         match r {
-            Ok(r) => Ok(r),
+            Ok(mut r) => {
+                r.headers = Some(res.headers);
+                Ok(r)
+            }
             Err(e) => Err(self.new_error(e)),
         }
     }
@@ -463,7 +535,10 @@ impl Client {
         let res = self.delete(&format!("/assistants/{}", assistant_id))?;
         let r = res.json::<DeletionStatus>();
         match r {
-            Ok(r) => Ok(r),
+            Ok(mut r) => {
+                r.headers = Some(res.headers);
+                Ok(r)
+            }
             Err(e) => Err(self.new_error(e)),
         }
     }
@@ -480,7 +555,10 @@ impl Client {
         let res = self.get(&url)?;
         let r = res.json::<ListAssistant>();
         match r {
-            Ok(r) => Ok(r),
+            Ok(mut r) => {
+                r.headers = Some(res.headers);
+                Ok(r)
+            }
             Err(e) => Err(self.new_error(e)),
         }
     }
@@ -493,7 +571,10 @@ impl Client {
         let res = self.post(&format!("/assistants/{}/files", assistant_id), &req)?;
         let r = res.json::<AssistantFileObject>();
         match r {
-            Ok(r) => Ok(r),
+            Ok(mut r) => {
+                r.headers = Some(res.headers);
+                Ok(r)
+            }
             Err(e) => Err(self.new_error(e)),
         }
     }
@@ -506,7 +587,10 @@ impl Client {
         let res = self.get(&format!("/assistants/{}/files/{}", assistant_id, file_id))?;
         let r = res.json::<AssistantFileObject>();
         match r {
-            Ok(r) => Ok(r),
+            Ok(mut r) => {
+                r.headers = Some(res.headers);
+                Ok(r)
+            }
             Err(e) => Err(self.new_error(e)),
         }
     }
@@ -519,7 +603,10 @@ impl Client {
         let res = self.delete(&format!("/assistants/{}/files/{}", assistant_id, file_id))?;
         let r = res.json::<DeletionStatus>();
         match r {
-            Ok(r) => Ok(r),
+            Ok(mut r) => {
+                r.headers = Some(res.headers);
+                Ok(r)
+            }
             Err(e) => Err(self.new_error(e)),
         }
     }
@@ -537,7 +624,10 @@ impl Client {
         let res = self.get(&url)?;
         let r = res.json::<ListAssistantFile>();
         match r {
-            Ok(r) => Ok(r),
+            Ok(mut r) => {
+                r.headers = Some(res.headers);
+                Ok(r)
+            }
             Err(e) => Err(self.new_error(e)),
         }
     }
@@ -546,7 +636,10 @@ impl Client {
         let res = self.post("/threads", &req)?;
         let r = res.json::<ThreadObject>();
         match r {
-            Ok(r) => Ok(r),
+            Ok(mut r) => {
+                r.headers = Some(res.headers);
+                Ok(r)
+            }
             Err(e) => Err(self.new_error(e)),
         }
     }
@@ -555,7 +648,10 @@ impl Client {
         let res = self.get(&format!("/threads/{}", thread_id))?;
         let r = res.json::<ThreadObject>();
         match r {
-            Ok(r) => Ok(r),
+            Ok(mut r) => {
+                r.headers = Some(res.headers);
+                Ok(r)
+            }
             Err(e) => Err(self.new_error(e)),
         }
     }
@@ -568,7 +664,10 @@ impl Client {
         let res = self.post(&format!("/threads/{}", thread_id), &req)?;
         let r = res.json::<ThreadObject>();
         match r {
-            Ok(r) => Ok(r),
+            Ok(mut r) => {
+                r.headers = Some(res.headers);
+                Ok(r)
+            }
             Err(e) => Err(self.new_error(e)),
         }
     }
@@ -577,7 +676,10 @@ impl Client {
         let res = self.delete(&format!("/threads/{}", thread_id))?;
         let r = res.json::<DeletionStatus>();
         match r {
-            Ok(r) => Ok(r),
+            Ok(mut r) => {
+                r.headers = Some(res.headers);
+                Ok(r)
+            }
             Err(e) => Err(self.new_error(e)),
         }
     }
@@ -590,7 +692,10 @@ impl Client {
         let res = self.post(&format!("/threads/{}/messages", thread_id), &req)?;
         let r = res.json::<MessageObject>();
         match r {
-            Ok(r) => Ok(r),
+            Ok(mut r) => {
+                r.headers = Some(res.headers);
+                Ok(r)
+            }
             Err(e) => Err(self.new_error(e)),
         }
     }
@@ -603,7 +708,10 @@ impl Client {
         let res = self.get(&format!("/threads/{}/messages/{}", thread_id, message_id))?;
         let r = res.json::<MessageObject>();
         match r {
-            Ok(r) => Ok(r),
+            Ok(mut r) => {
+                r.headers = Some(res.headers);
+                Ok(r)
+            }
             Err(e) => Err(self.new_error(e)),
         }
     }
@@ -620,7 +728,10 @@ impl Client {
         )?;
         let r = res.json::<MessageObject>();
         match r {
-            Ok(r) => Ok(r),
+            Ok(mut r) => {
+                r.headers = Some(res.headers);
+                Ok(r)
+            }
             Err(e) => Err(self.new_error(e)),
         }
     }
@@ -629,7 +740,10 @@ impl Client {
         let res = self.get(&format!("/threads/{}/messages", thread_id))?;
         let r = res.json::<ListMessage>();
         match r {
-            Ok(r) => Ok(r),
+            Ok(mut r) => {
+                r.headers = Some(res.headers);
+                Ok(r)
+            }
             Err(e) => Err(self.new_error(e)),
         }
     }
@@ -646,7 +760,10 @@ impl Client {
         ))?;
         let r = res.json::<MessageFileObject>();
         match r {
-            Ok(r) => Ok(r),
+            Ok(mut r) => {
+                r.headers = Some(res.headers);
+                Ok(r)
+            }
             Err(e) => Err(self.new_error(e)),
         }
     }
@@ -665,7 +782,10 @@ impl Client {
         let res = self.get(&url)?;
         let r = res.json::<ListMessageFile>();
         match r {
-            Ok(r) => Ok(r),
+            Ok(mut r) => {
+                r.headers = Some(res.headers);
+                Ok(r)
+            }
             Err(e) => Err(self.new_error(e)),
         }
     }
@@ -678,7 +798,10 @@ impl Client {
         let res = self.post(&format!("/threads/{}/runs", thread_id), &req)?;
         let r = res.json::<RunObject>();
         match r {
-            Ok(r) => Ok(r),
+            Ok(mut r) => {
+                r.headers = Some(res.headers);
+                Ok(r)
+            }
             Err(e) => Err(self.new_error(e)),
         }
     }
@@ -687,7 +810,10 @@ impl Client {
         let res = self.get(&format!("/threads/{}/runs/{}", thread_id, run_id))?;
         let r = res.json::<RunObject>();
         match r {
-            Ok(r) => Ok(r),
+            Ok(mut r) => {
+                r.headers = Some(res.headers);
+                Ok(r)
+            }
             Err(e) => Err(self.new_error(e)),
         }
     }
@@ -701,7 +827,10 @@ impl Client {
         let res = self.post(&format!("/threads/{}/runs/{}", thread_id, run_id), &req)?;
         let r = res.json::<RunObject>();
         match r {
-            Ok(r) => Ok(r),
+            Ok(mut r) => {
+                r.headers = Some(res.headers);
+                Ok(r)
+            }
             Err(e) => Err(self.new_error(e)),
         }
     }
@@ -719,7 +848,10 @@ impl Client {
         let res = self.get(&url)?;
         let r = res.json::<ListRun>();
         match r {
-            Ok(r) => Ok(r),
+            Ok(mut r) => {
+                r.headers = Some(res.headers);
+                Ok(r)
+            }
             Err(e) => Err(self.new_error(e)),
         }
     }
@@ -732,7 +864,10 @@ impl Client {
         )?;
         let r = res.json::<RunObject>();
         match r {
-            Ok(r) => Ok(r),
+            Ok(mut r) => {
+                r.headers = Some(res.headers);
+                Ok(r)
+            }
             Err(e) => Err(self.new_error(e)),
         }
     }
@@ -744,7 +879,10 @@ impl Client {
         let res = self.post("/threads/runs", &req)?;
         let r = res.json::<RunObject>();
         match r {
-            Ok(r) => Ok(r),
+            Ok(mut r) => {
+                r.headers = Some(res.headers);
+                Ok(r)
+            }
             Err(e) => Err(self.new_error(e)),
         }
     }
@@ -761,7 +899,10 @@ impl Client {
         ))?;
         let r = res.json::<RunStepObject>();
         match r {
-            Ok(r) => Ok(r),
+            Ok(mut r) => {
+                r.headers = Some(res.headers);
+                Ok(r)
+            }
             Err(e) => Err(self.new_error(e)),
         }
     }
@@ -780,7 +921,10 @@ impl Client {
         let res = self.get(&url)?;
         let r = res.json::<ListRunStep>();
         match r {
-            Ok(r) => Ok(r),
+            Ok(mut r) => {
+                r.headers = Some(res.headers);
+                Ok(r)
+            }
             Err(e) => Err(self.new_error(e)),
         }
     }

@@ -38,6 +38,7 @@ pub struct ThreadObject {
     pub object: String,
     pub created_at: i64,
     pub metadata: HashMap<String, String>,
+    pub headers: Option<HashMap<String, String>>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
