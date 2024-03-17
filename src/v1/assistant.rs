@@ -59,6 +59,7 @@ pub struct AssistantObject {
     pub tools: Vec<HashMap<String, String>>,
     pub file_ids: Vec<String>,
     pub metadata: HashMap<String, String>,
+    pub headers: Option<HashMap<String, String>>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -66,12 +67,14 @@ pub struct DeletionStatus {
     pub id: String,
     pub object: String,
     pub deleted: bool,
+    pub headers: Option<HashMap<String, String>>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct ListAssistant {
     pub object: String,
     pub data: Vec<AssistantObject>,
+    pub headers: Option<HashMap<String, String>>,
 }
 
 #[derive(Debug, Serialize, Clone)]
@@ -85,10 +88,12 @@ pub struct AssistantFileObject {
     pub object: String,
     pub created_at: i64,
     pub assistant_id: String,
+    pub headers: Option<HashMap<String, String>>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct ListAssistantFile {
     pub object: String,
     pub data: Vec<AssistantFileObject>,
+    pub headers: Option<HashMap<String, String>>,
 }

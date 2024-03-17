@@ -67,6 +67,7 @@ pub struct MessageObject {
     pub run_id: Option<String>,
     pub file_ids: Vec<String>,
     pub metadata: HashMap<String, String>,
+    pub headers: Option<HashMap<String, String>>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
@@ -98,6 +99,7 @@ pub struct ListMessage {
     pub first_id: String,
     pub last_id: String,
     pub has_more: bool,
+    pub headers: Option<HashMap<String, String>>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -106,6 +108,7 @@ pub struct MessageFileObject {
     pub object: String,
     pub created_at: i64,
     pub message_id: String,
+    pub headers: Option<HashMap<String, String>>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -115,4 +118,5 @@ pub struct ListMessageFile {
     pub first_id: String,
     pub last_id: String,
     pub has_more: bool,
+    pub headers: Option<HashMap<String, String>>,
 }

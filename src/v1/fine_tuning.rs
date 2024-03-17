@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 use crate::impl_builder_methods;
 
@@ -98,6 +99,7 @@ pub struct FineTuningPagination<T> {
     pub object: String,
     pub data: Vec<T>,
     pub has_more: bool,
+    pub headers: Option<HashMap<String, String>>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -116,6 +118,7 @@ pub struct FineTuningJobObject {
     pub trained_tokens: Option<i64>,
     pub training_file: String,
     pub validation_file: Option<String>,
+    pub headers: Option<HashMap<String, String>>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]

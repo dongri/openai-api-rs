@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -14,6 +16,7 @@ pub struct FileData {
 pub struct FileListResponse {
     pub object: String,
     pub data: Vec<FileData>,
+    pub headers: Option<HashMap<String, String>>,
 }
 
 #[derive(Debug, Serialize)]
@@ -36,6 +39,7 @@ pub struct FileUploadResponse {
     pub created_at: i64,
     pub filename: String,
     pub purpose: String,
+    pub headers: Option<HashMap<String, String>>,
 }
 
 #[derive(Debug, Serialize)]
@@ -54,6 +58,7 @@ pub struct FileDeleteResponse {
     pub id: String,
     pub oejct: String,
     pub delete: bool,
+    pub headers: Option<HashMap<String, String>>,
 }
 
 #[derive(Debug, Serialize)]
@@ -75,6 +80,7 @@ pub struct FileRetrieveResponse {
     pub created_at: i64,
     pub filename: String,
     pub purpose: String,
+    pub headers: Option<HashMap<String, String>>,
 }
 
 #[derive(Debug, Serialize)]
@@ -96,4 +102,5 @@ pub struct FileRetrieveContentResponse {
     pub created_at: i64,
     pub filename: String,
     pub purpose: String,
+    pub headers: Option<HashMap<String, String>>,
 }

@@ -175,6 +175,7 @@ pub struct ChatCompletionResponse {
     pub choices: Vec<ChatCompletionChoice>,
     pub usage: common::Usage,
     pub system_fingerprint: Option<String>,
+    pub headers: Option<HashMap<String, String>>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
