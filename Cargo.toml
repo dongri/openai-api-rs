@@ -2,7 +2,7 @@
 name = "openai-api-rs"
 version = "4.0.8"
 edition = "2021"
-authors = ["Dongri Jin <dongrify@gmail.com>"]
+authors = ["Dongri Jin <dongrium@gmail.com>"]
 license = "MIT"
 description = "OpenAI API client library for Rust (unofficial)"
 repository = "https://github.com/dongri/openai-api-rs"
