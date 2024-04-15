@@ -18,27 +18,18 @@ The library needs to be configured with your account's secret key, which is avai
 $ export OPENAI_API_KEY=sk-xxxxxxx
 ```
 
-### Set OPENAI_API_BASE to environment variable (optional)
-```bash
-$ export OPENAI_API_BASE=https://api.openai.com/v1
-```
-
 ### Create client
 ```rust
-use openai_api_rs::v1::api::Client;
-use std::env;
 let client = Client::new(env::var("OPENAI_API_KEY").unwrap().to_string());
 ```
 
 ### Create request
 ```rust
-use openai_api_rs::v1::chat_completion::{self, ChatCompletionRequest};
-use openai_api_rs::v1::common::GPT4;
 let req = ChatCompletionRequest::new(
     GPT4.to_string(),
     vec![chat_completion::ChatCompletionMessage {
         role: chat_completion::MessageRole::user,
-        content: chat_completion::Content::Text(String::from("Hello OpenAI!")),
+        content: chat_completion::Content::Text(String::from("What is bitcoin?")),
         name: None,
     }],
 );
@@ -46,8 +37,13 @@ let req = ChatCompletionRequest::new(
 
 ### Send request
 ```rust
-let result = client.completion(req)?;
-println!("{:?}", result.choices[0].text);
+let result = client.chat_completion(req)?;
+println!("Content: {:?}", result.choices[0].message.content);
+```
+
+### Set OPENAI_API_BASE to environment variable (optional)
+```bash
+$ export OPENAI_API_BASE=https://api.openai.com/v1
 ```
 
 ## Example of chat completion
@@ -59,16 +55,20 @@ use std::env;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let client = Client::new(env::var("OPENAI_API_KEY").unwrap().to_string());
+
     let req = ChatCompletionRequest::new(
         GPT4.to_string(),
         vec![chat_completion::ChatCompletionMessage {
             role: chat_completion::MessageRole::user,
-            content: chat_completion::Content::Text(String::from("What is Bitcoin?")),
+            content: chat_completion::Content::Text(String::from("What is bitcoin?")),
             name: None,
         }],
     );
+
     let result = client.chat_completion(req)?;
-    println!("{:?}", result.choices[0].message.content);
+    println!("Content: {:?}", result.choices[0].message.content);
+    println!("Response Headers: {:?}", result.headers);
+
     Ok(())
 }
 ```
