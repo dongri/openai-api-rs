@@ -26,7 +26,7 @@ let client = Client::new(env::var("OPENAI_API_KEY").unwrap().to_string());
 ### Create request
 ```rust
 let req = ChatCompletionRequest::new(
-    GPT4.to_string(),
+    GPT4_O.to_string(),
     vec![chat_completion::ChatCompletionMessage {
         role: chat_completion::MessageRole::user,
         content: chat_completion::Content::Text(String::from("What is bitcoin?")),
@@ -50,14 +50,14 @@ $ export OPENAI_API_BASE=https://api.openai.com/v1
 ```rust
 use openai_api_rs::v1::api::Client;
 use openai_api_rs::v1::chat_completion::{self, ChatCompletionRequest};
-use openai_api_rs::v1::common::GPT4;
+use openai_api_rs::v1::common::GPT4_O;
 use std::env;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let client = Client::new(env::var("OPENAI_API_KEY").unwrap().to_string());
 
     let req = ChatCompletionRequest::new(
-        GPT4.to_string(),
+        GPT4_O.to_string(),
         vec![chat_completion::ChatCompletionMessage {
             role: chat_completion::MessageRole::user,
             content: chat_completion::Content::Text(String::from("What is bitcoin?")),
