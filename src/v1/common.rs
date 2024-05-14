@@ -20,6 +20,9 @@ macro_rules! impl_builder_methods {
         }
     };
 }
+// https://platform.openai.com/docs/models/gpt-4o
+pub const GPT4_O: &str = "gpt-4o";
+pub const GPT4_O_2024_05_13: &str = "gpt-4o-2024-05-13";
 
 // https://platform.openai.com/docs/models/gpt-3-5
 pub const GPT3_5_TURBO_1106: &str = "gpt-3.5-turbo-1106";
