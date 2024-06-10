@@ -1,6 +1,6 @@
 use openai_api_rs::v1::api::Client;
 use openai_api_rs::v1::assistant::AssistantRequest;
-use openai_api_rs::v1::common::GPT4_1106_PREVIEW;
+use openai_api_rs::v1::common::GPT4_O;
 use openai_api_rs::v1::message::{CreateMessageRequest, MessageRole};
 use openai_api_rs::v1::run::CreateRunRequest;
 use openai_api_rs::v1::thread::CreateThreadRequest;
@@ -13,20 +13,20 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut tools = HashMap::new();
     tools.insert("type".to_string(), "code_interpreter".to_string());
 
-    let req = AssistantRequest::new(GPT4_1106_PREVIEW.to_string());
+    let req = AssistantRequest::new(GPT4_O.to_string());
     let req = req
         .clone()
         .description("this is a test assistant".to_string());
     let req = req.clone().instructions("You are a personal math tutor. When asked a question, write and run Python code to answer the question.".to_string());
     let req = req.clone().tools(vec![tools]);
-    println!("{:?}", req);
+    println!("AssistantRequest: {:?}", req);
 
     let result = client.create_assistant(req)?;
-    println!("{:?}", result.id);
+    println!("Create Assistant Result ID: {:?}", result.id);
 
     let thread_req = CreateThreadRequest::new();
     let thread_result = client.create_thread(thread_req)?;
-    println!("{:?}", thread_result.id.clone());
+    println!("Create Thread Result ID: {:?}", thread_result.id.clone());
 
     let message_req = CreateMessageRequest::new(
         MessageRole::user,
@@ -34,10 +34,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     );
 
     let message_result = client.create_message(thread_result.id.clone(), message_req)?;
-    println!("{:?}", message_result.id.clone());
+    println!("Create Message Result ID: {:?}", message_result.id.clone());
 
     let run_req = CreateRunRequest::new(result.id);
     let run_result = client.create_run(thread_result.id.clone(), run_req)?;
+    println!("Create Run Result ID: {:?}", run_result.id.clone());
 
     loop {
         let run_result = client

@@ -15,7 +15,7 @@ pub struct AssistantRequest {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub tools: Option<Vec<HashMap<String, String>>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub file_ids: Option<Vec<String>>,
+    pub tool_resources: Option<ToolResource>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub metadata: Option<HashMap<String, String>>,
 }
@@ -28,7 +28,7 @@ impl AssistantRequest {
             description: None,
             instructions: None,
             tools: None,
-            file_ids: None,
+            tool_resources: None,
             metadata: None,
         }
     }
@@ -40,7 +40,7 @@ impl_builder_methods!(
     description: String,
     instructions: String,
     tools: Vec<HashMap<String, String>>,
-    file_ids: Vec<String>,
+    tool_resources: ToolResource,
     metadata: HashMap<String, String>
 );
 
@@ -57,9 +57,42 @@ pub struct AssistantObject {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub instructions: Option<String>,
     pub tools: Vec<HashMap<String, String>>,
-    pub file_ids: Vec<String>,
-    pub metadata: HashMap<String, String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tool_resources: Option<ToolResource>,
+    pub metadata: Option<HashMap<String, String>>,
     pub headers: Option<HashMap<String, String>>,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct ToolResource {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub code_interpreter: Option<CodeInterpreter>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub file_search: Option<FileSearch>,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct CodeInterpreter {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub file_ids: Option<Vec<String>>,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct FileSearch {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub vector_store_ids: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub vector_stores: Option<VectorStores>,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct VectorStores {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub file_ids: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub chunking_strategy: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub metadata: Option<HashMap<String, String>>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]

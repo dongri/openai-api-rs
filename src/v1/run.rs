@@ -85,7 +85,6 @@ pub struct RunObject {
     pub model: String,
     pub instructions: Option<String>,
     pub tools: Vec<HashMap<String, String>>,
-    pub file_ids: Vec<String>,
     pub metadata: HashMap<String, String>,
     pub headers: Option<HashMap<String, String>>,
 }

@@ -8,7 +8,7 @@ pub struct CreateMessageRequest {
     pub role: MessageRole,
     pub content: String,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub file_ids: Option<Vec<String>>,
+    pub attachments: Option<Vec<Attachment>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub metadata: Option<HashMap<String, String>>,
 }
@@ -18,7 +18,7 @@ impl CreateMessageRequest {
         Self {
             role,
             content,
-            file_ids: None,
+            attachments: None,
             metadata: None,
         }
     }
@@ -26,7 +26,7 @@ impl CreateMessageRequest {
 
 impl_builder_methods!(
     CreateMessageRequest,
-    file_ids: Vec<String>,
+    attachments: Vec<Attachment>,
     metadata: HashMap<String, String>
 );
 
@@ -65,9 +65,21 @@ pub struct MessageObject {
     pub assistant_id: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub run_id: Option<String>,
-    pub file_ids: Vec<String>,
-    pub metadata: HashMap<String, String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub attachments: Option<Vec<Attachment>>,
+    pub metadata: Option<HashMap<String, String>>,
     pub headers: Option<HashMap<String, String>>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct Attachment {
+    pub file_id: Option<String>,
+    pub tools: Vec<Tool>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct Tool {
+    pub r#type: String,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
