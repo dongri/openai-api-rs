@@ -93,7 +93,7 @@ impl Client {
             request = request.with_header("openai-organization", organization);
         }
         if is_beta {
-            request = request.with_header("OpenAI-Beta", "assistants=v1");
+            request = request.with_header("OpenAI-Beta", "assistants=v2");
         }
         if let Some(proxy) = &self.proxy {
             request = request.with_proxy(minreq::Proxy::new(proxy).unwrap());
