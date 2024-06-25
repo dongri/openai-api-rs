@@ -48,6 +48,7 @@ pub struct Client {
     pub api_key: String,
     pub organization: Option<String>,
     pub proxy: Option<String>,
+    pub timeout: Option<u64>,
 }
 
 impl Client {
@@ -62,6 +63,7 @@ impl Client {
             api_key,
             organization: None,
             proxy: None,
+            timeout: None,
         }
     }
 
@@ -72,6 +74,7 @@ impl Client {
             api_key,
             organization: organization.into(),
             proxy: None,
+            timeout: None,
         }
     }
 
@@ -82,6 +85,18 @@ impl Client {
             api_key,
             organization: None,
             proxy: Some(proxy),
+            timeout: None,
+        }
+    }
+
+    pub fn new_with_timeout(api_key: String, timeout: u64) -> Self {
+        let endpoint = std::env::var("OPENAI_API_BASE").unwrap_or_else(|_| API_URL_V1.to_owned());
+        Self {
+            api_endpoint: endpoint,
+            api_key,
+            organization: None,
+            proxy: None,
+            timeout: Some(timeout),
         }
     }
 
@@ -97,6 +112,9 @@ impl Client {
         }
         if let Some(proxy) = &self.proxy {
             request = request.with_proxy(minreq::Proxy::new(proxy).unwrap());
+        }
+        if let Some(timeout) = self.timeout {
+            request = request.with_timeout(timeout);
         }
         request
     }
