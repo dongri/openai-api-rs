@@ -1,9 +1,10 @@
-use openai_api_rs::v1::api::Client;
+use openai_api_rs::v1::api::OpenAIClient;
 use openai_api_rs::v1::completion::{self, CompletionRequest};
 use std::env;
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let client = Client::new(env::var("OPENAI_API_KEY").unwrap().to_string());
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let client = OpenAIClient::new(env::var("OPENAI_API_KEY").unwrap().to_string());
 
     let req = CompletionRequest::new(
         completion::GPT3_TEXT_DAVINCI_003.to_string(),
@@ -16,7 +17,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     .presence_penalty(0.6)
     .frequency_penalty(0.0);
 
-    let result = client.completion(req)?;
+    let result = client.completion(req).await?;
     println!("{:}", result.choices[0].text);
 
     Ok(())

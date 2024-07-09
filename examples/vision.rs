@@ -1,10 +1,11 @@
-use openai_api_rs::v1::api::Client;
+use openai_api_rs::v1::api::OpenAIClient;
 use openai_api_rs::v1::chat_completion::{self, ChatCompletionRequest};
 use openai_api_rs::v1::common::GPT4_VISION_PREVIEW;
 use std::env;
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let client = Client::new(env::var("OPENAI_API_KEY").unwrap().to_string());
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let client = OpenAIClient::new(env::var("OPENAI_API_KEY").unwrap().to_string());
 
     let req = ChatCompletionRequest::new(
         GPT4_VISION_PREVIEW.to_string(),
@@ -30,7 +31,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }],
     );
 
-    let result = client.chat_completion(req)?;
+    let result = client.chat_completion(req).await?;
     println!("{:?}", result.choices[0].message.content);
 
     Ok(())

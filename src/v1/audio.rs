@@ -1,6 +1,6 @@
-use std::collections::HashMap;
-
+use reqwest::header::HeaderMap;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 use crate::impl_builder_methods;
 
@@ -115,8 +115,8 @@ impl AudioSpeechRequest {
 
 impl_builder_methods!(AudioSpeechRequest,);
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug)]
 pub struct AudioSpeechResponse {
     pub result: bool,
-    pub headers: Option<HashMap<String, String>>,
+    pub headers: Option<HeaderMap>,
 }
