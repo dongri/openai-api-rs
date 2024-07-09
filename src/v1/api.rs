@@ -36,14 +36,19 @@ use crate::v1::run::{
 };
 use crate::v1::thread::{CreateThreadRequest, ModifyThreadRequest, ThreadObject};
 
-use minreq::Response;
+use reqwest::multipart::{Form, Part};
+use reqwest::{Client, Method, Response};
+use serde::Serialize;
+use serde_json::Value;
+
 use std::fs::{create_dir_all, File};
+use std::io::Read;
 use std::io::Write;
 use std::path::Path;
 
 const API_URL_V1: &str = "https://api.openai.com/v1";
 
-pub struct Client {
+pub struct OpenAIClient {
     pub api_endpoint: String,
     pub api_key: String,
     pub organization: Option<String>,
@@ -51,7 +56,7 @@ pub struct Client {
     pub timeout: Option<u64>,
 }
 
-impl Client {
+impl OpenAIClient {
     pub fn new(api_key: String) -> Self {
         let endpoint = std::env::var("OPENAI_API_BASE").unwrap_or_else(|_| API_URL_V1.to_owned());
         Self::new_with_endpoint(endpoint, api_key)
@@ -72,7 +77,7 @@ impl Client {
         Self {
             api_endpoint: endpoint,
             api_key,
-            organization: organization.into(),
+            organization: Some(organization),
             proxy: None,
             timeout: None,
         }
@@ -100,536 +105,336 @@ impl Client {
         }
     }
 
-    pub fn build_request(&self, request: minreq::Request, is_beta: bool) -> minreq::Request {
-        let mut request = request
-            .with_header("Content-Type", "application/json")
-            .with_header("Authorization", format!("Bearer {}", self.api_key));
+    async fn build_request(&self, method: Method, path: &str) -> reqwest::RequestBuilder {
+        let url = format!("{}/{}", self.api_endpoint, path);
+        let client = Client::builder();
+
+        let client = if let Some(timeout) = self.timeout {
+            client.timeout(std::time::Duration::from_secs(timeout))
+        } else {
+            client
+        };
+
+        let client = if let Some(proxy) = &self.proxy {
+            client.proxy(reqwest::Proxy::http(proxy).unwrap())
+        } else {
+            client
+        };
+
+        let client = client.build().unwrap();
+
+        let mut request = client
+            .request(method, url)
+            // .header("Content-Type", "application/json")
+            .header("Authorization", format!("Bearer {}", self.api_key));
+
         if let Some(organization) = &self.organization {
-            request = request.with_header("openai-organization", organization);
+            request = request.header("openai-organization", organization);
         }
-        if is_beta {
-            request = request.with_header("OpenAI-Beta", "assistants=v2");
+
+        if Self::is_beta(path) {
+            request = request.header("OpenAI-Beta", "assistants=v2");
         }
-        if let Some(proxy) = &self.proxy {
-            request = request.with_proxy(minreq::Proxy::new(proxy).unwrap());
-        }
-        if let Some(timeout) = self.timeout {
-            request = request.with_timeout(timeout);
-        }
+
         request
     }
 
-    pub fn post<T: serde::ser::Serialize>(
+    async fn post<T: serde::de::DeserializeOwned>(
         &self,
         path: &str,
-        params: &T,
-    ) -> Result<Response, APIError> {
-        let url = format!(
-            "{api_endpoint}{path}",
-            api_endpoint = self.api_endpoint,
-            path = path
-        );
-        let request = self.build_request(minreq::post(url), Self::is_beta(path));
-        let res = request.with_json(params).unwrap().send();
-        match res {
-            Ok(res) => {
-                if (200..=299).contains(&res.status_code) {
-                    Ok(res)
-                } else {
-                    Err(APIError {
-                        message: format!("{}: {}", res.status_code, res.as_str().unwrap()),
-                    })
-                }
-            }
-            Err(e) => Err(self.new_error(e)),
+        body: &impl serde::ser::Serialize,
+    ) -> Result<T, APIError> {
+        let request = self.build_request(Method::POST, path).await;
+        let request = request.json(body);
+        let response = request.send().await?;
+        self.handle_response(response).await
+    }
+
+    async fn get<T: serde::de::DeserializeOwned>(&self, path: &str) -> Result<T, APIError> {
+        let request = self.build_request(Method::GET, path).await;
+        let response = request.send().await?;
+        self.handle_response(response).await
+    }
+
+    async fn delete<T: serde::de::DeserializeOwned>(&self, path: &str) -> Result<T, APIError> {
+        let request = self.build_request(Method::DELETE, path).await;
+        let response = request.send().await?;
+        self.handle_response(response).await
+    }
+
+    async fn post_form<T: serde::de::DeserializeOwned>(
+        &self,
+        path: &str,
+        form: Form,
+    ) -> Result<T, APIError> {
+        let request = self.build_request(Method::POST, path).await;
+        let request = request.multipart(form);
+        let response = request.send().await?;
+        self.handle_response(response).await
+    }
+
+    async fn handle_response<T: serde::de::DeserializeOwned>(
+        &self,
+        response: Response,
+    ) -> Result<T, APIError> {
+        let status = response.status();
+        if status.is_success() {
+            let parsed = response.json::<T>().await?;
+            Ok(parsed)
+        } else {
+            let error_message = response
+                .text()
+                .await
+                .unwrap_or_else(|_| "Unknown error".to_string());
+            Err(APIError::CustomError {
+                message: format!("{}: {}", status, error_message),
+            })
         }
     }
 
-    pub fn get(&self, path: &str) -> Result<Response, APIError> {
-        let url = format!(
-            "{api_endpoint}{path}",
-            api_endpoint = self.api_endpoint,
-            path = path
-        );
-        let request = self.build_request(minreq::get(url), Self::is_beta(path));
-        let res = request.send();
-        match res {
-            Ok(res) => {
-                if (200..=299).contains(&res.status_code) {
-                    Ok(res)
-                } else {
-                    Err(APIError {
-                        message: format!("{}: {}", res.status_code, res.as_str().unwrap()),
-                    })
-                }
-            }
-            Err(e) => Err(self.new_error(e)),
-        }
+    pub async fn completion(&self, req: CompletionRequest) -> Result<CompletionResponse, APIError> {
+        self.post("completions", &req).await
     }
 
-    pub fn delete(&self, path: &str) -> Result<Response, APIError> {
-        let url = format!(
-            "{api_endpoint}{path}",
-            api_endpoint = self.api_endpoint,
-            path = path
-        );
-        let request = self.build_request(minreq::delete(url), Self::is_beta(path));
-        let res = request.send();
-        match res {
-            Ok(res) => {
-                if (200..=299).contains(&res.status_code) {
-                    Ok(res)
-                } else {
-                    Err(APIError {
-                        message: format!("{}: {}", res.status_code, res.as_str().unwrap()),
-                    })
-                }
-            }
-            Err(e) => Err(self.new_error(e)),
-        }
+    pub async fn edit(&self, req: EditRequest) -> Result<EditResponse, APIError> {
+        self.post("edits", &req).await
     }
 
-    pub fn completion(&self, req: CompletionRequest) -> Result<CompletionResponse, APIError> {
-        let res = self.post("/completions", &req)?;
-        let r = res.json::<CompletionResponse>();
-        match r {
-            Ok(mut r) => {
-                r.headers = Some(res.headers);
-                Ok(r)
-            }
-            Err(e) => Err(self.new_error(e)),
-        }
-    }
-
-    pub fn edit(&self, req: EditRequest) -> Result<EditResponse, APIError> {
-        let res = self.post("/edits", &req)?;
-        let r = res.json::<EditResponse>();
-        match r {
-            Ok(mut r) => {
-                r.headers = Some(res.headers);
-                Ok(r)
-            }
-            Err(e) => Err(self.new_error(e)),
-        }
-    }
-
-    pub fn image_generation(
+    pub async fn image_generation(
         &self,
         req: ImageGenerationRequest,
     ) -> Result<ImageGenerationResponse, APIError> {
-        let res = self.post("/images/generations", &req)?;
-        let r = res.json::<ImageGenerationResponse>();
-        match r {
-            Ok(mut r) => {
-                r.headers = Some(res.headers);
-                Ok(r)
-            }
-            Err(e) => Err(self.new_error(e)),
-        }
+        self.post("images/generations", &req).await
     }
 
-    pub fn image_edit(&self, req: ImageEditRequest) -> Result<ImageEditResponse, APIError> {
-        let res = self.post("/images/edits", &req)?;
-        let r = res.json::<ImageEditResponse>();
-        match r {
-            Ok(mut r) => {
-                r.headers = Some(res.headers);
-                Ok(r)
-            }
-            Err(e) => Err(self.new_error(e)),
-        }
+    pub async fn image_edit(&self, req: ImageEditRequest) -> Result<ImageEditResponse, APIError> {
+        self.post("images/edits", &req).await
     }
 
-    pub fn image_variation(
+    pub async fn image_variation(
         &self,
         req: ImageVariationRequest,
     ) -> Result<ImageVariationResponse, APIError> {
-        let res = self.post("/images/variations", &req)?;
-        let r = res.json::<ImageVariationResponse>();
-        match r {
-            Ok(mut r) => {
-                r.headers = Some(res.headers);
-                Ok(r)
-            }
-            Err(e) => Err(self.new_error(e)),
-        }
+        self.post("images/variations", &req).await
     }
 
-    pub fn embedding(&self, req: EmbeddingRequest) -> Result<EmbeddingResponse, APIError> {
-        let res = self.post("/embeddings", &req)?;
-        let r = res.json::<EmbeddingResponse>();
-        match r {
-            Ok(mut r) => {
-                r.headers = Some(res.headers);
-                Ok(r)
-            }
-            Err(e) => Err(self.new_error(e)),
-        }
+    pub async fn embedding(&self, req: EmbeddingRequest) -> Result<EmbeddingResponse, APIError> {
+        self.post("embeddings", &req).await
     }
 
-    pub fn file_list(&self) -> Result<FileListResponse, APIError> {
-        let res = self.get("/files")?;
-        let r = res.json::<FileListResponse>();
-        match r {
-            Ok(mut r) => {
-                r.headers = Some(res.headers);
-                Ok(r)
-            }
-            Err(e) => Err(self.new_error(e)),
-        }
+    pub async fn file_list(&self) -> Result<FileListResponse, APIError> {
+        self.get("files").await
     }
 
-    pub fn file_upload(&self, req: FileUploadRequest) -> Result<FileUploadResponse, APIError> {
-        let res = self.post("/files", &req)?;
-        let r = res.json::<FileUploadResponse>();
-        match r {
-            Ok(mut r) => {
-                r.headers = Some(res.headers);
-                Ok(r)
-            }
-            Err(e) => Err(self.new_error(e)),
-        }
+    pub async fn file_upload(
+        &self,
+        req: FileUploadRequest,
+    ) -> Result<FileUploadResponse, APIError> {
+        self.post("files", &req).await
     }
 
-    pub fn file_delete(&self, req: FileDeleteRequest) -> Result<FileDeleteResponse, APIError> {
-        let res = self.delete(&format!("{}/{}", "/files", req.file_id))?;
-        let r = res.json::<FileDeleteResponse>();
-        match r {
-            Ok(mut r) => {
-                r.headers = Some(res.headers);
-                Ok(r)
-            }
-            Err(e) => Err(self.new_error(e)),
-        }
+    pub async fn file_delete(
+        &self,
+        req: FileDeleteRequest,
+    ) -> Result<FileDeleteResponse, APIError> {
+        self.delete(&format!("files/{}", req.file_id)).await
     }
 
-    pub fn file_retrieve(
+    pub async fn file_retrieve(
         &self,
         req: FileRetrieveRequest,
     ) -> Result<FileRetrieveResponse, APIError> {
-        let res = self.get(&format!("{}/{}", "/files", req.file_id))?;
-        let r = res.json::<FileRetrieveResponse>();
-        match r {
-            Ok(mut r) => {
-                r.headers = Some(res.headers);
-                Ok(r)
-            }
-            Err(e) => Err(self.new_error(e)),
-        }
+        self.get(&format!("files/{}", req.file_id)).await
     }
 
-    pub fn file_retrieve_content(
+    pub async fn file_retrieve_content(
         &self,
         req: FileRetrieveContentRequest,
     ) -> Result<FileRetrieveContentResponse, APIError> {
-        let res = self.get(&format!("{}/{}/content", "/files", req.file_id))?;
-        let r = res.json::<FileRetrieveContentResponse>();
-        match r {
-            Ok(mut r) => {
-                r.headers = Some(res.headers);
-                Ok(r)
-            }
-            Err(e) => Err(self.new_error(e)),
-        }
+        self.get(&format!("files/{}/content", req.file_id)).await
     }
 
-    pub fn chat_completion(
+    pub async fn chat_completion(
         &self,
         req: ChatCompletionRequest,
     ) -> Result<ChatCompletionResponse, APIError> {
-        let res = self.post("/chat/completions", &req)?;
-        let r = res.json::<ChatCompletionResponse>();
-        match r {
-            Ok(mut r) => {
-                r.headers = Some(res.headers);
-                Ok(r)
-            }
-            Err(e) => Err(self.new_error(e)),
-        }
+        self.post("chat/completions", &req).await
     }
 
-    pub fn audio_transcription(
+    pub async fn audio_transcription(
         &self,
         req: AudioTranscriptionRequest,
     ) -> Result<AudioTranscriptionResponse, APIError> {
-        let res = self.post("/audio/transcriptions", &req)?;
-        let r = res.json::<AudioTranscriptionResponse>();
-        match r {
-            Ok(mut r) => {
-                r.headers = Some(res.headers);
-                Ok(r)
-            }
-            Err(e) => Err(self.new_error(e)),
-        }
+        let form = Self::create_form(&req, "file")?;
+        self.post_form("audio/transcriptions", form).await
     }
 
-    pub fn audio_translation(
+    pub async fn audio_translation(
         &self,
         req: AudioTranslationRequest,
     ) -> Result<AudioTranslationResponse, APIError> {
-        let res = self.post("/audio/translations", &req)?;
-        let r = res.json::<AudioTranslationResponse>();
-        match r {
-            Ok(mut r) => {
-                r.headers = Some(res.headers);
-                Ok(r)
-            }
-            Err(e) => Err(self.new_error(e)),
-        }
+        let form = Self::create_form(&req, "file")?;
+        self.post_form("audio/translations", form).await
     }
 
-    pub fn audio_speech(&self, req: AudioSpeechRequest) -> Result<AudioSpeechResponse, APIError> {
-        let res = self.post("/audio/speech", &req)?;
-        let bytes = res.as_bytes();
-        let path = req.output.as_str();
-        let path = Path::new(path);
+    pub async fn audio_speech(
+        &self,
+        req: AudioSpeechRequest,
+    ) -> Result<AudioSpeechResponse, APIError> {
+        let request = self.build_request(Method::POST, "audio/speech").await;
+        let request = request.json(&req);
+        let response = request.send().await?;
+        let headers = response.headers().clone();
+        let bytes = response.bytes().await?;
+        let path = Path::new(req.output.as_str());
         if let Some(parent) = path.parent() {
             match create_dir_all(parent) {
                 Ok(_) => {}
                 Err(e) => {
-                    return Err(APIError {
+                    return Err(APIError::CustomError {
                         message: e.to_string(),
                     })
                 }
             }
         }
         match File::create(path) {
-            Ok(mut file) => match file.write_all(bytes) {
+            Ok(mut file) => match file.write_all(&bytes) {
                 Ok(_) => {}
                 Err(e) => {
-                    return Err(APIError {
+                    return Err(APIError::CustomError {
                         message: e.to_string(),
                     })
                 }
             },
             Err(e) => {
-                return Err(APIError {
+                return Err(APIError::CustomError {
                     message: e.to_string(),
                 })
             }
         }
+
         Ok(AudioSpeechResponse {
             result: true,
-            headers: Some(res.headers),
+            headers: Some(headers),
         })
     }
 
-    pub fn create_fine_tuning_job(
+    pub async fn create_fine_tuning_job(
         &self,
         req: CreateFineTuningJobRequest,
     ) -> Result<FineTuningJobObject, APIError> {
-        let res = self.post("/fine_tuning/jobs", &req)?;
-        let r = res.json::<FineTuningJobObject>();
-        match r {
-            Ok(mut r) => {
-                r.headers = Some(res.headers);
-                Ok(r)
-            }
-            Err(e) => Err(self.new_error(e)),
-        }
+        self.post("fine_tuning/jobs", &req).await
     }
 
-    pub fn list_fine_tuning_jobs(
+    pub async fn list_fine_tuning_jobs(
         &self,
     ) -> Result<FineTuningPagination<FineTuningJobObject>, APIError> {
-        let res = self.get("/fine_tuning/jobs")?;
-        let r = res.json::<FineTuningPagination<FineTuningJobObject>>();
-        match r {
-            Ok(mut r) => {
-                r.headers = Some(res.headers);
-                Ok(r)
-            }
-            Err(e) => Err(self.new_error(e)),
-        }
+        self.get("fine_tuning/jobs").await
     }
 
-    pub fn list_fine_tuning_job_events(
+    pub async fn list_fine_tuning_job_events(
         &self,
         req: ListFineTuningJobEventsRequest,
     ) -> Result<FineTuningPagination<FineTuningJobEvent>, APIError> {
-        let res = self.get(&format!(
-            "/fine_tuning/jobs/{}/events",
+        self.get(&format!(
+            "fine_tuning/jobs/{}/events",
             req.fine_tuning_job_id
-        ))?;
-        let r = res.json::<FineTuningPagination<FineTuningJobEvent>>();
-        match r {
-            Ok(mut r) => {
-                r.headers = Some(res.headers);
-                Ok(r)
-            }
-            Err(e) => Err(self.new_error(e)),
-        }
+        ))
+        .await
     }
 
-    pub fn retrieve_fine_tuning_job(
+    pub async fn retrieve_fine_tuning_job(
         &self,
         req: RetrieveFineTuningJobRequest,
     ) -> Result<FineTuningJobObject, APIError> {
-        let res = self.get(&format!("/fine_tuning/jobs/{}", req.fine_tuning_job_id))?;
-        let r = res.json::<FineTuningJobObject>();
-        match r {
-            Ok(mut r) => {
-                r.headers = Some(res.headers);
-                Ok(r)
-            }
-            Err(e) => Err(self.new_error(e)),
-        }
+        self.get(&format!("fine_tuning/jobs/{}", req.fine_tuning_job_id))
+            .await
     }
 
-    pub fn cancel_fine_tuning_job(
+    pub async fn cancel_fine_tuning_job(
         &self,
         req: CancelFineTuningJobRequest,
     ) -> Result<FineTuningJobObject, APIError> {
-        let res = self.post(
-            &format!("/fine_tuning/jobs/{}/cancel", req.fine_tuning_job_id),
+        self.post(
+            &format!("fine_tuning/jobs/{}/cancel", req.fine_tuning_job_id),
             &req,
-        )?;
-        let r = res.json::<FineTuningJobObject>();
-        match r {
-            Ok(mut r) => {
-                r.headers = Some(res.headers);
-                Ok(r)
-            }
-            Err(e) => Err(self.new_error(e)),
-        }
+        )
+        .await
     }
 
-    pub fn create_moderation(
+    pub async fn create_moderation(
         &self,
         req: CreateModerationRequest,
     ) -> Result<CreateModerationResponse, APIError> {
-        let res = self.post("/moderations", &req)?;
-        let r = res.json::<CreateModerationResponse>();
-        match r {
-            Ok(mut r) => {
-                r.headers = Some(res.headers);
-                Ok(r)
-            }
-            Err(e) => Err(self.new_error(e)),
-        }
+        self.post("moderations", &req).await
     }
 
-    pub fn create_assistant(&self, req: AssistantRequest) -> Result<AssistantObject, APIError> {
-        let res = self.post("/assistants", &req)?;
-        let r = res.json::<AssistantObject>();
-        match r {
-            Ok(mut r) => {
-                r.headers = Some(res.headers);
-                Ok(r)
-            }
-            Err(e) => Err(self.new_error(e)),
-        }
+    pub async fn create_assistant(
+        &self,
+        req: AssistantRequest,
+    ) -> Result<AssistantObject, APIError> {
+        self.post("assistants", &req).await
     }
 
-    pub fn retrieve_assistant(&self, assistant_id: String) -> Result<AssistantObject, APIError> {
-        let res = self.get(&format!("/assistants/{}", assistant_id))?;
-        let r = res.json::<AssistantObject>();
-        match r {
-            Ok(mut r) => {
-                r.headers = Some(res.headers);
-                Ok(r)
-            }
-            Err(e) => Err(self.new_error(e)),
-        }
+    pub async fn retrieve_assistant(
+        &self,
+        assistant_id: String,
+    ) -> Result<AssistantObject, APIError> {
+        self.get(&format!("assistants/{}", assistant_id)).await
     }
 
-    pub fn modify_assistant(
+    pub async fn modify_assistant(
         &self,
         assistant_id: String,
         req: AssistantRequest,
     ) -> Result<AssistantObject, APIError> {
-        let res = self.post(&format!("/assistants/{}", assistant_id), &req)?;
-        let r = res.json::<AssistantObject>();
-        match r {
-            Ok(mut r) => {
-                r.headers = Some(res.headers);
-                Ok(r)
-            }
-            Err(e) => Err(self.new_error(e)),
-        }
+        self.post(&format!("assistants/{}", assistant_id), &req)
+            .await
     }
 
-    pub fn delete_assistant(&self, assistant_id: String) -> Result<DeletionStatus, APIError> {
-        let res = self.delete(&format!("/assistants/{}", assistant_id))?;
-        let r = res.json::<DeletionStatus>();
-        match r {
-            Ok(mut r) => {
-                r.headers = Some(res.headers);
-                Ok(r)
-            }
-            Err(e) => Err(self.new_error(e)),
-        }
+    pub async fn delete_assistant(&self, assistant_id: String) -> Result<DeletionStatus, APIError> {
+        self.delete(&format!("assistants/{}", assistant_id)).await
     }
 
-    pub fn list_assistant(
+    pub async fn list_assistant(
         &self,
         limit: Option<i64>,
         order: Option<String>,
         after: Option<String>,
         before: Option<String>,
     ) -> Result<ListAssistant, APIError> {
-        let mut url = "/assistants".to_owned();
-        url = Self::query_params(limit, order, after, before, url);
-        let res = self.get(&url)?;
-        let r = res.json::<ListAssistant>();
-        match r {
-            Ok(mut r) => {
-                r.headers = Some(res.headers);
-                Ok(r)
-            }
-            Err(e) => Err(self.new_error(e)),
-        }
+        let url = Self::query_params(limit, order, after, before, "assistants".to_string());
+        self.get(&url).await
     }
 
-    pub fn create_assistant_file(
+    pub async fn create_assistant_file(
         &self,
         assistant_id: String,
         req: AssistantFileRequest,
     ) -> Result<AssistantFileObject, APIError> {
-        let res = self.post(&format!("/assistants/{}/files", assistant_id), &req)?;
-        let r = res.json::<AssistantFileObject>();
-        match r {
-            Ok(mut r) => {
-                r.headers = Some(res.headers);
-                Ok(r)
-            }
-            Err(e) => Err(self.new_error(e)),
-        }
+        self.post(&format!("assistants/{}/files", assistant_id), &req)
+            .await
     }
 
-    pub fn retrieve_assistant_file(
+    pub async fn retrieve_assistant_file(
         &self,
         assistant_id: String,
         file_id: String,
     ) -> Result<AssistantFileObject, APIError> {
-        let res = self.get(&format!("/assistants/{}/files/{}", assistant_id, file_id))?;
-        let r = res.json::<AssistantFileObject>();
-        match r {
-            Ok(mut r) => {
-                r.headers = Some(res.headers);
-                Ok(r)
-            }
-            Err(e) => Err(self.new_error(e)),
-        }
+        self.get(&format!("assistants/{}/files/{}", assistant_id, file_id))
+            .await
     }
 
-    pub fn delete_assistant_file(
+    pub async fn delete_assistant_file(
         &self,
         assistant_id: String,
         file_id: String,
     ) -> Result<DeletionStatus, APIError> {
-        let res = self.delete(&format!("/assistants/{}/files/{}", assistant_id, file_id))?;
-        let r = res.json::<DeletionStatus>();
-        match r {
-            Ok(mut r) => {
-                r.headers = Some(res.headers);
-                Ok(r)
-            }
-            Err(e) => Err(self.new_error(e)),
-        }
+        self.delete(&format!("assistants/{}/files/{}", assistant_id, file_id))
+            .await
     }
 
-    pub fn list_assistant_file(
+    pub async fn list_assistant_file(
         &self,
         assistant_id: String,
         limit: Option<i64>,
@@ -637,156 +442,85 @@ impl Client {
         after: Option<String>,
         before: Option<String>,
     ) -> Result<ListAssistantFile, APIError> {
-        let mut url = format!("/assistants/{}/files", assistant_id);
-        url = Self::query_params(limit, order, after, before, url);
-        let res = self.get(&url)?;
-        let r = res.json::<ListAssistantFile>();
-        match r {
-            Ok(mut r) => {
-                r.headers = Some(res.headers);
-                Ok(r)
-            }
-            Err(e) => Err(self.new_error(e)),
-        }
+        let url = Self::query_params(
+            limit,
+            order,
+            after,
+            before,
+            format!("assistants/{}/files", assistant_id),
+        );
+        self.get(&url).await
     }
 
-    pub fn create_thread(&self, req: CreateThreadRequest) -> Result<ThreadObject, APIError> {
-        let res = self.post("/threads", &req)?;
-        let r = res.json::<ThreadObject>();
-        match r {
-            Ok(mut r) => {
-                r.headers = Some(res.headers);
-                Ok(r)
-            }
-            Err(e) => Err(self.new_error(e)),
-        }
+    pub async fn create_thread(&self, req: CreateThreadRequest) -> Result<ThreadObject, APIError> {
+        self.post("threads", &req).await
     }
 
-    pub fn retrieve_thread(&self, thread_id: String) -> Result<ThreadObject, APIError> {
-        let res = self.get(&format!("/threads/{}", thread_id))?;
-        let r = res.json::<ThreadObject>();
-        match r {
-            Ok(mut r) => {
-                r.headers = Some(res.headers);
-                Ok(r)
-            }
-            Err(e) => Err(self.new_error(e)),
-        }
+    pub async fn retrieve_thread(&self, thread_id: String) -> Result<ThreadObject, APIError> {
+        self.get(&format!("threads/{}", thread_id)).await
     }
 
-    pub fn modify_thread(
+    pub async fn modify_thread(
         &self,
         thread_id: String,
         req: ModifyThreadRequest,
     ) -> Result<ThreadObject, APIError> {
-        let res = self.post(&format!("/threads/{}", thread_id), &req)?;
-        let r = res.json::<ThreadObject>();
-        match r {
-            Ok(mut r) => {
-                r.headers = Some(res.headers);
-                Ok(r)
-            }
-            Err(e) => Err(self.new_error(e)),
-        }
+        self.post(&format!("threads/{}", thread_id), &req).await
     }
 
-    pub fn delete_thread(&self, thread_id: String) -> Result<DeletionStatus, APIError> {
-        let res = self.delete(&format!("/threads/{}", thread_id))?;
-        let r = res.json::<DeletionStatus>();
-        match r {
-            Ok(mut r) => {
-                r.headers = Some(res.headers);
-                Ok(r)
-            }
-            Err(e) => Err(self.new_error(e)),
-        }
+    pub async fn delete_thread(&self, thread_id: String) -> Result<DeletionStatus, APIError> {
+        self.delete(&format!("threads/{}", thread_id)).await
     }
 
-    pub fn create_message(
+    pub async fn create_message(
         &self,
         thread_id: String,
         req: CreateMessageRequest,
     ) -> Result<MessageObject, APIError> {
-        let res = self.post(&format!("/threads/{}/messages", thread_id), &req)?;
-        let r = res.json::<MessageObject>();
-        match r {
-            Ok(mut r) => {
-                r.headers = Some(res.headers);
-                Ok(r)
-            }
-            Err(e) => Err(self.new_error(e)),
-        }
+        self.post(&format!("threads/{}/messages", thread_id), &req)
+            .await
     }
 
-    pub fn retrieve_message(
+    pub async fn retrieve_message(
         &self,
         thread_id: String,
         message_id: String,
     ) -> Result<MessageObject, APIError> {
-        let res = self.get(&format!("/threads/{}/messages/{}", thread_id, message_id))?;
-        let r = res.json::<MessageObject>();
-        match r {
-            Ok(mut r) => {
-                r.headers = Some(res.headers);
-                Ok(r)
-            }
-            Err(e) => Err(self.new_error(e)),
-        }
+        self.get(&format!("threads/{}/messages/{}", thread_id, message_id))
+            .await
     }
 
-    pub fn modify_message(
+    pub async fn modify_message(
         &self,
         thread_id: String,
         message_id: String,
         req: ModifyMessageRequest,
     ) -> Result<MessageObject, APIError> {
-        let res = self.post(
-            &format!("/threads/{}/messages/{}", thread_id, message_id),
+        self.post(
+            &format!("threads/{}/messages/{}", thread_id, message_id),
             &req,
-        )?;
-        let r = res.json::<MessageObject>();
-        match r {
-            Ok(mut r) => {
-                r.headers = Some(res.headers);
-                Ok(r)
-            }
-            Err(e) => Err(self.new_error(e)),
-        }
+        )
+        .await
     }
 
-    pub fn list_messages(&self, thread_id: String) -> Result<ListMessage, APIError> {
-        let res = self.get(&format!("/threads/{}/messages", thread_id))?;
-        let r = res.json::<ListMessage>();
-        match r {
-            Ok(mut r) => {
-                r.headers = Some(res.headers);
-                Ok(r)
-            }
-            Err(e) => Err(self.new_error(e)),
-        }
+    pub async fn list_messages(&self, thread_id: String) -> Result<ListMessage, APIError> {
+        self.get(&format!("threads/{}/messages", thread_id)).await
     }
 
-    pub fn retrieve_message_file(
+    pub async fn retrieve_message_file(
         &self,
         thread_id: String,
         message_id: String,
         file_id: String,
     ) -> Result<MessageFileObject, APIError> {
-        let res = self.get(&format!(
-            "/threads/{}/messages/{}/files/{}",
+        self.get(&format!(
+            "threads/{}/messages/{}/files/{}",
             thread_id, message_id, file_id
-        ))?;
-        let r = res.json::<MessageFileObject>();
-        match r {
-            Ok(mut r) => {
-                r.headers = Some(res.headers);
-                Ok(r)
-            }
-            Err(e) => Err(self.new_error(e)),
-        }
+        ))
+        .await
     }
 
-    pub fn list_message_file(
+    pub async fn list_message_file(
         &self,
         thread_id: String,
         message_id: String,
@@ -795,65 +529,45 @@ impl Client {
         after: Option<String>,
         before: Option<String>,
     ) -> Result<ListMessageFile, APIError> {
-        let mut url = format!("/threads/{}/messages/{}/files", thread_id, message_id);
-        url = Self::query_params(limit, order, after, before, url);
-        let res = self.get(&url)?;
-        let r = res.json::<ListMessageFile>();
-        match r {
-            Ok(mut r) => {
-                r.headers = Some(res.headers);
-                Ok(r)
-            }
-            Err(e) => Err(self.new_error(e)),
-        }
+        let url = Self::query_params(
+            limit,
+            order,
+            after,
+            before,
+            format!("threads/{}/messages/{}/files", thread_id, message_id),
+        );
+        self.get(&url).await
     }
 
-    pub fn create_run(
+    pub async fn create_run(
         &self,
         thread_id: String,
         req: CreateRunRequest,
     ) -> Result<RunObject, APIError> {
-        let res = self.post(&format!("/threads/{}/runs", thread_id), &req)?;
-        let r = res.json::<RunObject>();
-        match r {
-            Ok(mut r) => {
-                r.headers = Some(res.headers);
-                Ok(r)
-            }
-            Err(e) => Err(self.new_error(e)),
-        }
+        self.post(&format!("threads/{}/runs", thread_id), &req)
+            .await
     }
 
-    pub fn retrieve_run(&self, thread_id: String, run_id: String) -> Result<RunObject, APIError> {
-        let res = self.get(&format!("/threads/{}/runs/{}", thread_id, run_id))?;
-        let r = res.json::<RunObject>();
-        match r {
-            Ok(mut r) => {
-                r.headers = Some(res.headers);
-                Ok(r)
-            }
-            Err(e) => Err(self.new_error(e)),
-        }
+    pub async fn retrieve_run(
+        &self,
+        thread_id: String,
+        run_id: String,
+    ) -> Result<RunObject, APIError> {
+        self.get(&format!("threads/{}/runs/{}", thread_id, run_id))
+            .await
     }
 
-    pub fn modify_run(
+    pub async fn modify_run(
         &self,
         thread_id: String,
         run_id: String,
         req: ModifyRunRequest,
     ) -> Result<RunObject, APIError> {
-        let res = self.post(&format!("/threads/{}/runs/{}", thread_id, run_id), &req)?;
-        let r = res.json::<RunObject>();
-        match r {
-            Ok(mut r) => {
-                r.headers = Some(res.headers);
-                Ok(r)
-            }
-            Err(e) => Err(self.new_error(e)),
-        }
+        self.post(&format!("threads/{}/runs/{}", thread_id, run_id), &req)
+            .await
     }
 
-    pub fn list_run(
+    pub async fn list_run(
         &self,
         thread_id: String,
         limit: Option<i64>,
@@ -861,71 +575,49 @@ impl Client {
         after: Option<String>,
         before: Option<String>,
     ) -> Result<ListRun, APIError> {
-        let mut url = format!("/threads/{}/runs", thread_id);
-        url = Self::query_params(limit, order, after, before, url);
-        let res = self.get(&url)?;
-        let r = res.json::<ListRun>();
-        match r {
-            Ok(mut r) => {
-                r.headers = Some(res.headers);
-                Ok(r)
-            }
-            Err(e) => Err(self.new_error(e)),
-        }
+        let url = Self::query_params(
+            limit,
+            order,
+            after,
+            before,
+            format!("threads/{}/runs", thread_id),
+        );
+        self.get(&url).await
     }
 
-    pub fn cancel_run(&self, thread_id: String, run_id: String) -> Result<RunObject, APIError> {
-        let empty_req = ModifyRunRequest::new();
-        let res = self.post(
-            &format!("/threads/{}/runs/{}/cancel", thread_id, run_id),
-            &empty_req,
-        )?;
-        let r = res.json::<RunObject>();
-        match r {
-            Ok(mut r) => {
-                r.headers = Some(res.headers);
-                Ok(r)
-            }
-            Err(e) => Err(self.new_error(e)),
-        }
+    pub async fn cancel_run(
+        &self,
+        thread_id: String,
+        run_id: String,
+    ) -> Result<RunObject, APIError> {
+        self.post(
+            &format!("threads/{}/runs/{}/cancel", thread_id, run_id),
+            &ModifyRunRequest::default(),
+        )
+        .await
     }
 
-    pub fn create_thread_and_run(
+    pub async fn create_thread_and_run(
         &self,
         req: CreateThreadAndRunRequest,
     ) -> Result<RunObject, APIError> {
-        let res = self.post("/threads/runs", &req)?;
-        let r = res.json::<RunObject>();
-        match r {
-            Ok(mut r) => {
-                r.headers = Some(res.headers);
-                Ok(r)
-            }
-            Err(e) => Err(self.new_error(e)),
-        }
+        self.post("threads/runs", &req).await
     }
 
-    pub fn retrieve_run_step(
+    pub async fn retrieve_run_step(
         &self,
         thread_id: String,
         run_id: String,
         step_id: String,
     ) -> Result<RunStepObject, APIError> {
-        let res = self.get(&format!(
-            "/threads/{}/runs/{}/steps/{}",
+        self.get(&format!(
+            "threads/{}/runs/{}/steps/{}",
             thread_id, run_id, step_id
-        ))?;
-        let r = res.json::<RunStepObject>();
-        match r {
-            Ok(mut r) => {
-                r.headers = Some(res.headers);
-                Ok(r)
-            }
-            Err(e) => Err(self.new_error(e)),
-        }
+        ))
+        .await
     }
 
-    pub fn list_run_step(
+    pub async fn list_run_step(
         &self,
         thread_id: String,
         run_id: String,
@@ -934,27 +626,14 @@ impl Client {
         after: Option<String>,
         before: Option<String>,
     ) -> Result<ListRunStep, APIError> {
-        let mut url = format!("/threads/{}/runs/{}/steps", thread_id, run_id);
-        url = Self::query_params(limit, order, after, before, url);
-        let res = self.get(&url)?;
-        let r = res.json::<ListRunStep>();
-        match r {
-            Ok(mut r) => {
-                r.headers = Some(res.headers);
-                Ok(r)
-            }
-            Err(e) => Err(self.new_error(e)),
-        }
-    }
-
-    fn new_error(&self, err: minreq::Error) -> APIError {
-        APIError {
-            message: err.to_string(),
-        }
-    }
-
-    fn is_beta(path: &str) -> bool {
-        path.starts_with("/assistants") || path.starts_with("/threads")
+        let url = Self::query_params(
+            limit,
+            order,
+            after,
+            before,
+            format!("threads/{}/runs/{}/steps", thread_id, run_id),
+        );
+        self.get(&url).await
     }
 
     fn query_params(
@@ -981,5 +660,73 @@ impl Client {
             url = format!("{}?{}", url, params.join("&"));
         }
         url
+    }
+
+    fn is_beta(path: &str) -> bool {
+        path.starts_with("assistants") || path.starts_with("threads")
+    }
+
+    fn create_form<T>(req: &T, file_field: &str) -> Result<Form, APIError>
+    where
+        T: Serialize,
+    {
+        let json = match serde_json::to_value(req) {
+            Ok(json) => json,
+            Err(e) => {
+                return Err(APIError::CustomError {
+                    message: e.to_string(),
+                })
+            }
+        };
+        let file_path = if let Value::Object(map) = &json {
+            map.get(file_field)
+                .and_then(|v| v.as_str())
+                .ok_or(APIError::CustomError {
+                    message: format!("Field '{}' not found or not a string", file_field),
+                })?
+        } else {
+            return Err(APIError::CustomError {
+                message: "Request is not a JSON object".to_string(),
+            });
+        };
+
+        let mut file = match File::open(file_path) {
+            Ok(file) => file,
+            Err(e) => {
+                return Err(APIError::CustomError {
+                    message: e.to_string(),
+                })
+            }
+        };
+        let mut buffer = Vec::new();
+        match file.read_to_end(&mut buffer) {
+            Ok(_) => {}
+            Err(e) => {
+                return Err(APIError::CustomError {
+                    message: e.to_string(),
+                })
+            }
+        }
+
+        let mut form =
+            Form::new().part("file", Part::bytes(buffer).file_name(file_path.to_string()));
+
+        if let Value::Object(map) = json {
+            for (key, value) in map.into_iter() {
+                if key != file_field {
+                    match value {
+                        Value::String(s) => {
+                            form = form.text(key, s);
+                        }
+                        Value::Number(n) => {
+                            form = form.text(key, n.to_string());
+                        }
+                        _ => {}
+                    }
+                }
+            }
+        }
+
+        Ok(form)
     }
 }

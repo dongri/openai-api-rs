@@ -1,6 +1,6 @@
-use openai_api_rs::v1::api::Client;
+use openai_api_rs::v1::api::OpenAIClient;
 use openai_api_rs::v1::chat_completion::{self, ChatCompletionRequest};
-use openai_api_rs::v1::common::GPT3_5_TURBO_0613;
+use openai_api_rs::v1::common::GPT4_O;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::{env, vec};
@@ -14,8 +14,9 @@ fn get_coin_price(coin: &str) -> f64 {
     }
 }
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let client = Client::new(env::var("OPENAI_API_KEY").unwrap().to_string());
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let client = OpenAIClient::new(env::var("OPENAI_API_KEY").unwrap().to_string());
 
     let mut properties = HashMap::new();
     properties.insert(
@@ -28,7 +29,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     );
 
     let req = ChatCompletionRequest::new(
-        GPT3_5_TURBO_0613.to_string(),
+        GPT4_O.to_string(),
         vec![chat_completion::ChatCompletionMessage {
             role: chat_completion::MessageRole::user,
             content: chat_completion::Content::Text(String::from("What is the price of Ethereum?")),
@@ -48,7 +49,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         },
     }]);
 
-    let result = client.chat_completion(req)?;
+    let result = client.chat_completion(req).await?;
 
     match result.choices[0].finish_reason {
         None => {
@@ -79,7 +80,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 println!("price: {}", price);
 
                 let req = ChatCompletionRequest::new(
-                    GPT3_5_TURBO_0613.to_string(),
+                    GPT4_O.to_string(),
                     vec![
                         chat_completion::ChatCompletionMessage {
                             role: chat_completion::MessageRole::user,
@@ -99,7 +100,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     ],
                 );
 
-                let result = client.chat_completion(req)?;
+                let result = client.chat_completion(req).await?;
                 println!("{:?}", result.choices[0].message.content);
             }
         }

@@ -1,6 +1,6 @@
 [package]
 name = "openai-api-rs"
-version = "4.1.1"
+version = "5.0.0"
 edition = "2021"
 authors = ["Dongri Jin <dongrium@gmail.com>"]
 license = "MIT"
@@ -9,16 +9,17 @@ repository = "https://github.com/dongri/openai-api-rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[dependencies.reqwest]
+version = "0.12"
+features = ["json", "multipart"]
+
+[dependencies.tokio]
+version = "1"
+features = ["full"]
+
 [dependencies.serde]
 version = "1"
 features = ["derive"]
-default-features = false
 
 [dependencies.serde_json]
 version = "1"
-default-features = false
-
-[dependencies.minreq]
-version = "2"
-default-features = false
-features = ["https-rustls", "json-using-serde", "proxy"]
