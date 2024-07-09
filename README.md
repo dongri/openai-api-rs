@@ -20,7 +20,7 @@ $ export OPENAI_API_KEY=sk-xxxxxxx
 
 ### Create client
 ```rust
-let client = Client::new(env::var("OPENAI_API_KEY").unwrap().to_string());
+let client = OpenAIClient::new(env::var("OPENAI_API_KEY").unwrap().to_string());
 ```
 
 ### Create request
