@@ -45,6 +45,8 @@ pub struct ChatCompletionRequest {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub tools: Option<Vec<Tool>>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub parallel_tool_calls: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(serialize_with = "serialize_tool_choice")]
     pub tool_choice: Option<ToolChoiceType>,
 }
@@ -67,6 +69,7 @@ impl ChatCompletionRequest {
             user: None,
             seed: None,
             tools: None,
+            parallel_tool_calls: None,
             tool_choice: None,
         }
     }
@@ -87,6 +90,7 @@ impl_builder_methods!(
     user: String,
     seed: i64,
     tools: Vec<Tool>,
+    parallel_tool_calls: bool,
     tool_choice: ToolChoiceType
 );
 
