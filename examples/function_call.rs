@@ -35,6 +35,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             content: chat_completion::Content::Text(String::from("What is the price of Ethereum?")),
             name: None,
             tool_calls: None,
+            tool_call_id: None,
         }],
     )
     .tools(vec![chat_completion::Tool {

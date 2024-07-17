@@ -14,6 +14,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             content: chat_completion::Content::Text(String::from("What is bitcoin?")),
             name: None,
             tool_calls: None,
+            tool_call_id: None,
         }],
     );
 

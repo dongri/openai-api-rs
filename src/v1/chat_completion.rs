@@ -101,6 +101,7 @@ pub enum MessageRole {
     system,
     assistant,
     function,
+    tool,
 }
 
 #[derive(Debug, Deserialize, Clone, PartialEq, Eq)]
@@ -158,6 +159,8 @@ pub struct ChatCompletionMessage {
     pub name: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub tool_calls: Option<Vec<ToolCall>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tool_call_id: Option<String>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
