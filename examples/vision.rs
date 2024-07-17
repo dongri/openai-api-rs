@@ -28,6 +28,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 },
             ]),
             name: None,
+            tool_calls: None,
         }],
     );
 

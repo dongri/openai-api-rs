@@ -13,6 +13,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             role: chat_completion::MessageRole::user,
             content: chat_completion::Content::Text(String::from("What is bitcoin?")),
             name: None,
+            tool_calls: None,
         }],
     );
 
