@@ -151,7 +151,7 @@ impl<'de> Deserialize<'de> for Content {
 
             fn visit_seq<A>(self, seq: A) -> Result<Content, A::Error>
             where
-                A: serde::de::SeqAccess<'de>,
+                A: SeqAccess<'de>,
             {
                 let image_urls: Vec<ImageUrl> =
                     Deserialize::deserialize(de::value::SeqAccessDeserializer::new(seq))?;
@@ -160,7 +160,7 @@ impl<'de> Deserialize<'de> for Content {
 
             fn visit_map<M>(self, map: M) -> Result<Content, M::Error>
             where
-                M: serde::de::MapAccess<'de>,
+                M: MapAccess<'de>,
             {
                 let image_urls: Vec<ImageUrl> =
                     Deserialize::deserialize(de::value::MapAccessDeserializer::new(map))?;
