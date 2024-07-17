@@ -115,7 +115,13 @@ impl serde::Serialize for Content {
         S: serde::Serializer,
     {
         match *self {
-            Content::Text(ref text) => serializer.serialize_str(text),
+            Content::Text(ref text) => {
+                if text.is_empty() {
+                    serializer.serialize_none()
+                } else {
+                    serializer.serialize_str(text)
+                }
+            }
             Content::ImageUrl(ref image_url) => image_url.serialize(serializer),
         }
     }
