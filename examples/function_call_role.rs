@@ -34,6 +34,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             role: chat_completion::MessageRole::user,
             content: chat_completion::Content::Text(String::from("What is the price of Ethereum?")),
             name: None,
+            tool_calls: None,
+            tool_call_id: None,
         }],
     )
     .tools(vec![chat_completion::Tool {
@@ -88,6 +90,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                                 "What is the price of Ethereum?",
                             )),
                             name: None,
+                            tool_calls: None,
+                            tool_call_id: None,
                         },
                         chat_completion::ChatCompletionMessage {
                             role: chat_completion::MessageRole::function,
@@ -96,6 +100,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                                 format!("{{\"price\": {}}}", price)
                             }),
                             name: Some(String::from("get_coin_price")),
+                            tool_calls: None,
+                            tool_call_id: None,
                         },
                     ],
                 );

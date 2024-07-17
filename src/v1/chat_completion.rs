@@ -45,6 +45,8 @@ pub struct ChatCompletionRequest {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub tools: Option<Vec<Tool>>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub parallel_tool_calls: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(serialize_with = "serialize_tool_choice")]
     pub tool_choice: Option<ToolChoiceType>,
 }
@@ -67,6 +69,7 @@ impl ChatCompletionRequest {
             user: None,
             seed: None,
             tools: None,
+            parallel_tool_calls: None,
             tool_choice: None,
         }
     }
@@ -87,6 +90,7 @@ impl_builder_methods!(
     user: String,
     seed: i64,
     tools: Vec<Tool>,
+    parallel_tool_calls: bool,
     tool_choice: ToolChoiceType
 );
 
@@ -97,6 +101,7 @@ pub enum MessageRole {
     system,
     assistant,
     function,
+    tool,
 }
 
 #[derive(Debug, Deserialize, Clone, PartialEq, Eq)]
@@ -111,7 +116,13 @@ impl serde::Serialize for Content {
         S: serde::Serializer,
     {
         match *self {
-            Content::Text(ref text) => serializer.serialize_str(text),
+            Content::Text(ref text) => {
+                if text.is_empty() {
+                    serializer.serialize_none()
+                } else {
+                    serializer.serialize_str(text)
+                }
+            }
             Content::ImageUrl(ref image_url) => image_url.serialize(serializer),
         }
     }
@@ -146,6 +157,10 @@ pub struct ChatCompletionMessage {
     pub content: Content,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tool_calls: Option<Vec<ToolCall>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tool_call_id: Option<String>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
