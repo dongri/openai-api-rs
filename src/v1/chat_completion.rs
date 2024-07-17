@@ -1,10 +1,10 @@
-use serde::ser::SerializeMap;
-use serde::{Deserialize, Serialize, Serializer, Deserializer};
-use serde_json::Value;
-use std::collections::HashMap;
-use serde::de::{self, MapAccess, SeqAccess, Visitor};
 use crate::impl_builder_methods;
 use crate::v1::common;
+use serde::de::{self, MapAccess, SeqAccess, Visitor};
+use serde::ser::SerializeMap;
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use serde_json::Value;
+use std::collections::HashMap;
 use std::fmt;
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
 pub enum ToolChoiceType {
@@ -153,7 +153,8 @@ impl<'de> Deserialize<'de> for Content {
             where
                 A: serde::de::SeqAccess<'de>,
             {
-                let image_urls: Vec<ImageUrl> = Deserialize::deserialize(de::value::SeqAccessDeserializer::new(seq))?;
+                let image_urls: Vec<ImageUrl> =
+                    Deserialize::deserialize(de::value::SeqAccessDeserializer::new(seq))?;
                 Ok(Content::ImageUrl(image_urls))
             }
 
@@ -161,7 +162,8 @@ impl<'de> Deserialize<'de> for Content {
             where
                 M: serde::de::MapAccess<'de>,
             {
-                let image_urls: Vec<ImageUrl> = Deserialize::deserialize(de::value::MapAccessDeserializer::new(map))?;
+                let image_urls: Vec<ImageUrl> =
+                    Deserialize::deserialize(de::value::MapAccessDeserializer::new(map))?;
                 Ok(Content::ImageUrl(image_urls))
             }
 
