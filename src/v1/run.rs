@@ -1,5 +1,6 @@
 use super::thread::CreateThreadRequest;
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 use std::collections::HashMap;
 
 use crate::impl_builder_methods;
@@ -15,6 +16,8 @@ pub struct CreateRunRequest {
     pub tools: Option<Vec<HashMap<String, String>>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub metadata: Option<HashMap<String, String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub response_format: Option<Value>, // 1: json!("auto"), 2: json!({"type": "json_object"})
 }
 
 impl CreateRunRequest {
@@ -25,6 +28,7 @@ impl CreateRunRequest {
             instructions: None,
             tools: None,
             metadata: None,
+            response_format: None,
         }
     }
 }
@@ -34,7 +38,8 @@ impl_builder_methods!(
     model: String,
     instructions: String,
     tools: Vec<HashMap<String, String>>,
-    metadata: HashMap<String, String>
+    metadata: HashMap<String, String>,
+    response_format: Value
 );
 
 #[derive(Debug, Serialize, Clone)]
