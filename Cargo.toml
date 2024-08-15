@@ -11,7 +11,7 @@ repository = "https://github.com/dongri/openai-api-rs"
 
 [dependencies.reqwest]
 version = "0.12"
-features = ["json", "multipart"]
+features = ["json", "multipart", "socks"]
 
 [dependencies.tokio]
 version = "1"
