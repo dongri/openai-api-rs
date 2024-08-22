@@ -4,7 +4,7 @@ use serde::de::{self, MapAccess, SeqAccess, Visitor};
 use serde::ser::SerializeMap;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde_json::Value;
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 use std::fmt;
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
 pub enum ToolChoiceType {
@@ -37,7 +37,7 @@ pub struct ChatCompletionRequest {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub frequency_penalty: Option<f64>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub logit_bias: Option<HashMap<String, i32>>,
+    pub logit_bias: Option<BTreeMap<String, i32>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub user: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -86,7 +86,7 @@ impl_builder_methods!(
     max_tokens: i64,
     presence_penalty: f64,
     frequency_penalty: f64,
-    logit_bias: HashMap<String, i32>,
+    logit_bias: BTreeMap<String, i32>,
     user: String,
     seed: i64,
     tools: Vec<Tool>,
@@ -248,7 +248,7 @@ pub struct ChatCompletionResponse {
     pub choices: Vec<ChatCompletionChoice>,
     pub usage: common::Usage,
     pub system_fingerprint: Option<String>,
-    pub headers: Option<HashMap<String, String>>,
+    pub headers: Option<BTreeMap<String, String>>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
@@ -279,7 +279,7 @@ pub struct JSONSchemaDefine {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub enum_values: Option<Vec<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub properties: Option<HashMap<String, Box<JSONSchemaDefine>>>,
+    pub properties: Option<BTreeMap<String, Box<JSONSchemaDefine>>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub required: Option<Vec<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -291,7 +291,7 @@ pub struct FunctionParameters {
     #[serde(rename = "type")]
     pub schema_type: JSONSchemaType,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub properties: Option<HashMap<String, Box<JSONSchemaDefine>>>,
+    pub properties: Option<BTreeMap<String, Box<JSONSchemaDefine>>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub required: Option<Vec<String>>,
 }
