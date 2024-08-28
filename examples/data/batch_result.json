@@ -1,0 +1,33 @@
+{
+  "custom_id": "request-1",
+  "error": null,
+  "id": "batch_req_403hYy7nMxrxXFWXiwvoLG1q",
+  "response": {
+    "body": {
+      "choices": [
+        {
+          "finish_reason": "stop",
+          "index": 0,
+          "logprobs": null,
+          "message": {
+            "content": "2 + 2 equals 4.",
+            "refusal": null,
+            "role": "assistant"
+          }
+        }
+      ],
+      "created": 1724858089,
+      "id": "chatcmpl-A1Efhv97EZNQeHKSLPnTmZex20gf2",
+      "model": "gpt-4o-mini-2024-07-18",
+      "object": "chat.completion",
+      "system_fingerprint": "fp_f33667828e",
+      "usage": {
+        "completion_tokens": 8,
+        "prompt_tokens": 24,
+        "total_tokens": 32
+      }
+    },
+    "request_id": "af0bac0d82530234e09bd6b5d9fbf5cf",
+    "status_code": 200
+  }
+}
