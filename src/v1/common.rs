@@ -21,6 +21,9 @@ macro_rules! impl_builder_methods {
     };
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct EmptyRequestBody {}
+
 // https://platform.openai.com/docs/models/gpt-4o-mini
 pub const GPT4_O_MINI: &str = "gpt-4o-mini";
 
