@@ -82,7 +82,7 @@ More Examples: [examples](https://github.com/dongri/openai-api-rs/tree/main/exam
 Check out the [full API documentation](https://platform.openai.com/docs/api-reference/completions) for examples of all the available functions.
 
 ## Supported APIs
-- [x] [completions](https://platform.openai.com/docs/api-reference/completions)
+- [x] [Completions](https://platform.openai.com/docs/api-reference/completions)
 - [x] [Chat](https://platform.openai.com/docs/api-reference/chat)
 - [x] [Edits](https://platform.openai.com/docs/api-reference/edits)
 - [x] [Images](https://platform.openai.com/docs/api-reference/images)
@@ -93,6 +93,7 @@ Check out the [full API documentation](https://platform.openai.com/docs/api-refe
 - [x] [Moderations](https://platform.openai.com/docs/api-reference/moderations)
 - [x] [Function calling](https://platform.openai.com/docs/guides/gpt/function-calling)
 - [x] [Assistants](https://platform.openai.com/docs/assistants/overview)
+- [x] [Batch](https://platform.openai.com/docs/api-reference/batch)
 
 ## License
 This project is licensed under [MIT license](https://github.com/dongri/openai-api-rs/blob/main/LICENSE).
