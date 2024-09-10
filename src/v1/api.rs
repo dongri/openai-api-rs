@@ -118,7 +118,7 @@ impl OpenAIClient {
         };
 
         let client = if let Some(proxy) = &self.proxy {
-            client.proxy(reqwest::Proxy::http(proxy).unwrap())
+            client.proxy(reqwest::Proxy::all(proxy).unwrap())
         } else {
             client
         };
