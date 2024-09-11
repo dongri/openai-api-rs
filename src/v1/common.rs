@@ -26,10 +26,13 @@ pub struct EmptyRequestBody {}
 
 // https://platform.openai.com/docs/models/gpt-4o-mini
 pub const GPT4_O_MINI: &str = "gpt-4o-mini";
+pub const GPT4_O_MINI_2024_07_18: &str = "gpt-4o-mini-2024-07-18";
 
 // https://platform.openai.com/docs/models/gpt-4o
 pub const GPT4_O: &str = "gpt-4o";
 pub const GPT4_O_2024_05_13: &str = "gpt-4o-2024-05-13";
+pub const GPT4_O_2024_08_06: &str = "gpt-4o-2024-08-06";
+pub const GPT4_O_LATEST: &str = "chatgpt-4o-latest";
 
 // https://platform.openai.com/docs/models/gpt-3-5
 pub const GPT3_5_TURBO_1106: &str = "gpt-3.5-turbo-1106";
