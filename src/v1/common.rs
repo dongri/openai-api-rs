@@ -24,6 +24,12 @@ macro_rules! impl_builder_methods {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct EmptyRequestBody {}
 
+// https://platform.openai.com/docs/models/o1
+pub const O1_PREVIEW: &str = "o1-preview";
+pub const O1_PREVIEW_2024_09_12: &str = "o1-preview-2024-09-12";
+pub const O1_MINI: &str = "o1-mini";
+pub const O1_MINI_2024_09_12: &str = "o1-mini-2024-09-12";
+
 // https://platform.openai.com/docs/models/gpt-4o-mini
 pub const GPT4_O_MINI: &str = "gpt-4o-mini";
 pub const GPT4_O_MINI_2024_07_18: &str = "gpt-4o-mini-2024-07-18";
