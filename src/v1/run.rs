@@ -65,6 +65,12 @@ impl_builder_methods!(
     metadata: HashMap<String, String>
 );
 
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct LastError {
+    pub code: String,
+    pub message: String,
+}
+
 #[derive(Debug, Deserialize, Serialize)]
 pub struct RunObject {
     pub id: String,
@@ -76,7 +82,7 @@ pub struct RunObject {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub required_action: Option<HashMap<String, String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub last_error: Option<String>,
+    pub last_error: Option<LastError>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub expires_at: Option<i64>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -132,7 +138,7 @@ pub struct RunStepObject {
     pub status: String,
     pub step_details: HashMap<String, String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub last_error: Option<String>,
+    pub last_error: Option<LastError>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub expires_at: Option<i64>,
     #[serde(skip_serializing_if = "Option::is_none")]
