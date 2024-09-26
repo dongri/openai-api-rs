@@ -1,6 +1,6 @@
 use openai_api_rs::v1::api::OpenAIClient;
 use openai_api_rs::v1::chat_completion::{self, ChatCompletionRequest};
-use openai_api_rs::v1::common::GPT4_VISION_PREVIEW;
+use openai_api_rs::v1::common::GPT4_O;
 use std::env;
 
 #[tokio::main]
@@ -8,13 +8,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let client = OpenAIClient::new(env::var("OPENAI_API_KEY").unwrap().to_string());
 
     let req = ChatCompletionRequest::new(
-        GPT4_VISION_PREVIEW.to_string(),
+        GPT4_O.to_string(),
         vec![chat_completion::ChatCompletionMessage {
             role: chat_completion::MessageRole::user,
             content: chat_completion::Content::ImageUrl(vec![
                 chat_completion::ImageUrl {
                     r#type: chat_completion::ContentType::text,
-                    text: Some(String::from("What’s in this image?")),
+                    text: Some(String::from("What's in this image?")),
                     image_url: None,
                 },
                 chat_completion::ImageUrl {
