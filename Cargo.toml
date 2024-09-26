@@ -1,6 +1,6 @@
 [package]
 name = "openai-api-rs"
-version = "5.0.8"
+version = "5.0.10"
 edition = "2021"
 authors = ["Dongri Jin <dongrium@gmail.com>"]
 license = "MIT"
@@ -9,9 +9,15 @@ repository = "https://github.com/dongri/openai-api-rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[features]
+default = ["default-tls"]
+rustls = ["reqwest/rustls-tls"]
+default-tls = ["reqwest/default-tls"]
+
 [dependencies.reqwest]
 version = "0.12"
-features = ["json", "multipart", "socks"]
+default-features = false
+features = ["charset", "http2", "json", "multipart", "socks"]
 
 [dependencies.tokio]
 version = "1"
