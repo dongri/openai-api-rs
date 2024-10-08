@@ -32,3 +32,11 @@ version = "1"
 
 [dependencies.bytes]
 version = "1.7.1"
+
+[dependencies.tokio-tungstenite]
+version = "0.24.0"
+features = ["connect", "native-tls"]
+
+[dependencies.futures-util]
+version = "0.3.31"
+features = ["sink", "std"]

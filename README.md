@@ -94,6 +94,7 @@ Check out the [full API documentation](https://platform.openai.com/docs/api-refe
 - [x] [Function calling](https://platform.openai.com/docs/guides/gpt/function-calling)
 - [x] [Assistants](https://platform.openai.com/docs/assistants/overview)
 - [x] [Batch](https://platform.openai.com/docs/api-reference/batch)
+- [x] [Realtime](https://platform.openai.com/docs/api-reference/realtime)
 
 ## License
 This project is licensed under [MIT license](https://github.com/dongri/openai-api-rs/blob/main/LICENSE).
