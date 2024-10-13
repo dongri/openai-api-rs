@@ -187,8 +187,13 @@ impl OpenAIClient {
     ) -> Result<T, APIError> {
         let status = response.status();
         if status.is_success() {
-            let parsed = response.json::<T>().await?;
-            Ok(parsed)
+            let text = response.text().await.unwrap_or_else(|_| "".to_string());
+            match serde_json::from_str::<T>(&text) {
+                Ok(parsed) => Ok(parsed),
+                Err(e) => Err(APIError::CustomError {
+                    message: format!("Failed to parse JSON: {} / response {}", e, text),
+                }),
+            }
         } else {
             let error_message = response
                 .text()
