@@ -1,6 +1,7 @@
 use openai_api_rs::v1::api::OpenAIClient;
 use openai_api_rs::v1::chat_completion::{self, ChatCompletionRequest};
 use openai_api_rs::v1::common::GPT4_O;
+use openai_api_rs::v1::types;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::{env, vec};
@@ -21,8 +22,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut properties = HashMap::new();
     properties.insert(
         "coin".to_string(),
-        Box::new(chat_completion::JSONSchemaDefine {
-            schema_type: Some(chat_completion::JSONSchemaType::String),
+        Box::new(types::JSONSchemaDefine {
+            schema_type: Some(types::JSONSchemaType::String),
             description: Some("The cryptocurrency to get the price of".to_string()),
             ..Default::default()
         }),
@@ -40,11 +41,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     )
     .tools(vec![chat_completion::Tool {
         r#type: chat_completion::ToolType::Function,
-        function: chat_completion::Function {
+        function: types::Function {
             name: String::from("get_coin_price"),
             description: Some(String::from("Get the price of a cryptocurrency")),
-            parameters: chat_completion::FunctionParameters {
-                schema_type: chat_completion::JSONSchemaType::Object,
+            parameters: types::FunctionParameters {
+                schema_type: types::JSONSchemaType::Object,
                 properties: Some(properties),
                 required: Some(vec![String::from("coin")]),
             },

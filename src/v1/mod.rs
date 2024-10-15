@@ -1,5 +1,6 @@
 pub mod common;
 pub mod error;
+pub mod types;
 
 pub mod audio;
 pub mod batch;
