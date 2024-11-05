@@ -9,7 +9,7 @@ pub struct ImageData {
     pub url: String,
 }
 
-#[derive(Debug, Serialize, Clone)]
+#[derive(Debug, Serialize, Clone, Deserialize)]
 pub struct ImageGenerationRequest {
     pub prompt: String,
     #[serde(skip_serializing_if = "Option::is_none")]
