@@ -8,7 +8,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let client = OpenAIClient::new(env::var("OPENAI_API_KEY").unwrap().to_string());
 
     let mut req =
-        EmbeddingRequest::new(TEXT_EMBEDDING_3_SMALL.to_string(), "story time".to_string());
+        EmbeddingRequest::new(TEXT_EMBEDDING_3_SMALL.to_string(), vec!["story time".to_string(), "Once upon a time".to_string()]);
     req.dimensions = Some(10);
 
     let result = client.embedding(req).await?;
