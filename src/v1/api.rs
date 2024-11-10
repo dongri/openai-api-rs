@@ -38,11 +38,13 @@ use crate::v1::run::{
 use crate::v1::thread::{CreateThreadRequest, ModifyThreadRequest, ThreadObject};
 
 use bytes::Bytes;
+use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
 use reqwest::multipart::{Form, Part};
 use reqwest::{Client, Method, Response};
 use serde::Serialize;
 use serde_json::Value;
 
+use std::error::Error;
 use std::fs::{create_dir_all, File};
 use std::io::Read;
 use std::io::Write;
@@ -50,61 +52,84 @@ use std::path::Path;
 
 const API_URL_V1: &str = "https://api.openai.com/v1";
 
+#[derive(Default)]
+pub struct OpenAIClientBuilder {
+    api_endpoint: Option<String>,
+    api_key: Option<String>,
+    organization: Option<String>,
+    proxy: Option<String>,
+    timeout: Option<u64>,
+    headers: Option<HeaderMap>,
+}
+
 pub struct OpenAIClient {
-    pub api_endpoint: String,
-    pub api_key: String,
-    pub organization: Option<String>,
-    pub proxy: Option<String>,
-    pub timeout: Option<u64>,
+    api_endpoint: String,
+    api_key: String,
+    organization: Option<String>,
+    proxy: Option<String>,
+    timeout: Option<u64>,
+    headers: Option<HeaderMap>,
+}
+
+impl OpenAIClientBuilder {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    pub fn with_api_key(mut self, api_key: impl Into<String>) -> Self {
+        self.api_key = Some(api_key.into());
+        self
+    }
+
+    pub fn with_endpoint(mut self, endpoint: impl Into<String>) -> Self {
+        self.api_endpoint = Some(endpoint.into());
+        self
+    }
+
+    pub fn with_organization(mut self, organization: impl Into<String>) -> Self {
+        self.organization = Some(organization.into());
+        self
+    }
+
+    pub fn with_proxy(mut self, proxy: impl Into<String>) -> Self {
+        self.proxy = Some(proxy.into());
+        self
+    }
+
+    pub fn with_timeout(mut self, timeout: u64) -> Self {
+        self.timeout = Some(timeout);
+        self
+    }
+
+    pub fn with_header(mut self, key: impl Into<String>, value: impl Into<String>) -> Self {
+        let headers = self.headers.get_or_insert_with(HeaderMap::new);
+        headers.insert(
+            HeaderName::from_bytes(key.into().as_bytes()).expect("Invalid header name"),
+            HeaderValue::from_str(&value.into()).expect("Invalid header value"),
+        );
+        self
+    }
+
+    pub fn build(self) -> Result<OpenAIClient, Box<dyn Error>> {
+        let api_key = self.api_key.ok_or("API key is required")?;
+        let api_endpoint = self.api_endpoint.unwrap_or_else(|| {
+            std::env::var("OPENAI_API_BASE").unwrap_or_else(|_| API_URL_V1.to_owned())
+        });
+
+        Ok(OpenAIClient {
+            api_endpoint,
+            api_key,
+            organization: self.organization,
+            proxy: self.proxy,
+            timeout: self.timeout,
+            headers: self.headers,
+        })
+    }
 }
 
 impl OpenAIClient {
-    pub fn new(api_key: String) -> Self {
-        let endpoint = std::env::var("OPENAI_API_BASE").unwrap_or_else(|_| API_URL_V1.to_owned());
-        Self::new_with_endpoint(endpoint, api_key)
-    }
-
-    pub fn new_with_endpoint(api_endpoint: String, api_key: String) -> Self {
-        Self {
-            api_endpoint,
-            api_key,
-            organization: None,
-            proxy: None,
-            timeout: None,
-        }
-    }
-
-    pub fn new_with_organization(api_key: String, organization: String) -> Self {
-        let endpoint = std::env::var("OPENAI_API_BASE").unwrap_or_else(|_| API_URL_V1.to_owned());
-        Self {
-            api_endpoint: endpoint,
-            api_key,
-            organization: Some(organization),
-            proxy: None,
-            timeout: None,
-        }
-    }
-
-    pub fn new_with_proxy(api_key: String, proxy: String) -> Self {
-        let endpoint = std::env::var("OPENAI_API_BASE").unwrap_or_else(|_| API_URL_V1.to_owned());
-        Self {
-            api_endpoint: endpoint,
-            api_key,
-            organization: None,
-            proxy: Some(proxy),
-            timeout: None,
-        }
-    }
-
-    pub fn new_with_timeout(api_key: String, timeout: u64) -> Self {
-        let endpoint = std::env::var("OPENAI_API_BASE").unwrap_or_else(|_| API_URL_V1.to_owned());
-        Self {
-            api_endpoint: endpoint,
-            api_key,
-            organization: None,
-            proxy: None,
-            timeout: Some(timeout),
-        }
+    pub fn builder() -> OpenAIClientBuilder {
+        OpenAIClientBuilder::new()
     }
 
     async fn build_request(&self, method: Method, path: &str) -> reqwest::RequestBuilder {
@@ -127,11 +152,16 @@ impl OpenAIClient {
 
         let mut request = client
             .request(method, url)
-            // .header("Content-Type", "application/json")
             .header("Authorization", format!("Bearer {}", self.api_key));
 
         if let Some(organization) = &self.organization {
             request = request.header("openai-organization", organization);
+        }
+
+        if let Some(headers) = &self.headers {
+            for (key, value) in headers {
+                request = request.header(key, value);
+            }
         }
 
         if Self::is_beta(path) {
