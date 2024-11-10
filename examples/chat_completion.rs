@@ -5,7 +5,8 @@ use std::env;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let client = OpenAIClient::new(env::var("OPENAI_API_KEY").unwrap().to_string());
+    let api_key = env::var("OPENAI_API_KEY").unwrap().to_string();
+    let client = OpenAIClient::builder().with_api_key(api_key).build()?;
 
     let req = ChatCompletionRequest::new(
         GPT4_O_MINI.to_string(),

@@ -20,7 +20,8 @@ $ export OPENAI_API_KEY=sk-xxxxxxx
 
 ### Create client
 ```rust
-let client = OpenAIClient::new(env::var("OPENAI_API_KEY").unwrap().to_string());
+let api_key = env::var("OPENAI_API_KEY").unwrap().to_string();
+let client = OpenAIClient::builder().with_api_key(api_key).build()?;
 ```
 
 ### Create request
@@ -57,7 +58,8 @@ use std::env;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let client = OpenAIClient::new(env::var("OPENAI_API_KEY").unwrap().to_string());
+    let api_key = env::var("OPENAI_API_KEY").unwrap().to_string();
+    let client = OpenAIClient::builder().with_api_key(api_key).build()?;
 
     let req = ChatCompletionRequest::new(
         GPT4_O.to_string(),
