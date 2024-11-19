@@ -45,3 +45,43 @@ pub struct JSONSchemaDefine {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub items: Option<Box<JSONSchemaDefine>>,
 }
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+#[serde(tag = "type")]
+#[serde(rename_all = "snake_case")]
+pub enum Tools {
+    CodeInterpreter,
+    FileSearch(ToolsFileSearch),
+    Function(ToolsFunction),
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct ToolsFileSearch {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub file_search: Option<ToolsFileSearchObject>,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct ToolsFunction {
+    pub function: Function,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct ToolsFileSearchObject {
+    pub max_num_results: Option<u8>,
+    pub ranking_options: Option<FileSearchRankingOptions>,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct FileSearchRankingOptions {
+    pub ranker: Option<FileSearchRanker>,
+    pub score_threshold: Option<f32>,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub enum FileSearchRanker {
+    #[serde(rename = "auto")]
+    Auto,
+    #[serde(rename = "default_2024_08_21")]
+    Default2024_08_21,
+}
