@@ -16,7 +16,7 @@ fn get_coin_price(coin: &str) -> f64 {
 }
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let api_key = env::var("OPENAI_API_KEY").unwrap().to_string();
     let client = OpenAIClient::builder().with_api_key(api_key).build()?;
 

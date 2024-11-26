@@ -36,7 +36,7 @@ impl RealtimeClient {
             SplitSink<WebSocketStream<MaybeTlsStream<TcpStream>>, Message>,
             SplitStream<WebSocketStream<MaybeTlsStream<TcpStream>>>,
         ),
-        Box<dyn std::error::Error>,
+        Box<dyn std::error::Error + Send + Sync>,
     > {
         let url = format!("{}?model={}", self.wss_url, self.model);
         let mut request = url.into_client_request()?;

@@ -110,7 +110,7 @@ impl OpenAIClientBuilder {
         self
     }
 
-    pub fn build(self) -> Result<OpenAIClient, Box<dyn Error>> {
+    pub fn build(self) -> Result<OpenAIClient, Box<dyn Error + Send + Sync>> {
         let api_key = self.api_key.ok_or("API key is required")?;
         let api_endpoint = self.api_endpoint.unwrap_or_else(|| {
             std::env::var("OPENAI_API_BASE").unwrap_or_else(|_| API_URL_V1.to_owned())
