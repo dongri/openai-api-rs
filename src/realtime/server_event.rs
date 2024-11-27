@@ -31,7 +31,7 @@ pub struct ConversationCreated {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct InputAudioBufferCommited {
     pub event_id: String,
-    pub previous_item_id: String,
+    pub previous_item_id: Option<String>,
     pub item_id: String,
 }
 
