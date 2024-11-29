@@ -3,7 +3,7 @@ use crate::v1::assistant::{
     ListAssistant, ListAssistantFile,
 };
 use crate::v1::audio::{
-    AudioSpeechRequest, AudioSpeechResponse, AudioTranscriptionRequest, AudioTranscriptionResponse,
+    AudioSpeechRequest, AudioSpeechResponse, AudioTranscriptionRequest, AudioTranscriptionRawRequest, AudioTranscriptionResponse,
     AudioTranslationRequest, AudioTranslationResponse,
 };
 use crate::v1::batch::{BatchResponse, CreateBatchRequest, ListBatchResponse};
@@ -38,6 +38,7 @@ use crate::v1::run::{
 use crate::v1::thread::{CreateThreadRequest, ModifyThreadRequest, ThreadObject};
 
 use bytes::Bytes;
+use base64::{Engine, engine::general_purpose::STANDARD as BASE64};
 use reqwest::multipart::{Form, Part};
 use reqwest::{Client, Method, Response};
 use serde::Serialize;
@@ -276,6 +277,16 @@ impl OpenAIClient {
         let form = Self::create_form(&req, "file")?;
         self.post_form("audio/transcriptions", form).await
     }
+
+    pub async fn audio_transcription_raw(
+        &self,
+        req: AudioTranscriptionRawRequest,
+    ) -> Result<AudioTranscriptionResponse, APIError> {
+        let form = Self::create_form_raw_file(&req, "file_name", "file_content")?;
+        self.post_form("audio/transcriptions", form).await
+
+        // self.post("audio/transcriptions", &req).await
+    }   
 
     pub async fn audio_translation(
         &self,
@@ -762,4 +773,67 @@ impl OpenAIClient {
 
         Ok(form)
     }
+
+    fn create_form_raw_file<T>(req: &T, file_field_name: &str, content_field_name: &str) -> Result<Form, APIError>
+    where
+        T: Serialize,
+    {
+
+        let json = match serde_json::to_value(req) {
+            Ok(json) => json,
+            Err(e) => {
+                return Err(APIError::CustomError {
+                    message: e.to_string(),
+                })
+            }
+        };
+
+        let file_path = if let Value::Object(map) = &json {
+            map.get(file_field_name)
+                .and_then(|v| v.as_str())
+                .ok_or(APIError::CustomError {
+                    message: format!("Field '{}' not found or not a string", file_field_name),
+                })?
+        } else {
+            return Err(APIError::CustomError {
+                message: "Request is not a JSON object".to_string(),
+            });
+        };
+
+        // content comes in as a base64 encoded string
+        let content_field_value = if let Value::Object(map) = &json {
+            map.get(content_field_name)
+                .and_then(|v| v.as_str())
+                .ok_or(APIError::CustomError {
+                    message: format!("Field '{}' not found or not a string", content_field_name),
+                })?
+        } else {
+            return Err(APIError::CustomError {
+                message: "Request is not a JSON object".to_string(),
+            });
+        };
+
+        let buffer = BASE64.decode(content_field_value).unwrap();
+        let mut form =
+            Form::new().part("file", Part::bytes(buffer).file_name(file_path.to_string()));
+
+        if let Value::Object(map) = json {
+            for (key, value) in map.into_iter() {
+                if key != content_field_name && key != file_field_name {
+                    match value {
+                        Value::String(s) => {
+                            form = form.text(key, s);
+                        }
+                        Value::Number(n) => {
+                            form = form.text(key, n.to_string());
+                        }
+                        _ => {}
+                    }
+                }
+            }
+        }
+
+        Ok(form)
+    }
+
 }

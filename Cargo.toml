@@ -40,3 +40,6 @@ features = ["connect", "native-tls"]
 [dependencies.futures-util]
 version = "0.3.31"
 features = ["sink", "std"]
+
+[dependencies.base64]
+version = "0.22.1"
