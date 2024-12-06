@@ -1,7 +1,8 @@
 use reqwest::header::HeaderMap;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-
+use bytes::Bytes;
+use base64::{Engine, engine::general_purpose::STANDARD as BASE64};
 use crate::impl_builder_methods;
 
 pub const WHISPER_1: &str = "whisper-1";
@@ -35,6 +36,43 @@ impl AudioTranscriptionRequest {
 
 impl_builder_methods!(
     AudioTranscriptionRequest,
+    prompt: String,
+    response_format: String,
+    temperature: f32,
+    language: String
+);
+
+#[derive(Debug, Serialize, Clone)]
+pub struct AudioTranscriptionRawRequest {
+    pub file_name: String,
+    pub file_content: String,
+    pub model: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub prompt: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub response_format: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub temperature: Option<f32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub language: Option<String>,
+}
+
+impl AudioTranscriptionRawRequest {
+    pub fn new(file_name: String, file_content: String, model: String) -> Self {
+        Self {
+            file_name,
+            file_content,
+            model,
+            prompt: None,
+            response_format: None,
+            temperature: None,
+            language: None,
+        }
+    }
+}
+
+impl_builder_methods!(
+    AudioTranscriptionRawRequest,
     prompt: String,
     response_format: String,
     temperature: f32,
