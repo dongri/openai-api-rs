@@ -12,7 +12,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         WHISPER_1.to_string(),
     );
 
-    let result = client.audio_transcription(req).await?;
+    let req_json = req.clone().response_format("json".to_string());
+
+    let result = client.audio_transcription(req_json).await?;
+    println!("{:?}", result);
+
+    let req_raw = req.clone().response_format("text".to_string());
+
+    let result = client.audio_transcription_raw(req_raw).await?;
     println!("{:?}", result);
 
     Ok(())
