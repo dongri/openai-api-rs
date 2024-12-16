@@ -30,8 +30,11 @@ pub struct Session {
 #[serde(rename_all = "lowercase")]
 pub enum RealtimeVoice {
     Alloy,
-    Shimmer,
     Echo,
+    Fable,
+    Onyx,
+    Nova,
+    Shimmer,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
