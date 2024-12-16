@@ -211,6 +211,13 @@ impl OpenAIClient {
         self.handle_response(response).await
     }
 
+    async fn post_form_raw(&self, path: &str, form: Form) -> Result<Bytes, APIError> {
+        let request = self.build_request(Method::POST, path).await;
+        let request = request.multipart(form);
+        let response = request.send().await?;
+        Ok(response.bytes().await?)
+    }
+
     async fn handle_response<T: serde::de::DeserializeOwned>(
         &self,
         response: Response,
@@ -303,8 +310,32 @@ impl OpenAIClient {
         &self,
         req: AudioTranscriptionRequest,
     ) -> Result<AudioTranscriptionResponse, APIError> {
+        // https://platform.openai.com/docs/api-reference/audio/createTranslation#audio-createtranslation-response_format
+        if let Some(response_format) = &req.response_format {
+            if response_format != "json" && response_format != "verbose_json" {
+                return Err(APIError::CustomError {
+                    message: "response_format must be either 'json' or 'verbose_json' please use audio_transcription_raw".to_string(),
+                });
+            }
+        }
         let form = Self::create_form(&req, "file")?;
         self.post_form("audio/transcriptions", form).await
+    }
+
+    pub async fn audio_transcription_raw(
+        &self,
+        req: AudioTranscriptionRequest,
+    ) -> Result<Bytes, APIError> {
+        // https://platform.openai.com/docs/api-reference/audio/createTranslation#audio-createtranslation-response_format
+        if let Some(response_format) = &req.response_format {
+            if response_format != "text" && response_format != "srt" && response_format != "vtt" {
+                return Err(APIError::CustomError {
+                    message: "response_format must be either 'text', 'srt' or 'vtt', please use audio_transcription".to_string(),
+                });
+            }
+        }
+        let form = Self::create_form(&req, "file")?;
+        self.post_form_raw("audio/transcriptions", form).await
     }
 
     pub async fn audio_translation(

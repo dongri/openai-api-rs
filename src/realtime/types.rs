@@ -218,6 +218,8 @@ pub enum ResponseStatus {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(tag = "type")]
 pub enum ResponseStatusDetail {
+    #[serde(rename = "cancelled")]
+    Cancelled { reason: CancelledReason },
     #[serde(rename = "incomplete")]
     Incomplete { reason: IncompleteReason },
     #[serde(rename = "failed")]
@@ -228,6 +230,13 @@ pub enum ResponseStatusDetail {
 pub struct FailedError {
     pub code: String,
     pub message: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "snake_case")]
+pub enum CancelledReason {
+    TurnDetected,
+    ClientCancelled,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
