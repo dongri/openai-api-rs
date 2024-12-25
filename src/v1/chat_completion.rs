@@ -260,6 +260,7 @@ pub struct ChatCompletionResponse {
 #[allow(non_camel_case_types)]
 pub enum FinishReason {
     stop,
+    #[serde(alias = "max_tokens")]
     length,
     content_filter,
     tool_calls,
