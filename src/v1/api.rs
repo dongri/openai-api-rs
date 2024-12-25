@@ -60,7 +60,6 @@ pub struct OpenAIClientBuilder {
     proxy: Option<String>,
     timeout: Option<u64>,
     headers: Option<HeaderMap>,
-    additional_json: Option<Value>,
 }
 
 pub struct OpenAIClient {
@@ -70,7 +69,6 @@ pub struct OpenAIClient {
     proxy: Option<String>,
     timeout: Option<u64>,
     headers: Option<HeaderMap>,
-    additional_json: Option<Value>,
 }
 
 impl OpenAIClientBuilder {
@@ -112,12 +110,6 @@ impl OpenAIClientBuilder {
         self
     }
 
-    pub fn with_json(mut self, json: Value) -> Self {
-        self.additional_json = Some(json);
-        self
-        
-    }
-
     pub fn build(self) -> Result<OpenAIClient, Box<dyn Error>> {
         let api_key = self.api_key.ok_or("API key is required")?;
         let api_endpoint = self.api_endpoint.unwrap_or_else(|| {
@@ -131,7 +123,6 @@ impl OpenAIClientBuilder {
             proxy: self.proxy,
             timeout: self.timeout,
             headers: self.headers,
-            additional_json: self.additional_json,
         })
     }
 }
@@ -186,19 +177,6 @@ impl OpenAIClient {
         body: &impl serde::ser::Serialize,
     ) -> Result<T, APIError> {
         let request = self.build_request(Method::POST, path).await;
-
-        let request = if let Some(json) = &self.additional_json {
-            let mut body = serde_json::to_value(body).unwrap();
-            if let Value::Object(map) = &mut body {
-                for (key, value) in json.as_object().unwrap() {
-                    map.insert(key.to_string(), value.clone());
-                }
-            }
-            request.json(&body)
-        } else {
-            request.json(body)
-        };
-
         let request = request.json(body);
         let response = request.send().await?;
         self.handle_response(response).await
