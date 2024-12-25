@@ -1,13 +1,12 @@
 use super::{common, types};
 use crate::impl_builder_methods;
 
-use serde::de::{self, MapAccess, SeqAccess, Visitor, DeserializeOwned};
+use serde::de::{self, MapAccess, SeqAccess, Visitor};
 use serde::ser::SerializeMap;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde_json::Value;
 use std::collections::HashMap;
 use std::fmt;
-
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
 pub enum ToolChoiceType {
     None,
@@ -15,7 +14,6 @@ pub enum ToolChoiceType {
     Required,
     ToolChoice { tool: Tool },
 }
-
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ChatCompletionRequest {
@@ -239,7 +237,6 @@ pub struct ChatCompletionMessageForResponse {
 pub struct ChatCompletionChoice {
     pub index: i64,
     pub message: ChatCompletionMessageForResponse,
-    #[serde(deserialize_with = "case_insensitive")]
     pub finish_reason: Option<FinishReason>,
     pub finish_details: Option<FinishDetails>,
 }
@@ -308,31 +305,6 @@ where
         }
         None => serializer.serialize_none(),
     }
-}
-
-fn case_insensitive<'de, T, D>(deserializer: D) -> Result<T, D::Error>
-where
-    T: DeserializeOwned,
-    D: Deserializer<'de>,
-{
-    let value = Value::deserialize(deserializer)?;
-    
-    fn lowercase_value(value: Value) -> Value {
-        match value {
-            Value::String(s) => Value::String(s.to_lowercase()),
-            Value::Array(arr) => Value::Array(arr.into_iter().map(lowercase_value).collect()),
-            Value::Object(map) => Value::Object(
-                map.into_iter()
-                    .map(|(k, v)| (k.to_lowercase(), lowercase_value(v)))
-                    .collect(),
-            ),
-            v => v,
-        }
-    }
-
-    let lowercase_value = lowercase_value(value);
-
-    T::deserialize(lowercase_value).map_err(de::Error::custom)
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
