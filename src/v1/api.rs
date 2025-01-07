@@ -765,7 +765,17 @@ impl OpenAIClient {
                         Value::Number(n) => {
                             form = form.text(key, n.to_string());
                         }
-                        _ => {}
+                        Value::Array(arr) => {
+                            for item in arr {
+                                match item {
+                                    Value::String(s) => {
+                                        form = form.text(key.clone(), s);
+                                    }
+                                    _ => println!("Unexpected array item type: {:?}", item),
+                                }
+                            }
+                        }
+                        _ => println!("Unhandled value type for key {}: {:?}", key, value),
                     }
                 }
             }

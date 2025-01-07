@@ -19,6 +19,9 @@ pub struct AudioTranscriptionRequest {
     pub temperature: Option<f32>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub language: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "timestamp_granularities[]")]
+    pub timestamp_granularities: Option<Vec<TimestampGranularity>>,
 }
 
 impl AudioTranscriptionRequest {
@@ -30,6 +33,7 @@ impl AudioTranscriptionRequest {
             response_format: None,
             temperature: None,
             language: None,
+            timestamp_granularities: None,
         }
     }
 }
@@ -39,7 +43,8 @@ impl_builder_methods!(
     prompt: String,
     response_format: String,
     temperature: f32,
-    language: String
+    language: String,
+    timestamp_granularities: Vec<TimestampGranularity>
 );
 
 #[derive(Debug, Serialize, Clone)]
@@ -80,9 +85,44 @@ impl_builder_methods!(
 );
 
 #[derive(Debug, Deserialize, Serialize)]
-pub struct AudioTranscriptionResponse {
+#[serde(untagged)]
+pub enum AudioTranscriptionResponse {
+    Verbose {
+        task: String,
+        language: String,
+        duration: f64,
+        text: String,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        words: Option<Vec<TranscriptionWord>>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        segments: Option<Vec<TranscriptionSegment>>,
+        headers: Option<HashMap<String, String>>,
+    },
+    Simple {
+        text: String,
+        headers: Option<HashMap<String, String>>,
+    },
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct TranscriptionWord {
+    pub word: String,
+    pub start: f64,
+    pub end: f64,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct TranscriptionSegment {
+    pub id: i32,
+    pub seek: i32,
+    pub start: f64,
+    pub end: f64,
     pub text: String,
-    pub headers: Option<HashMap<String, String>>,
+    pub tokens: Vec<i32>,
+    pub temperature: f64,
+    pub avg_logprob: f64,
+    pub compression_ratio: f64,
+    pub no_speech_prob: f64,
 }
 
 #[derive(Debug, Serialize, Clone)]
@@ -157,4 +197,11 @@ impl_builder_methods!(AudioSpeechRequest,);
 pub struct AudioSpeechResponse {
     pub result: bool,
     pub headers: Option<HeaderMap>,
+}
+
+#[derive(Debug, Serialize, Clone)]
+#[serde(rename_all = "lowercase")]
+pub enum TimestampGranularity {
+    Word,
+    Segment,
 }
