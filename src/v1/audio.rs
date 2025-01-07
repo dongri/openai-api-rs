@@ -60,6 +60,9 @@ pub struct AudioTranscriptionRawRequest {
     pub temperature: Option<f32>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub language: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "timestamp_granularities[]")]
+    pub timestamp_granularities: Option<Vec<TimestampGranularity>>,
 }
 
 impl AudioTranscriptionRawRequest {
@@ -72,6 +75,7 @@ impl AudioTranscriptionRawRequest {
             response_format: None,
             temperature: None,
             language: None,
+            timestamp_granularities: None,
         }
     }
 }
@@ -81,7 +85,8 @@ impl_builder_methods!(
     prompt: String,
     response_format: String,
     temperature: f32,
-    language: String
+    language: String,
+    timestamp_granularities: Vec<TimestampGranularity>
 );
 
 #[derive(Debug, Deserialize, Serialize)]
