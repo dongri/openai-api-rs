@@ -204,7 +204,7 @@ pub struct AudioSpeechResponse {
     pub headers: Option<HeaderMap>,
 }
 
-#[derive(Debug, Serialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "lowercase")]
 pub enum TimestampGranularity {
     Word,
