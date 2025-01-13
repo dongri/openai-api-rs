@@ -13,15 +13,26 @@ openai-api-rs = "5.2.4"
 ## Usage
 The library needs to be configured with your account's secret key, which is available on the [website](https://platform.openai.com/account/api-keys). We recommend setting it as an environment variable. Here's an example of initializing the library with the API key loaded from an environment variable and creating a completion:
 
-### Set OPENAI_API_KEY to environment variable
+### Set OPENAI_API_KEY or OPENROUTER_API_KEY to environment variable
 ```bash
 $ export OPENAI_API_KEY=sk-xxxxxxx
+or
+$ export OPENROUTER_API_KEY=sk-xxxxxxx
 ```
 
-### Create client
+### Create OpenAI client
 ```rust
 let api_key = env::var("OPENAI_API_KEY").unwrap().to_string();
 let client = OpenAIClient::builder().with_api_key(api_key).build()?;
+```
+
+### Create OpenRouter client
+```rust
+let api_key = env::var("OPENROUTER_API_KEY").unwrap().to_string();
+let client = OpenAIClient::builder()
+    .with_endpoint("https://openrouter.ai/api/v1")
+    .with_api_key(api_key)
+    .build()?;
 ```
 
 ### Create request
@@ -79,6 +90,41 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 ```
+
+## Example for OpenRouter
+```rust
+use openai_api_rs::v1::api::OpenAIClient;
+use openai_api_rs::v1::chat_completion::{self, ChatCompletionRequest};
+use openai_api_rs::v1::common::GPT4_O_MINI;
+use std::env;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let api_key = env::var("OPENROUTER_API_KEY").unwrap().to_string();
+    let client = OpenAIClient::builder()
+        .with_endpoint("https://openrouter.ai/api/v1")
+        .with_api_key(api_key)
+        .build()?;
+
+    let req = ChatCompletionRequest::new(
+        GPT4_O_MINI.to_string(),
+        vec![chat_completion::ChatCompletionMessage {
+            role: chat_completion::MessageRole::user,
+            content: chat_completion::Content::Text(String::from("What is bitcoin?")),
+            name: None,
+            tool_calls: None,
+            tool_call_id: None,
+        }],
+    );
+
+    let result = client.chat_completion(req).await?;
+    println!("Content: {:?}", result.choices[0].message.content);
+    println!("Response Headers: {:?}", result.headers);
+
+    Ok(())
+}
+```
+
 More Examples: [examples](https://github.com/dongri/openai-api-rs/tree/main/examples)
 
 Check out the [full API documentation](https://platform.openai.com/docs/api-reference/completions) for examples of all the available functions.
