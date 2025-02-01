@@ -8,9 +8,11 @@ pub const WHISPER_1: &str = "whisper-1";
 
 #[derive(Debug, Serialize, Clone)]
 pub struct AudioTranscriptionRequest {
-    pub file: String,
     pub model: String,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub file: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub bytes: Option<Vec<u8>>,
     pub prompt: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub response_format: Option<String>,
@@ -23,8 +25,21 @@ pub struct AudioTranscriptionRequest {
 impl AudioTranscriptionRequest {
     pub fn new(file: String, model: String) -> Self {
         Self {
-            file,
             model,
+            file: Some(file),
+            bytes: None,
+            prompt: None,
+            response_format: None,
+            temperature: None,
+            language: None,
+        }
+    }
+
+    pub fn new_bytes(bytes: Vec<u8>, model: String) -> Self {
+        Self {
+            model,
+            file: None,
+            bytes: Some(bytes),
             prompt: None,
             response_format: None,
             temperature: None,
