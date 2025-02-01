@@ -310,7 +310,7 @@ impl OpenAIClient {
         &self,
         req: AudioTranscriptionRequest,
     ) -> Result<AudioTranscriptionResponse, APIError> {
-        // https://platform.openai.com/docs/api-reference/audio/createTranslation#audio-createtranslation-response_format
+        // https://platform.openai.com/docs/api-reference/audio/createTranscription#audio-createtranscription-response_format
         if let Some(response_format) = &req.response_format {
             if response_format != "json" && response_format != "verbose_json" {
                 return Err(APIError::CustomError {
@@ -318,7 +318,16 @@ impl OpenAIClient {
                 });
             }
         }
-        let form = Self::create_form(&req, "file")?;
+        let form: Form;
+        if req.clone().file.is_some() {
+            form = Self::create_form(&req, "file")?;
+        } else if let Some(bytes) = req.clone().bytes {
+            form = Self::create_form_from_bytes(&req, bytes)?;
+        } else {
+            return Err(APIError::CustomError {
+                message: "Either file or bytes must be provided".to_string(),
+            });
+        }
         self.post_form("audio/transcriptions", form).await
     }
 
@@ -326,7 +335,7 @@ impl OpenAIClient {
         &self,
         req: AudioTranscriptionRequest,
     ) -> Result<Bytes, APIError> {
-        // https://platform.openai.com/docs/api-reference/audio/createTranslation#audio-createtranslation-response_format
+        // https://platform.openai.com/docs/api-reference/audio/createTranscription#audio-createtranscription-response_format
         if let Some(response_format) = &req.response_format {
             if response_format != "text" && response_format != "srt" && response_format != "vtt" {
                 return Err(APIError::CustomError {
@@ -334,7 +343,16 @@ impl OpenAIClient {
                 });
             }
         }
-        let form = Self::create_form(&req, "file")?;
+        let form: Form;
+        if req.clone().file.is_some() {
+            form = Self::create_form(&req, "file")?;
+        } else if let Some(bytes) = req.clone().bytes {
+            form = Self::create_form_from_bytes(&req, bytes)?;
+        } else {
+            return Err(APIError::CustomError {
+                message: "Either file or bytes must be provided".to_string(),
+            });
+        }
         self.post_form_raw("audio/transcriptions", form).await
     }
 
@@ -817,6 +835,38 @@ impl OpenAIClient {
                         }
                         _ => {}
                     }
+                }
+            }
+        }
+
+        Ok(form)
+    }
+
+    fn create_form_from_bytes<T>(req: &T, bytes: Vec<u8>) -> Result<Form, APIError>
+    where
+        T: Serialize,
+    {
+        let json = match serde_json::to_value(req) {
+            Ok(json) => json,
+            Err(e) => {
+                return Err(APIError::CustomError {
+                    message: e.to_string(),
+                })
+            }
+        };
+
+        let mut form = Form::new().part("file", Part::bytes(bytes.clone()).file_name("file.mp3"));
+
+        if let Value::Object(map) = json {
+            for (key, value) in map.into_iter() {
+                match value {
+                    Value::String(s) => {
+                        form = form.text(key, s);
+                    }
+                    Value::Number(n) => {
+                        form = form.text(key, n.to_string());
+                    }
+                    _ => {}
                 }
             }
         }
