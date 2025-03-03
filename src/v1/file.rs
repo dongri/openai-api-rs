@@ -16,6 +16,7 @@ pub struct FileData {
 pub struct FileListResponse {
     pub object: String,
     pub data: Vec<FileData>,
+    #[serde(skip)]
     pub headers: Option<HashMap<String, String>>,
 }
 
@@ -39,6 +40,7 @@ pub struct FileUploadResponse {
     pub created_at: i64,
     pub filename: String,
     pub purpose: String,
+    #[serde(skip)]
     pub headers: Option<HashMap<String, String>>,
 }
 
@@ -58,6 +60,7 @@ pub struct FileDeleteResponse {
     pub id: String,
     pub object: String,
     pub delete: bool,
+    #[serde(skip)]
     pub headers: Option<HashMap<String, String>>,
 }
 
@@ -69,5 +72,6 @@ pub struct FileRetrieveResponse {
     pub created_at: i64,
     pub filename: String,
     pub purpose: String,
+    #[serde(skip)]
     pub headers: Option<HashMap<String, String>>,
 }

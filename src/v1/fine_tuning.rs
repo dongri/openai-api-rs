@@ -99,6 +99,7 @@ pub struct FineTuningPagination<T> {
     pub object: String,
     pub data: Vec<T>,
     pub has_more: bool,
+    #[serde(skip)]
     pub headers: Option<HashMap<String, String>>,
 }
 
@@ -118,6 +119,7 @@ pub struct FineTuningJobObject {
     pub trained_tokens: Option<i64>,
     pub training_file: String,
     pub validation_file: Option<String>,
+    #[serde(skip)]
     pub headers: Option<HashMap<String, String>>,
 }
 

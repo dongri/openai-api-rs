@@ -59,6 +59,7 @@ impl_builder_methods!(
 #[derive(Debug, Deserialize, Serialize)]
 pub struct AudioTranscriptionResponse {
     pub text: String,
+    #[serde(skip)]
     pub headers: Option<HashMap<String, String>>,
 }
 
@@ -96,6 +97,7 @@ impl_builder_methods!(
 #[derive(Debug, Deserialize, Serialize)]
 pub struct AudioTranslationResponse {
     pub text: String,
+    #[serde(skip)]
     pub headers: Option<HashMap<String, String>>,
 }
 

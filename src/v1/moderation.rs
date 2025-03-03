@@ -26,6 +26,7 @@ pub struct CreateModerationResponse {
     pub id: String,
     pub model: String,
     pub results: Vec<ModerationResult>,
+    #[serde(skip)]
     pub headers: Option<HashMap<String, String>>,
 }
 

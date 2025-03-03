@@ -50,6 +50,7 @@ impl_builder_methods!(
 pub struct ImageGenerationResponse {
     pub created: i64,
     pub data: Vec<ImageData>,
+    #[serde(skip)]
     pub headers: Option<HashMap<String, String>>,
 }
 
@@ -100,6 +101,7 @@ impl_builder_methods!(
 pub struct ImageEditResponse {
     pub created: i64,
     pub data: Vec<ImageData>,
+    #[serde(skip)]
     pub headers: Option<HashMap<String, String>>,
 }
 
@@ -144,5 +146,6 @@ impl_builder_methods!(
 pub struct ImageVariationResponse {
     pub created: i64,
     pub data: Vec<ImageData>,
+    #[serde(skip)]
     pub headers: Option<HashMap<String, String>>,
 }

@@ -61,6 +61,7 @@ pub struct AssistantObject {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub tool_resources: Option<ToolResource>,
     pub metadata: Option<HashMap<String, String>>,
+    #[serde(skip)]
     pub headers: Option<HashMap<String, String>>,
 }
 
@@ -101,6 +102,7 @@ pub struct DeletionStatus {
     pub id: String,
     pub object: String,
     pub deleted: bool,
+    #[serde(skip)]
     pub headers: Option<HashMap<String, String>>,
 }
 
@@ -108,6 +110,7 @@ pub struct DeletionStatus {
 pub struct ListAssistant {
     pub object: String,
     pub data: Vec<AssistantObject>,
+    #[serde(skip)]
     pub headers: Option<HashMap<String, String>>,
 }
 
@@ -129,5 +132,6 @@ pub struct AssistantFileObject {
 pub struct ListAssistantFile {
     pub object: String,
     pub data: Vec<AssistantFileObject>,
+    #[serde(skip)]
     pub headers: Option<HashMap<String, String>>,
 }
