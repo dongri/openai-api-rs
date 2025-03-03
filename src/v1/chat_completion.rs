@@ -250,6 +250,7 @@ pub struct ChatCompletionResponse {
     pub choices: Vec<ChatCompletionChoice>,
     pub usage: common::Usage,
     pub system_fingerprint: Option<String>,
+    #[serde(skip)]
     pub headers: Option<HashMap<String, String>>,
 }
 

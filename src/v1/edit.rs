@@ -5,7 +5,7 @@ use std::option::Option;
 use crate::impl_builder_methods;
 use crate::v1::common;
 
-#[derive(Debug, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct EditRequest {
     pub model: String,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -52,5 +52,6 @@ pub struct EditResponse {
     pub created: i64,
     pub usage: common::Usage,
     pub choices: Vec<EditChoice>,
+    #[serde(skip)]
     pub headers: Option<HashMap<String, String>>,
 }
