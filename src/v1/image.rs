@@ -1,5 +1,4 @@
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 use std::option::Option;
 
 use crate::impl_builder_methods;
@@ -50,7 +49,6 @@ impl_builder_methods!(
 pub struct ImageGenerationResponse {
     pub created: i64,
     pub data: Vec<ImageData>,
-    pub headers: Option<HashMap<String, String>>,
 }
 
 #[derive(Debug, Serialize, Clone)]
@@ -100,7 +98,6 @@ impl_builder_methods!(
 pub struct ImageEditResponse {
     pub created: i64,
     pub data: Vec<ImageData>,
-    pub headers: Option<HashMap<String, String>>,
 }
 
 #[derive(Debug, Serialize, Clone)]
@@ -144,5 +141,4 @@ impl_builder_methods!(
 pub struct ImageVariationResponse {
     pub created: i64,
     pub data: Vec<ImageData>,
-    pub headers: Option<HashMap<String, String>>,
 }

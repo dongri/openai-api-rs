@@ -98,7 +98,6 @@ pub struct RunObject {
     pub instructions: Option<String>,
     pub tools: Vec<types::Tools>,
     pub metadata: HashMap<String, String>,
-    pub headers: Option<HashMap<String, String>>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -108,7 +107,6 @@ pub struct ListRun {
     pub first_id: String,
     pub last_id: String,
     pub has_more: bool,
-    pub headers: Option<HashMap<String, String>>,
 }
 
 #[derive(Debug, Serialize, Clone)]
@@ -151,7 +149,6 @@ pub struct RunStepObject {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub completed_at: Option<i64>,
     pub metadata: HashMap<String, String>,
-    pub headers: Option<HashMap<String, String>>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -161,5 +158,4 @@ pub struct ListRunStep {
     pub first_id: String,
     pub last_id: String,
     pub has_more: bool,
-    pub headers: Option<HashMap<String, String>>,
 }

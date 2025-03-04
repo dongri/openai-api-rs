@@ -10,7 +10,7 @@ use std::env;
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let api_key = env::var("OPENAI_API_KEY").unwrap().to_string();
-    let client = OpenAIClient::builder().with_api_key(api_key).build()?;
+    let mut client = OpenAIClient::builder().with_api_key(api_key).build()?;
 
     let mut tools = HashMap::new();
     tools.insert("type".to_string(), "code_interpreter".to_string());

@@ -1,5 +1,4 @@
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 use std::option::Option;
 
 use crate::impl_builder_methods;
@@ -52,5 +51,4 @@ pub struct EditResponse {
     pub created: i64,
     pub usage: common::Usage,
     pub choices: Vec<EditChoice>,
-    pub headers: Option<HashMap<String, String>>,
 }

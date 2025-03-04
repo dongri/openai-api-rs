@@ -1,5 +1,4 @@
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 
 use crate::impl_builder_methods;
 
@@ -26,7 +25,6 @@ pub struct CreateModerationResponse {
     pub id: String,
     pub model: String,
     pub results: Vec<ModerationResult>,
-    pub headers: Option<HashMap<String, String>>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
