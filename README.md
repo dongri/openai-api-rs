@@ -7,7 +7,7 @@ Check out the [docs.rs](https://docs.rs/openai-api-rs/).
 Cargo.toml
 ```toml
 [dependencies]
-openai-api-rs = "5.2.7"
+openai-api-rs = "6.0.0"
 ```
 
 ## Usage
@@ -23,13 +23,13 @@ $ export OPENROUTER_API_KEY=sk-xxxxxxx
 ### Create OpenAI client
 ```rust
 let api_key = env::var("OPENAI_API_KEY").unwrap().to_string();
-let client = OpenAIClient::builder().with_api_key(api_key).build()?;
+let mut client = OpenAIClient::builder().with_api_key(api_key).build()?;
 ```
 
 ### Create OpenRouter client
 ```rust
 let api_key = env::var("OPENROUTER_API_KEY").unwrap().to_string();
-let client = OpenAIClient::builder()
+let mut client = OpenAIClient::builder()
     .with_endpoint("https://openrouter.ai/api/v1")
     .with_api_key(api_key)
     .build()?;
@@ -53,6 +53,10 @@ let req = ChatCompletionRequest::new(
 ```rust
 let result = client.chat_completion(req)?;
 println!("Content: {:?}", result.choices[0].message.content);
+
+for (key, value) in client.headers.unwrap().iter() {
+    println!("{}: {:?}", key, value);
+}
 ```
 
 ### Set OPENAI_API_BASE to environment variable (optional)
@@ -70,7 +74,7 @@ use std::env;
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let api_key = env::var("OPENAI_API_KEY").unwrap().to_string();
-    let client = OpenAIClient::builder().with_api_key(api_key).build()?;
+    let mut client = OpenAIClient::builder().with_api_key(api_key).build()?;
 
     let req = ChatCompletionRequest::new(
         GPT4_O.to_string(),
@@ -85,7 +89,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let result = client.chat_completion(req).await?;
     println!("Content: {:?}", result.choices[0].message.content);
-    println!("Response Headers: {:?}", result.headers);
+
+    for (key, value) in client.headers.unwrap().iter() {
+        println!("{}: {:?}", key, value);
+    }
 
     Ok(())
 }
@@ -101,7 +108,7 @@ use std::env;
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let api_key = env::var("OPENROUTER_API_KEY").unwrap().to_string();
-    let client = OpenAIClient::builder()
+    let mut client = OpenAIClient::builder()
         .with_endpoint("https://openrouter.ai/api/v1")
         .with_api_key(api_key)
         .build()?;
@@ -119,7 +126,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let result = client.chat_completion(req).await?;
     println!("Content: {:?}", result.choices[0].message.content);
-    println!("Response Headers: {:?}", result.headers);
+    
+    for (key, value) in client.headers.unwrap().iter() {
+        println!("{}: {:?}", key, value);
+    }
 
     Ok(())
 }
