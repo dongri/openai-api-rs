@@ -7,7 +7,7 @@ use std::io::Read;
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let api_key = env::var("OPENAI_API_KEY").unwrap().to_string();
-    let client = OpenAIClient::builder().with_api_key(api_key).build()?;
+    let mut client = OpenAIClient::builder().with_api_key(api_key).build()?;
 
     let file_path = "examples/data/problem.mp3";
 

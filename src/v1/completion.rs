@@ -117,5 +117,4 @@ pub struct CompletionResponse {
     pub model: String,
     pub choices: Vec<CompletionChoice>,
     pub usage: common::Usage,
-    pub headers: Option<HashMap<String, String>>,
 }

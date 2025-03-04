@@ -1,6 +1,5 @@
 use reqwest::header::HeaderMap;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 
 use crate::impl_builder_methods;
 
@@ -59,7 +58,6 @@ impl_builder_methods!(
 #[derive(Debug, Deserialize, Serialize)]
 pub struct AudioTranscriptionResponse {
     pub text: String,
-    pub headers: Option<HashMap<String, String>>,
 }
 
 #[derive(Debug, Serialize, Clone)]
@@ -96,7 +94,6 @@ impl_builder_methods!(
 #[derive(Debug, Deserialize, Serialize)]
 pub struct AudioTranslationResponse {
     pub text: String,
-    pub headers: Option<HashMap<String, String>>,
 }
 
 pub const TTS_1: &str = "tts-1";
