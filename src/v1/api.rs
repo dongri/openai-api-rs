@@ -233,7 +233,7 @@ impl OpenAIClient {
                 Ok(parsed) => {
                     self.headers = Some(headers);
                     Ok(parsed)
-                },
+                }
                 Err(e) => Err(APIError::CustomError {
                     message: format!("Failed to parse JSON: {} / response {}", e, text),
                 }),
@@ -249,7 +249,10 @@ impl OpenAIClient {
         }
     }
 
-    pub async fn completion(&mut self, req: CompletionRequest) -> Result<CompletionResponse, APIError> {
+    pub async fn completion(
+        &mut self,
+        req: CompletionRequest,
+    ) -> Result<CompletionResponse, APIError> {
         self.post("completions", &req).await
     }
 
@@ -264,7 +267,10 @@ impl OpenAIClient {
         self.post("images/generations", &req).await
     }
 
-    pub async fn image_edit(&mut self, req: ImageEditRequest) -> Result<ImageEditResponse, APIError> {
+    pub async fn image_edit(
+        &mut self,
+        req: ImageEditRequest,
+    ) -> Result<ImageEditResponse, APIError> {
         self.post("images/edits", &req).await
     }
 
@@ -275,7 +281,10 @@ impl OpenAIClient {
         self.post("images/variations", &req).await
     }
 
-    pub async fn embedding(&mut self, req: EmbeddingRequest) -> Result<EmbeddingResponse, APIError> {
+    pub async fn embedding(
+        &mut self,
+        req: EmbeddingRequest,
+    ) -> Result<EmbeddingResponse, APIError> {
         self.post("embeddings", &req).await
     }
 
@@ -298,7 +307,10 @@ impl OpenAIClient {
         self.delete(&format!("files/{}", req.file_id)).await
     }
 
-    pub async fn retrieve_file(&mut self, file_id: String) -> Result<FileRetrieveResponse, APIError> {
+    pub async fn retrieve_file(
+        &mut self,
+        file_id: String,
+    ) -> Result<FileRetrieveResponse, APIError> {
         self.get(&format!("files/{}", file_id)).await
     }
 
@@ -486,7 +498,10 @@ impl OpenAIClient {
             .await
     }
 
-    pub async fn delete_assistant(&mut self, assistant_id: String) -> Result<DeletionStatus, APIError> {
+    pub async fn delete_assistant(
+        &mut self,
+        assistant_id: String,
+    ) -> Result<DeletionStatus, APIError> {
         self.delete(&format!("assistants/{}", assistant_id)).await
     }
 
@@ -546,7 +561,10 @@ impl OpenAIClient {
         self.get(&url).await
     }
 
-    pub async fn create_thread(&mut self, req: CreateThreadRequest) -> Result<ThreadObject, APIError> {
+    pub async fn create_thread(
+        &mut self,
+        req: CreateThreadRequest,
+    ) -> Result<ThreadObject, APIError> {
         self.post("threads", &req).await
     }
 
@@ -730,7 +748,10 @@ impl OpenAIClient {
         self.get(&url).await
     }
 
-    pub async fn create_batch(&mut self, req: CreateBatchRequest) -> Result<BatchResponse, APIError> {
+    pub async fn create_batch(
+        &mut self,
+        req: CreateBatchRequest,
+    ) -> Result<BatchResponse, APIError> {
         self.post("batches", &req).await
     }
 
