@@ -67,8 +67,6 @@ pub struct ThreadObject {
     pub metadata: HashMap<String, String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub tool_resources: Option<ToolResource>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub headers: Option<HashMap<String, String>>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -86,7 +84,6 @@ pub struct Message {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub attachments: Option<Vec<Attachment>>,
     pub metadata: Option<HashMap<String, String>>,
-    pub headers: Option<HashMap<String, String>>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]

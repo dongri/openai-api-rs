@@ -243,14 +243,13 @@ pub struct ChatCompletionChoice {
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct ChatCompletionResponse {
-    pub id: String,
+    pub id: Option<String>,
     pub object: String,
     pub created: i64,
     pub model: String,
     pub choices: Vec<ChatCompletionChoice>,
     pub usage: common::Usage,
     pub system_fingerprint: Option<String>,
-    pub headers: Option<HashMap<String, String>>,
 }
 
 #[derive(Debug, Deserialize, Serialize, PartialEq, Eq)]
