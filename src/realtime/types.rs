@@ -51,8 +51,9 @@ pub enum AudioFormat {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct AudioTranscription {
-    pub enabled: bool,
-    pub model: String,
+    pub language: Option<String>,
+    pub model: Option<String>,
+    pub prompt: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
