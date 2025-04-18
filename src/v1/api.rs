@@ -56,6 +56,7 @@ const API_URL_V1: &str = "https://api.openai.com/v1";
 pub struct OpenAIClientBuilder {
     api_endpoint: Option<String>,
     api_key: Option<String>,
+    api_version: Option<String>,
     organization: Option<String>,
     proxy: Option<String>,
     timeout: Option<u64>,
@@ -66,6 +67,7 @@ pub struct OpenAIClientBuilder {
 pub struct OpenAIClient {
     api_endpoint: String,
     api_key: Option<String>,
+    api_version: Option<String>,
     organization: Option<String>,
     proxy: Option<String>,
     timeout: Option<u64>,
@@ -79,6 +81,11 @@ impl OpenAIClientBuilder {
 
     pub fn with_api_key(mut self, api_key: impl Into<String>) -> Self {
         self.api_key = Some(api_key.into());
+        self
+    }
+
+    pub fn with_api_version(mut self, api_version: impl Into<String>) -> Self {
+        self.api_version = Some(api_version.into());
         self
     }
 
@@ -118,6 +125,7 @@ impl OpenAIClientBuilder {
 
         Ok(OpenAIClient {
             api_endpoint,
+            api_version: self.api_version,
             api_key: self.api_key,
             organization: self.organization,
             proxy: self.proxy,
@@ -134,9 +142,12 @@ impl OpenAIClient {
 
     async fn build_request(&self, method: Method, path: &str) -> reqwest::RequestBuilder {
         let url = format!(
-            "{}/{}?api-version=2025-01-01-preview",
-            self.api_endpoint, path
+            "{}/{}?api-version={}",
+            self.api_endpoint,
+            path,
+            self.api_version.as_deref().unwrap_or("v1")
         );
+
         let client = Client::builder();
 
         #[cfg(feature = "rustls")]
@@ -187,25 +198,9 @@ impl OpenAIClient {
         path: &str,
         body: &impl serde::ser::Serialize,
     ) -> Result<T, APIError> {
-        let request_builder = self.build_request(Method::POST, path).await;
-        let body_json = serde_json::to_string(body).map_err(|e| APIError::CustomError {
-            message: format!("Failed to serialize body: {}", e),
-        })?;
-        let request_builder = request_builder.json(body);
-
-        // 💡 Convert to request to inspect it before sending
-        let client = request_builder
-            .try_clone()
-            .expect("Cannot clone request builder")
-            .build()
-            .expect("Failed to build request");
-
-        // 🔍 Debug log: URL, headers, and optionally body
-        tracing::info!("🔵 URL: {}", client.url());
-        tracing::info!("🟢 Headers:\n{:#?}", client.headers());
-        tracing::info!("🔴 Body:\n{:#?}", body_json);
-        let response = request_builder.send().await?;
-        tracing::info!("Response: {:?}", response);
+        let request = self.build_request(Method::POST, path).await;
+        let request = request.json(body);
+        let response = request.send().await?;
         self.handle_response(response).await
     }
 
