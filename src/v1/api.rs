@@ -62,6 +62,7 @@ pub struct OpenAIClientBuilder {
     headers: Option<HeaderMap>,
 }
 
+#[derive(Debug)]
 pub struct OpenAIClient {
     api_endpoint: String,
     api_key: String,
@@ -179,9 +180,20 @@ impl OpenAIClient {
         path: &str,
         body: &impl serde::ser::Serialize,
     ) -> Result<T, APIError> {
-        let request = self.build_request(Method::POST, path).await;
-        let request = request.json(body);
-        let response = request.send().await?;
+        let request_builder = self.build_request(Method::POST, path).await;
+        let request_builder = request_builder.json(body);
+
+        // 💡 Convert to request to inspect it before sending
+        let client = request_builder
+            .try_clone()
+            .expect("Cannot clone request builder")
+            .build()
+            .expect("Failed to build request");
+
+        // 🔍 Debug log: URL, headers, and optionally body
+        tracing::debug!("🔵 URL: {}", client.url());
+        tracing::debug!("🟢 Headers:\n{:#?}", client.headers());
+        let response = request_builder.send().await?;
         self.handle_response(response).await
     }
 
