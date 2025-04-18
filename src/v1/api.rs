@@ -181,6 +181,9 @@ impl OpenAIClient {
         body: &impl serde::ser::Serialize,
     ) -> Result<T, APIError> {
         let request_builder = self.build_request(Method::POST, path).await;
+        let body_json = serde_json::to_string(body).map_err(|e| APIError::CustomError {
+            message: format!("Failed to serialize body: {}", e),
+        })?;
         let request_builder = request_builder.json(body);
 
         // 💡 Convert to request to inspect it before sending
@@ -193,7 +196,7 @@ impl OpenAIClient {
         // 🔍 Debug log: URL, headers, and optionally body
         tracing::info!("🔵 URL: {}", client.url());
         tracing::info!("🟢 Headers:\n{:#?}", client.headers());
-        tracing::info!("🔴 Body:\n{:#?}", client.body());
+        tracing::info!("🔴 Body:\n{:#?}", body_json);
         let response = request_builder.send().await?;
         self.handle_response(response).await
     }
