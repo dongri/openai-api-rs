@@ -198,6 +198,7 @@ impl OpenAIClient {
         tracing::info!("🟢 Headers:\n{:#?}", client.headers());
         tracing::info!("🔴 Body:\n{:#?}", body_json);
         let response = request_builder.send().await?;
+        tracing::info!("Response: {:?}", response);
         self.handle_response(response).await
     }
 
