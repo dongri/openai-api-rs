@@ -56,6 +56,7 @@ const API_URL_V1: &str = "https://api.openai.com/v1";
 pub struct OpenAIClientBuilder {
     api_endpoint: Option<String>,
     api_key: Option<String>,
+    api_version: Option<String>,
     organization: Option<String>,
     proxy: Option<String>,
     timeout: Option<u64>,
@@ -65,7 +66,8 @@ pub struct OpenAIClientBuilder {
 #[derive(Debug)]
 pub struct OpenAIClient {
     api_endpoint: String,
-    api_key: String,
+    api_key: Option<String>,
+    api_version: Option<String>,
     organization: Option<String>,
     proxy: Option<String>,
     timeout: Option<u64>,
@@ -79,6 +81,11 @@ impl OpenAIClientBuilder {
 
     pub fn with_api_key(mut self, api_key: impl Into<String>) -> Self {
         self.api_key = Some(api_key.into());
+        self
+    }
+
+    pub fn with_api_version(mut self, api_version: impl Into<String>) -> Self {
+        self.api_version = Some(api_version.into());
         self
     }
 
@@ -112,14 +119,14 @@ impl OpenAIClientBuilder {
     }
 
     pub fn build(self) -> Result<OpenAIClient, Box<dyn Error>> {
-        let api_key = self.api_key.ok_or("API key is required")?;
         let api_endpoint = self.api_endpoint.unwrap_or_else(|| {
             std::env::var("OPENAI_API_BASE").unwrap_or_else(|_| API_URL_V1.to_owned())
         });
 
         Ok(OpenAIClient {
             api_endpoint,
-            api_key,
+            api_version: self.api_version,
+            api_key: self.api_key,
             organization: self.organization,
             proxy: self.proxy,
             timeout: self.timeout,
@@ -134,7 +141,13 @@ impl OpenAIClient {
     }
 
     async fn build_request(&self, method: Method, path: &str) -> reqwest::RequestBuilder {
-        let url = format!("{}/{}", self.api_endpoint, path);
+        let url = format!(
+            "{}/{}?api-version={}",
+            self.api_endpoint,
+            path,
+            self.api_version.as_deref().unwrap_or("v1")
+        );
+
         let client = Client::builder();
 
         #[cfg(feature = "rustls")]
@@ -154,9 +167,14 @@ impl OpenAIClient {
 
         let client = client.build().unwrap();
 
-        let mut request = client
-            .request(method, url)
-            .header("Authorization", format!("Bearer {}", self.api_key));
+        let mut request = client.request(method, url);
+
+        if self.api_key.is_some() {
+            request = request.header(
+                "Authorization",
+                format!("Bearer {}", self.api_key.as_ref().unwrap()),
+            );
+        }
 
         if let Some(organization) = &self.organization {
             request = request.header("openai-organization", organization);
@@ -180,20 +198,9 @@ impl OpenAIClient {
         path: &str,
         body: &impl serde::ser::Serialize,
     ) -> Result<T, APIError> {
-        let request_builder = self.build_request(Method::POST, path).await;
-        let request_builder = request_builder.json(body);
-
-        // 💡 Convert to request to inspect it before sending
-        let client = request_builder
-            .try_clone()
-            .expect("Cannot clone request builder")
-            .build()
-            .expect("Failed to build request");
-
-        // 🔍 Debug log: URL, headers, and optionally body
-        tracing::debug!("🔵 URL: {}", client.url());
-        tracing::debug!("🟢 Headers:\n{:#?}", client.headers());
-        let response = request_builder.send().await?;
+        let request = self.build_request(Method::POST, path).await;
+        let request = request.json(body);
+        let response = request.send().await?;
         self.handle_response(response).await
     }
 
