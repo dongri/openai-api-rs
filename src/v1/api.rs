@@ -191,9 +191,9 @@ impl OpenAIClient {
             .expect("Failed to build request");
 
         // 🔍 Debug log: URL, headers, and optionally body
-        tracing::debug!("🔵 URL: {}", client.url());
-        tracing::debug!("🟢 Headers:\n{:#?}", client.headers());
-        tracing::debug!("🔴 Body:\n{:#?}", client.body());
+        tracing::info!("🔵 URL: {}", client.url());
+        tracing::info!("🟢 Headers:\n{:#?}", client.headers());
+        tracing::info!("🔴 Body:\n{:#?}", client.body());
         let response = request_builder.send().await?;
         self.handle_response(response).await
     }
