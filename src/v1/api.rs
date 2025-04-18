@@ -65,7 +65,7 @@ pub struct OpenAIClientBuilder {
 #[derive(Debug)]
 pub struct OpenAIClient {
     api_endpoint: String,
-    api_key: String,
+    api_key: Option<String>,
     organization: Option<String>,
     proxy: Option<String>,
     timeout: Option<u64>,
@@ -112,14 +112,13 @@ impl OpenAIClientBuilder {
     }
 
     pub fn build(self) -> Result<OpenAIClient, Box<dyn Error>> {
-        let api_key = self.api_key.ok_or("API key is required")?;
         let api_endpoint = self.api_endpoint.unwrap_or_else(|| {
             std::env::var("OPENAI_API_BASE").unwrap_or_else(|_| API_URL_V1.to_owned())
         });
 
         Ok(OpenAIClient {
             api_endpoint,
-            api_key,
+            api_key: self.api_key,
             organization: self.organization,
             proxy: self.proxy,
             timeout: self.timeout,
@@ -154,9 +153,14 @@ impl OpenAIClient {
 
         let client = client.build().unwrap();
 
-        let mut request = client
-            .request(method, url)
-            .header("Authorization", format!("Bearer {}", self.api_key));
+        let mut request = client.request(method, url);
+
+        if self.api_key.is_some() {
+            request = request.header(
+                "Authorization",
+                format!("Bearer {}", self.api_key.as_ref().unwrap()),
+            );
+        }
 
         if let Some(organization) = &self.organization {
             request = request.header("openai-organization", organization);
