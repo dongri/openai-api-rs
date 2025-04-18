@@ -133,7 +133,10 @@ impl OpenAIClient {
     }
 
     async fn build_request(&self, method: Method, path: &str) -> reqwest::RequestBuilder {
-        let url = format!("{}/{}", self.api_endpoint, path);
+        let url = format!(
+            "{}/{}?api-version=2025-01-01-preview",
+            self.api_endpoint, path
+        );
         let client = Client::builder();
 
         #[cfg(feature = "rustls")]
