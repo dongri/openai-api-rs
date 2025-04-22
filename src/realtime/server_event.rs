@@ -92,6 +92,24 @@ pub struct ConversationItemDeleted {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct OutputAudioBufferStarted {
+    pub event_id: String,
+    pub response_id: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct OutputAudioBufferStopped {
+    pub event_id: String,
+    pub response_id: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct OutputAudioBufferCleared {
+    pub event_id: String,
+    pub response_id: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ResponseCreated {
     pub event_id: String,
     pub response: Response,
@@ -255,6 +273,12 @@ pub enum ServerEvent {
     ConversationItemTruncated(ConversationItemTruncated),
     #[serde(rename = "conversation.item.deleted")]
     ConversationItemDeleted(ConversationItemDeleted),
+    #[serde(rename = "output_audio_buffer.started")]
+    OutputAudioBufferStarted(OutputAudioBufferStarted),
+    #[serde(rename = "output_audio_buffer.stopped")]
+    OutputAudioBufferStopped(OutputAudioBufferStopped),
+    #[serde(rename = "output_audio_buffer.cleared")]
+    OutputAudioBufferCleared(OutputAudioBufferCleared),
     #[serde(rename = "response.created")]
     ResponseCreated(ResponseCreated),
     #[serde(rename = "response.done")]
