@@ -143,7 +143,7 @@ impl OpenAIClient {
     async fn build_request(&self, method: Method, path: &str) -> reqwest::RequestBuilder {
         let mut url = format!("{}/{}", self.api_endpoint, path);
 
-        if let Some(api_version) = &self.api_key {
+        if let Some(api_version) = &self.api_version {
             url = format!("{}?api-version={}", url, api_version);
         }
 
