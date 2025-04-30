@@ -168,11 +168,8 @@ impl OpenAIClient {
 
         let mut request = client.request(method, url);
 
-        if self.api_key.is_some() {
-            request = request.header(
-                "Authorization",
-                format!("Bearer {}", self.api_key.as_ref().unwrap()),
-            );
+        if let Some(api_key) = &self.api_key {
+            request = request.header("Authorization", format!("Bearer {}", api_key));
         }
 
         if let Some(organization) = &self.organization {
