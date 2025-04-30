@@ -791,6 +791,8 @@ impl OpenAIClient {
             }
         }
 
+        tracing::debug!("URL: {}", url);
+
         Ok(url.to_string())
     }
     fn query_params(

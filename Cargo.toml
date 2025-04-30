@@ -14,6 +14,9 @@ default = ["default-tls"]
 rustls = ["reqwest/rustls-tls", "tokio-tungstenite/rustls-tls-webpki-roots"]
 default-tls = ["reqwest/default-tls", "tokio-tungstenite/native-tls"]
 
+[dependencies]
+tracing = "0.1.41"
+
 [dependencies.reqwest]
 version = "0.12"
 default-features = false
