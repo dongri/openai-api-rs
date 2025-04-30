@@ -782,6 +782,8 @@ impl OpenAIClient {
         self.get(&url).await
     }
     fn build_url_with_preserved_query(&self, path: &str) -> Result<String, url::ParseError> {
+        tracing::debug!("end point: {}", &self.api_endpoint);
+        tracing::debug!("path: {}", path);
         let base = Url::parse(&self.api_endpoint)?;
         let mut url = base.join(path)?;
 
