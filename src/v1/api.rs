@@ -782,9 +782,6 @@ impl OpenAIClient {
         self.get(&url).await
     }
     fn build_url_with_preserved_query(&self, path: &str) -> Result<String, url::ParseError> {
-        tracing::debug!("endpoint: {}", &self.api_endpoint);
-        tracing::debug!("path: {}", path);
-
         let (base, query_opt) = match self.api_endpoint.split_once('?') {
             Some((b, q)) => (b.trim_end_matches('/'), Some(q)),
             None => (self.api_endpoint.trim_end_matches('/'), None),
@@ -798,9 +795,6 @@ impl OpenAIClient {
                 url.query_pairs_mut().append_pair(&k, &v);
             }
         }
-
-        tracing::debug!("final URL: {}", url);
-
         Ok(url.to_string())
     }
     fn query_params(
