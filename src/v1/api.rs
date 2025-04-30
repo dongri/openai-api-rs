@@ -782,15 +782,19 @@ impl OpenAIClient {
         self.get(&url).await
     }
     fn build_url_with_preserved_query(&self, path: &str) -> Result<String, url::ParseError> {
-        let base = Url::parse(&self.api_endpoint)?;
-        let mut url = base.join(path)?;
+        let (base, query_opt) = match self.api_endpoint.split_once('?') {
+            Some((b, q)) => (b.trim_end_matches('/'), Some(q)),
+            None => (self.api_endpoint.trim_end_matches('/'), None),
+        };
 
-        if let Some(q) = base.query() {
-            for (k, v) in url::form_urlencoded::parse(q.as_bytes()) {
+        let full_path = format!("{}/{}", base, path.trim_start_matches('/'));
+        let mut url = Url::parse(&full_path)?;
+
+        if let Some(query) = query_opt {
+            for (k, v) in url::form_urlencoded::parse(query.as_bytes()) {
                 url.query_pairs_mut().append_pair(&k, &v);
             }
         }
-
         Ok(url.to_string())
     }
     fn query_params(
