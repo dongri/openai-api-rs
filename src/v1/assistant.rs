@@ -96,13 +96,6 @@ pub struct VectorStores {
 }
 
 #[derive(Debug, Deserialize, Serialize)]
-pub struct DeletionStatus {
-    pub id: String,
-    pub object: String,
-    pub deleted: bool,
-}
-
-#[derive(Debug, Deserialize, Serialize)]
 pub struct ListAssistant {
     pub object: String,
     pub data: Vec<AssistantObject>,

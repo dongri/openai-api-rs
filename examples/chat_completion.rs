@@ -23,7 +23,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Content: {:?}", result.choices[0].message.content);
 
     // print response headers
-    for (key, value) in client.headers.unwrap().iter() {
+    for (key, value) in client.response_headers.unwrap().iter() {
         println!("{}: {:?}", key, value);
     }
 

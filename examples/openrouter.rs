@@ -24,7 +24,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let result = client.chat_completion(req).await?;
     println!("Content: {:?}", result.choices[0].message.content);
-    println!("Response Headers: {:?}", client.headers);
+    println!("Response Headers: {:?}", client.response_headers);
 
     Ok(())
 }
