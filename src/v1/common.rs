@@ -7,6 +7,13 @@ pub struct Usage {
     pub total_tokens: i32,
 }
 
+#[derive(Debug, Deserialize, Serialize)]
+pub struct DeletionStatus {
+    pub id: String,
+    pub object: String,
+    pub deleted: bool,
+}
+
 #[macro_export]
 macro_rules! impl_builder_methods {
     ($builder:ident, $($field:ident: $field_type:ty),*) => {

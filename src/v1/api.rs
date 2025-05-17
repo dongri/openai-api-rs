@@ -1,6 +1,6 @@
 use crate::v1::assistant::{
-    AssistantFileObject, AssistantFileRequest, AssistantObject, AssistantRequest, DeletionStatus,
-    ListAssistant, ListAssistantFile,
+    AssistantFileObject, AssistantFileRequest, AssistantObject, AssistantRequest, ListAssistant,
+    ListAssistantFile,
 };
 use crate::v1::audio::{
     AudioSpeechRequest, AudioSpeechResponse, AudioTranscriptionRequest, AudioTranscriptionResponse,
@@ -30,6 +30,7 @@ use crate::v1::message::{
     CreateMessageRequest, ListMessage, ListMessageFile, MessageFileObject, MessageObject,
     ModifyMessageRequest,
 };
+use crate::v1::model::{ModelResponse, ModelsResponse};
 use crate::v1::moderation::{CreateModerationRequest, CreateModerationResponse};
 use crate::v1::run::{
     CreateRunRequest, CreateThreadAndRunRequest, ListRun, ListRunStep, ModifyRunRequest, RunObject,
@@ -70,7 +71,8 @@ pub struct OpenAIClient {
     organization: Option<String>,
     proxy: Option<String>,
     timeout: Option<u64>,
-    pub headers: Option<HeaderMap>,
+    headers: Option<HeaderMap>,
+    pub response_headers: Option<HeaderMap>,
 }
 
 impl OpenAIClientBuilder {
@@ -124,6 +126,7 @@ impl OpenAIClientBuilder {
             proxy: self.proxy,
             timeout: self.timeout,
             headers: self.headers,
+            response_headers: None,
         })
     }
 }
@@ -237,7 +240,7 @@ impl OpenAIClient {
             let text = response.text().await.unwrap_or_else(|_| "".to_string());
             match serde_json::from_str::<T>(&text) {
                 Ok(parsed) => {
-                    self.headers = Some(headers);
+                    self.response_headers = Some(headers);
                     Ok(parsed)
                 }
                 Err(e) => Err(APIError::CustomError {
@@ -507,7 +510,7 @@ impl OpenAIClient {
     pub async fn delete_assistant(
         &mut self,
         assistant_id: String,
-    ) -> Result<DeletionStatus, APIError> {
+    ) -> Result<common::DeletionStatus, APIError> {
         self.delete(&format!("assistants/{}", assistant_id)).await
     }
 
@@ -544,7 +547,7 @@ impl OpenAIClient {
         &mut self,
         assistant_id: String,
         file_id: String,
-    ) -> Result<DeletionStatus, APIError> {
+    ) -> Result<common::DeletionStatus, APIError> {
         self.delete(&format!("assistants/{}/files/{}", assistant_id, file_id))
             .await
     }
@@ -586,7 +589,10 @@ impl OpenAIClient {
         self.post(&format!("threads/{}", thread_id), &req).await
     }
 
-    pub async fn delete_thread(&mut self, thread_id: String) -> Result<DeletionStatus, APIError> {
+    pub async fn delete_thread(
+        &mut self,
+        thread_id: String,
+    ) -> Result<common::DeletionStatus, APIError> {
         self.delete(&format!("threads/{}", thread_id)).await
     }
 
@@ -781,6 +787,22 @@ impl OpenAIClient {
         let url = Self::query_params(limit, None, after, None, "batches".to_string());
         self.get(&url).await
     }
+
+    pub async fn list_models(&mut self) -> Result<ModelsResponse, APIError> {
+        self.get("models").await
+    }
+
+    pub async fn retrieve_model(&mut self, model_id: String) -> Result<ModelResponse, APIError> {
+        self.get(&format!("models/{}", model_id)).await
+    }
+
+    pub async fn delete_model(
+        &mut self,
+        model_id: String,
+    ) -> Result<common::DeletionStatus, APIError> {
+        self.delete(&format!("models/{}", model_id)).await
+    }
+
     fn build_url_with_preserved_query(&self, path: &str) -> Result<String, url::ParseError> {
         let (base, query_opt) = match self.api_endpoint.split_once('?') {
             Some((b, q)) => (b.trim_end_matches('/'), Some(q)),
@@ -797,6 +819,7 @@ impl OpenAIClient {
         }
         Ok(url.to_string())
     }
+
     fn query_params(
         limit: Option<i64>,
         order: Option<String>,
