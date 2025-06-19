@@ -72,7 +72,6 @@ pub struct OpenAIClient {
     proxy: Option<String>,
     timeout: Option<u64>,
     headers: Option<HeaderMap>,
-    pub response_headers: Option<HeaderMap>,
 }
 
 impl OpenAIClientBuilder {
@@ -126,7 +125,6 @@ impl OpenAIClientBuilder {
             proxy: self.proxy,
             timeout: self.timeout,
             headers: self.headers,
-            response_headers: None,
         })
     }
 }
@@ -184,7 +182,7 @@ impl OpenAIClient {
     }
 
     async fn post<T: serde::de::DeserializeOwned>(
-        &mut self,
+        & self,
         path: &str,
         body: &impl serde::ser::Serialize,
     ) -> Result<T, APIError> {
@@ -213,7 +211,7 @@ impl OpenAIClient {
     }
 
     async fn post_form<T: serde::de::DeserializeOwned>(
-        &mut self,
+        &self,
         path: &str,
         form: Form,
     ) -> Result<T, APIError> {
@@ -231,16 +229,14 @@ impl OpenAIClient {
     }
 
     async fn handle_response<T: serde::de::DeserializeOwned>(
-        &mut self,
+        &self,
         response: Response,
     ) -> Result<T, APIError> {
         let status = response.status();
-        let headers = response.headers().clone();
         if status.is_success() {
             let text = response.text().await.unwrap_or_else(|_| "".to_string());
             match serde_json::from_str::<T>(&text) {
                 Ok(parsed) => {
-                    self.response_headers = Some(headers);
                     Ok(parsed)
                 }
                 Err(e) => Err(APIError::CustomError {
@@ -259,7 +255,7 @@ impl OpenAIClient {
     }
 
     pub async fn completion(
-        &mut self,
+        &self,
         req: CompletionRequest,
     ) -> Result<CompletionResponse, APIError> {
         self.post("completions", &req).await
