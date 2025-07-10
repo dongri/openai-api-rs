@@ -23,27 +23,41 @@ pub struct RequestCounts {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct BatchResponse {
-    pub id: String,
+pub struct BatchError {
+    pub code: String,
+    pub line: Option<u32>,
+    pub message: String,
+    pub param: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct BatchErrors {
     pub object: String,
-    pub endpoint: String,
-    pub errors: Option<Vec<String>>,
-    pub input_file_id: String,
-    pub completion_window: String,
-    pub status: String,
-    pub output_file_id: Option<String>,
-    pub error_file_id: Option<String>,
-    pub created_at: u64,
-    pub in_progress_at: Option<u64>,
-    pub expires_at: Option<u64>,
-    pub finalizing_at: Option<u64>,
-    pub completed_at: Option<u64>,
-    pub failed_at: Option<u64>,
-    pub expired_at: Option<u64>,
-    pub cancelling_at: Option<u64>,
+    pub data: Vec<BatchError>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct BatchResponse {
     pub cancelled_at: Option<u64>,
-    pub request_counts: RequestCounts,
+    pub cancelling_at: Option<u64>,
+    pub completed_at: Option<u64>,
+    pub completion_window: String,
+    pub created_at: u64,
+    pub endpoint: String,
+    pub error_file_id: Option<String>,
+    pub errors: Option<BatchErrors>,
+    pub expired_at: Option<u64>,
+    pub expires_at: Option<u64>,
+    pub failed_at: Option<u64>,
+    pub finalizing_at: Option<u64>,
+    pub id: String,
+    pub in_progress_at: Option<u64>,
+    pub input_file_id: String,
     pub metadata: Option<Metadata>,
+    pub object: String,
+    pub output_file_id: Option<String>,
+    pub request_counts: RequestCounts,
+    pub status: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

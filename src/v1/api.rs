@@ -163,7 +163,7 @@ impl OpenAIClient {
         let mut request = client.request(method, url);
 
         if let Some(api_key) = &self.api_key {
-            request = request.header("Authorization", format!("Bearer {}", api_key));
+            request = request.header("Authorization", format!("Bearer {api_key}"));
         }
 
         if let Some(organization) = &self.organization {
@@ -244,7 +244,7 @@ impl OpenAIClient {
                     Ok(parsed)
                 }
                 Err(e) => Err(APIError::CustomError {
-                    message: format!("Failed to parse JSON: {} / response {}", e, text),
+                    message: format!("Failed to parse JSON: {e} / response {text}"),
                 }),
             }
         } else {
@@ -253,7 +253,7 @@ impl OpenAIClient {
                 .await
                 .unwrap_or_else(|_| "Unknown error".to_string());
             Err(APIError::CustomError {
-                message: format!("{}: {}", status, error_message),
+                message: format!("{status}: {error_message}"),
             })
         }
     }
@@ -320,11 +320,11 @@ impl OpenAIClient {
         &mut self,
         file_id: String,
     ) -> Result<FileRetrieveResponse, APIError> {
-        self.get(&format!("files/{}", file_id)).await
+        self.get(&format!("files/{file_id}")).await
     }
 
     pub async fn retrieve_file_content(&self, file_id: String) -> Result<Bytes, APIError> {
-        self.get_raw(&format!("files/{}/content", file_id)).await
+        self.get_raw(&format!("files/{file_id}/content")).await
     }
 
     pub async fn chat_completion(
@@ -495,7 +495,7 @@ impl OpenAIClient {
         &mut self,
         assistant_id: String,
     ) -> Result<AssistantObject, APIError> {
-        self.get(&format!("assistants/{}", assistant_id)).await
+        self.get(&format!("assistants/{assistant_id}")).await
     }
 
     pub async fn modify_assistant(
@@ -503,15 +503,14 @@ impl OpenAIClient {
         assistant_id: String,
         req: AssistantRequest,
     ) -> Result<AssistantObject, APIError> {
-        self.post(&format!("assistants/{}", assistant_id), &req)
-            .await
+        self.post(&format!("assistants/{assistant_id}"), &req).await
     }
 
     pub async fn delete_assistant(
         &mut self,
         assistant_id: String,
     ) -> Result<common::DeletionStatus, APIError> {
-        self.delete(&format!("assistants/{}", assistant_id)).await
+        self.delete(&format!("assistants/{assistant_id}")).await
     }
 
     pub async fn list_assistant(
@@ -530,7 +529,7 @@ impl OpenAIClient {
         assistant_id: String,
         req: AssistantFileRequest,
     ) -> Result<AssistantFileObject, APIError> {
-        self.post(&format!("assistants/{}/files", assistant_id), &req)
+        self.post(&format!("assistants/{assistant_id}/files"), &req)
             .await
     }
 
@@ -539,7 +538,7 @@ impl OpenAIClient {
         assistant_id: String,
         file_id: String,
     ) -> Result<AssistantFileObject, APIError> {
-        self.get(&format!("assistants/{}/files/{}", assistant_id, file_id))
+        self.get(&format!("assistants/{assistant_id}/files/{file_id}"))
             .await
     }
 
@@ -548,7 +547,7 @@ impl OpenAIClient {
         assistant_id: String,
         file_id: String,
     ) -> Result<common::DeletionStatus, APIError> {
-        self.delete(&format!("assistants/{}/files/{}", assistant_id, file_id))
+        self.delete(&format!("assistants/{assistant_id}/files/{file_id}"))
             .await
     }
 
@@ -565,7 +564,7 @@ impl OpenAIClient {
             order,
             after,
             before,
-            format!("assistants/{}/files", assistant_id),
+            format!("assistants/{assistant_id}/files"),
         );
         self.get(&url).await
     }
@@ -578,7 +577,7 @@ impl OpenAIClient {
     }
 
     pub async fn retrieve_thread(&mut self, thread_id: String) -> Result<ThreadObject, APIError> {
-        self.get(&format!("threads/{}", thread_id)).await
+        self.get(&format!("threads/{thread_id}")).await
     }
 
     pub async fn modify_thread(
@@ -586,14 +585,14 @@ impl OpenAIClient {
         thread_id: String,
         req: ModifyThreadRequest,
     ) -> Result<ThreadObject, APIError> {
-        self.post(&format!("threads/{}", thread_id), &req).await
+        self.post(&format!("threads/{thread_id}"), &req).await
     }
 
     pub async fn delete_thread(
         &mut self,
         thread_id: String,
     ) -> Result<common::DeletionStatus, APIError> {
-        self.delete(&format!("threads/{}", thread_id)).await
+        self.delete(&format!("threads/{thread_id}")).await
     }
 
     pub async fn create_message(
@@ -601,7 +600,7 @@ impl OpenAIClient {
         thread_id: String,
         req: CreateMessageRequest,
     ) -> Result<MessageObject, APIError> {
-        self.post(&format!("threads/{}/messages", thread_id), &req)
+        self.post(&format!("threads/{thread_id}/messages"), &req)
             .await
     }
 
@@ -610,7 +609,7 @@ impl OpenAIClient {
         thread_id: String,
         message_id: String,
     ) -> Result<MessageObject, APIError> {
-        self.get(&format!("threads/{}/messages/{}", thread_id, message_id))
+        self.get(&format!("threads/{thread_id}/messages/{message_id}"))
             .await
     }
 
@@ -620,15 +619,12 @@ impl OpenAIClient {
         message_id: String,
         req: ModifyMessageRequest,
     ) -> Result<MessageObject, APIError> {
-        self.post(
-            &format!("threads/{}/messages/{}", thread_id, message_id),
-            &req,
-        )
-        .await
+        self.post(&format!("threads/{thread_id}/messages/{message_id}"), &req)
+            .await
     }
 
     pub async fn list_messages(&mut self, thread_id: String) -> Result<ListMessage, APIError> {
-        self.get(&format!("threads/{}/messages", thread_id)).await
+        self.get(&format!("threads/{thread_id}/messages")).await
     }
 
     pub async fn retrieve_message_file(
@@ -638,8 +634,7 @@ impl OpenAIClient {
         file_id: String,
     ) -> Result<MessageFileObject, APIError> {
         self.get(&format!(
-            "threads/{}/messages/{}/files/{}",
-            thread_id, message_id, file_id
+            "threads/{thread_id}/messages/{message_id}/files/{file_id}"
         ))
         .await
     }
@@ -658,7 +653,7 @@ impl OpenAIClient {
             order,
             after,
             before,
-            format!("threads/{}/messages/{}/files", thread_id, message_id),
+            format!("threads/{thread_id}/messages/{message_id}/files"),
         );
         self.get(&url).await
     }
@@ -668,8 +663,7 @@ impl OpenAIClient {
         thread_id: String,
         req: CreateRunRequest,
     ) -> Result<RunObject, APIError> {
-        self.post(&format!("threads/{}/runs", thread_id), &req)
-            .await
+        self.post(&format!("threads/{thread_id}/runs"), &req).await
     }
 
     pub async fn retrieve_run(
@@ -677,7 +671,7 @@ impl OpenAIClient {
         thread_id: String,
         run_id: String,
     ) -> Result<RunObject, APIError> {
-        self.get(&format!("threads/{}/runs/{}", thread_id, run_id))
+        self.get(&format!("threads/{thread_id}/runs/{run_id}"))
             .await
     }
 
@@ -687,7 +681,7 @@ impl OpenAIClient {
         run_id: String,
         req: ModifyRunRequest,
     ) -> Result<RunObject, APIError> {
-        self.post(&format!("threads/{}/runs/{}", thread_id, run_id), &req)
+        self.post(&format!("threads/{thread_id}/runs/{run_id}"), &req)
             .await
     }
 
@@ -704,7 +698,7 @@ impl OpenAIClient {
             order,
             after,
             before,
-            format!("threads/{}/runs", thread_id),
+            format!("threads/{thread_id}/runs"),
         );
         self.get(&url).await
     }
@@ -715,7 +709,7 @@ impl OpenAIClient {
         run_id: String,
     ) -> Result<RunObject, APIError> {
         self.post(
-            &format!("threads/{}/runs/{}/cancel", thread_id, run_id),
+            &format!("threads/{thread_id}/runs/{run_id}/cancel"),
             &ModifyRunRequest::default(),
         )
         .await
@@ -735,8 +729,7 @@ impl OpenAIClient {
         step_id: String,
     ) -> Result<RunStepObject, APIError> {
         self.get(&format!(
-            "threads/{}/runs/{}/steps/{}",
-            thread_id, run_id, step_id
+            "threads/{thread_id}/runs/{run_id}/steps/{step_id}"
         ))
         .await
     }
@@ -755,7 +748,7 @@ impl OpenAIClient {
             order,
             after,
             before,
-            format!("threads/{}/runs/{}/steps", thread_id, run_id),
+            format!("threads/{thread_id}/runs/{run_id}/steps"),
         );
         self.get(&url).await
     }
@@ -768,12 +761,12 @@ impl OpenAIClient {
     }
 
     pub async fn retrieve_batch(&mut self, batch_id: String) -> Result<BatchResponse, APIError> {
-        self.get(&format!("batches/{}", batch_id)).await
+        self.get(&format!("batches/{batch_id}")).await
     }
 
     pub async fn cancel_batch(&mut self, batch_id: String) -> Result<BatchResponse, APIError> {
         self.post(
-            &format!("batches/{}/cancel", batch_id),
+            &format!("batches/{batch_id}/cancel"),
             &common::EmptyRequestBody {},
         )
         .await
@@ -793,14 +786,14 @@ impl OpenAIClient {
     }
 
     pub async fn retrieve_model(&mut self, model_id: String) -> Result<ModelResponse, APIError> {
-        self.get(&format!("models/{}", model_id)).await
+        self.get(&format!("models/{model_id}")).await
     }
 
     pub async fn delete_model(
         &mut self,
         model_id: String,
     ) -> Result<common::DeletionStatus, APIError> {
-        self.delete(&format!("models/{}", model_id)).await
+        self.delete(&format!("models/{model_id}")).await
     }
 
     fn build_url_with_preserved_query(&self, path: &str) -> Result<String, url::ParseError> {
@@ -829,16 +822,16 @@ impl OpenAIClient {
     ) -> String {
         let mut params = vec![];
         if let Some(limit) = limit {
-            params.push(format!("limit={}", limit));
+            params.push(format!("limit={limit}"));
         }
         if let Some(order) = order {
-            params.push(format!("order={}", order));
+            params.push(format!("order={order}"));
         }
         if let Some(after) = after {
-            params.push(format!("after={}", after));
+            params.push(format!("after={after}"));
         }
         if let Some(before) = before {
-            params.push(format!("before={}", before));
+            params.push(format!("before={before}"));
         }
         if !params.is_empty() {
             url = format!("{}?{}", url, params.join("&"));
@@ -866,7 +859,7 @@ impl OpenAIClient {
             map.get(file_field)
                 .and_then(|v| v.as_str())
                 .ok_or(APIError::CustomError {
-                    message: format!("Field '{}' not found or not a string", file_field),
+                    message: format!("Field '{file_field}' not found or not a string"),
                 })?
         } else {
             return Err(APIError::CustomError {
