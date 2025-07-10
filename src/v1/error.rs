@@ -11,8 +11,8 @@ pub enum APIError {
 impl fmt::Display for APIError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            APIError::ReqwestError(err) => write!(f, "ReqwestError: {}", err),
-            APIError::CustomError { message } => write!(f, "APIError: {}", message),
+            APIError::ReqwestError(err) => write!(f, "ReqwestError: {err}"),
+            APIError::CustomError { message } => write!(f, "APIError: {message}"),
         }
     }
 }

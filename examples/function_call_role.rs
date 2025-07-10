@@ -79,9 +79,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 let arguments = function_call.arguments.clone().unwrap();
                 let c: Currency = serde_json::from_str(&arguments)?;
                 let coin = c.coin;
-                println!("coin: {}", coin);
+                println!("coin: {coin}");
                 let price = get_coin_price(&coin);
-                println!("price: {}", price);
+                println!("price: {price}");
 
                 let req = ChatCompletionRequest::new(
                     GPT4_O.to_string(),
@@ -99,7 +99,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                             role: chat_completion::MessageRole::function,
                             content: chat_completion::Content::Text({
                                 let price = get_coin_price(&coin);
-                                format!("{{\"price\": {}}}", price)
+                                format!("{{\"price\": {price}}}")
                             }),
                             name: Some(String::from("get_coin_price")),
                             tool_calls: None,

@@ -86,7 +86,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 let coin = c.coin;
                 if name == "get_coin_price" {
                     let price = get_coin_price(&coin);
-                    println!("{} price: {}", coin, price);
+                    println!("{coin} price: {price}");
                 }
             }
         }
