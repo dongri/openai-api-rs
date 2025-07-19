@@ -223,6 +223,19 @@ pub struct ChatCompletionMessage {
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct UrlCitation {
+    pub start_index: i64,
+    pub end_index: i64,
+    pub title: String,
+    pub url: String,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct MessageAnnotation {
+    pub url_citation: UrlCitation,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct ChatCompletionMessageForResponse {
     pub role: MessageRole,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -233,6 +246,8 @@ pub struct ChatCompletionMessageForResponse {
     pub name: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub tool_calls: Option<Vec<ToolCall>>,
+    #[serde(default)]
+    pub annotations: Vec<MessageAnnotation>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
