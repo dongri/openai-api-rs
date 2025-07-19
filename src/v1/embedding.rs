@@ -7,6 +7,7 @@ use crate::impl_builder_methods;
 pub struct EmbeddingData {
     pub object: String,
     pub embedding: Vec<f32>,
+	#[serde(default)]
     pub index: i32,
 }
 
@@ -50,7 +51,8 @@ pub struct EmbeddingResponse {
     pub object: String,
     pub data: Vec<EmbeddingData>,
     pub model: String,
-    pub usage: Usage,
+	#[serde(default)]
+    pub usage: Option<Usage>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
