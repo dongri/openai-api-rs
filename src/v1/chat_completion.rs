@@ -44,7 +44,7 @@ pub struct ChatCompletionRequest {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub seed: Option<i64>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub tools: Option<Vec<Value>>,
+    pub tools: Option<Vec<Tool>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub parallel_tool_calls: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -90,7 +90,7 @@ impl_builder_methods!(
     logit_bias: HashMap<String, i32>,
     user: String,
     seed: i64,
-    tools: Vec<Value>,
+    tools: Vec<Tool>,
     parallel_tool_calls: bool,
     tool_choice: ToolChoiceType
 );
