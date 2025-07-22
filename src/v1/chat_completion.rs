@@ -15,6 +15,35 @@ pub enum ToolChoiceType {
     ToolChoice { tool: Tool },
 }
 
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
+#[serde(rename_all = "lowercase")]
+pub enum ReasoningEffort {
+    Low,
+    Medium,
+    High,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(untagged)]
+pub enum ReasoningMode {
+    Effort {
+        effort: ReasoningEffort,
+    },
+    MaxTokens {
+        max_tokens: i64,
+    },
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct Reasoning {
+    #[serde(flatten)]
+    pub mode: Option<ReasoningMode>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub exclude: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ChatCompletionRequest {
     pub model: String,
@@ -50,6 +79,8 @@ pub struct ChatCompletionRequest {
     #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(serialize_with = "serialize_tool_choice")]
     pub tool_choice: Option<ToolChoiceType>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub reasoning: Option<Reasoning>,
 }
 
 impl ChatCompletionRequest {
@@ -72,6 +103,7 @@ impl ChatCompletionRequest {
             tools: None,
             parallel_tool_calls: None,
             tool_choice: None,
+            reasoning: None,
         }
     }
 }
@@ -92,7 +124,8 @@ impl_builder_methods!(
     seed: i64,
     tools: Vec<Tool>,
     parallel_tool_calls: bool,
-    tool_choice: ToolChoiceType
+    tool_choice: ToolChoiceType,
+    reasoning: Reasoning
 );
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
@@ -317,4 +350,81 @@ pub struct Tool {
 #[serde(rename_all = "snake_case")]
 pub enum ToolType {
     Function,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json::json;
+
+    #[test]
+    fn test_reasoning_effort_serialization() {
+        let reasoning = Reasoning {
+            mode: Some(ReasoningMode::Effort {
+                effort: ReasoningEffort::High,
+            }),
+            exclude: Some(false),
+            enabled: None,
+        };
+        
+        let serialized = serde_json::to_value(&reasoning).unwrap();
+        let expected = json!({
+            "effort": "high",
+            "exclude": false
+        });
+        
+        assert_eq!(serialized, expected);
+    }
+
+    #[test]
+    fn test_reasoning_max_tokens_serialization() {
+        let reasoning = Reasoning {
+            mode: Some(ReasoningMode::MaxTokens {
+                max_tokens: 2000,
+            }),
+            exclude: None,
+            enabled: Some(true),
+        };
+        
+        let serialized = serde_json::to_value(&reasoning).unwrap();
+        let expected = json!({
+            "max_tokens": 2000,
+            "enabled": true
+        });
+        
+        assert_eq!(serialized, expected);
+    }
+
+    #[test]
+    fn test_reasoning_deserialization() {
+        let json_str = r#"{"effort": "medium", "exclude": true}"#;
+        let reasoning: Reasoning = serde_json::from_str(json_str).unwrap();
+        
+        match reasoning.mode {
+            Some(ReasoningMode::Effort { effort }) => {
+                assert_eq!(effort, ReasoningEffort::Medium);
+            }
+            _ => panic!("Expected effort mode"),
+        }
+        assert_eq!(reasoning.exclude, Some(true));
+    }
+
+    #[test]
+    fn test_chat_completion_request_with_reasoning() {
+        let mut req = ChatCompletionRequest::new(
+            "gpt-4".to_string(),
+            vec![],
+        );
+        
+        req.reasoning = Some(Reasoning {
+            mode: Some(ReasoningMode::Effort {
+                effort: ReasoningEffort::Low,
+            }),
+            exclude: None,
+            enabled: None,
+        });
+        
+        let serialized = serde_json::to_value(&req).unwrap();
+        assert_eq!(serialized["reasoning"]["effort"], "low");
+    }
 }
