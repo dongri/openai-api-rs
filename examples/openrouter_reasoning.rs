@@ -12,7 +12,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Example 1: Using reasoning with effort
     let mut req = ChatCompletionRequest::new(
-        "x-ai/grok-2-1212".to_string(), // Grok model that supports reasoning
+        "x-ai/grok-3-mini".to_string(), // Grok model that supports reasoning
         vec![chat_completion::ChatCompletionMessage {
             role: chat_completion::MessageRole::user,
             content: chat_completion::Content::Text(String::from("Explain quantum computing in simple terms.")),
@@ -36,7 +36,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     
     // Example 2: Using reasoning with max_tokens
     let mut req2 = ChatCompletionRequest::new(
-        "anthropic/claude-3.7-sonnet".to_string(), // Claude model that supports max_tokens
+        "anthropic/claude-4-sonnet".to_string(), // Claude model that supports max_tokens
         vec![chat_completion::ChatCompletionMessage {
             role: chat_completion::MessageRole::user,
             content: chat_completion::Content::Text(String::from("What's the most efficient sorting algorithm?")),
