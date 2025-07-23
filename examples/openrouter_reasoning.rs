@@ -1,5 +1,7 @@
 use openai_api_rs::v1::api::OpenAIClient;
-use openai_api_rs::v1::chat_completion::{self, ChatCompletionRequest, Reasoning, ReasoningMode, ReasoningEffort};
+use openai_api_rs::v1::chat_completion::{
+    self, ChatCompletionRequest, Reasoning, ReasoningEffort, ReasoningMode,
+};
 use std::env;
 
 #[tokio::main]
@@ -15,13 +17,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         "x-ai/grok-3-mini".to_string(), // Grok model that supports reasoning
         vec![chat_completion::ChatCompletionMessage {
             role: chat_completion::MessageRole::user,
-            content: chat_completion::Content::Text(String::from("Explain quantum computing in simple terms.")),
+            content: chat_completion::Content::Text(String::from(
+                "Explain quantum computing in simple terms.",
+            )),
             name: None,
             tool_calls: None,
             tool_call_id: None,
         }],
     );
-    
+
     // Set reasoning with high effort
     req.reasoning = Some(Reasoning {
         mode: Some(ReasoningMode::Effort {
@@ -33,24 +37,24 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let result = client.chat_completion(req).await?;
     println!("Content: {:?}", result.choices[0].message.content);
-    
+
     // Example 2: Using reasoning with max_tokens
     let mut req2 = ChatCompletionRequest::new(
         "anthropic/claude-4-sonnet".to_string(), // Claude model that supports max_tokens
         vec![chat_completion::ChatCompletionMessage {
             role: chat_completion::MessageRole::user,
-            content: chat_completion::Content::Text(String::from("What's the most efficient sorting algorithm?")),
+            content: chat_completion::Content::Text(String::from(
+                "What's the most efficient sorting algorithm?",
+            )),
             name: None,
             tool_calls: None,
             tool_call_id: None,
         }],
     );
-    
+
     // Set reasoning with max_tokens
     req2.reasoning = Some(Reasoning {
-        mode: Some(ReasoningMode::MaxTokens {
-            max_tokens: 2000,
-        }),
+        mode: Some(ReasoningMode::MaxTokens { max_tokens: 2000 }),
         exclude: None,
         enabled: None,
     });

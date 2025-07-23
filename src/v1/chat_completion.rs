@@ -26,12 +26,8 @@ pub enum ReasoningEffort {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(untagged)]
 pub enum ReasoningMode {
-    Effort {
-        effort: ReasoningEffort,
-    },
-    MaxTokens {
-        max_tokens: i64,
-    },
+    Effort { effort: ReasoningEffort },
+    MaxTokens { max_tokens: i64 },
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -366,32 +362,30 @@ mod tests {
             exclude: Some(false),
             enabled: None,
         };
-        
+
         let serialized = serde_json::to_value(&reasoning).unwrap();
         let expected = json!({
             "effort": "high",
             "exclude": false
         });
-        
+
         assert_eq!(serialized, expected);
     }
 
     #[test]
     fn test_reasoning_max_tokens_serialization() {
         let reasoning = Reasoning {
-            mode: Some(ReasoningMode::MaxTokens {
-                max_tokens: 2000,
-            }),
+            mode: Some(ReasoningMode::MaxTokens { max_tokens: 2000 }),
             exclude: None,
             enabled: Some(true),
         };
-        
+
         let serialized = serde_json::to_value(&reasoning).unwrap();
         let expected = json!({
             "max_tokens": 2000,
             "enabled": true
         });
-        
+
         assert_eq!(serialized, expected);
     }
 
@@ -399,7 +393,7 @@ mod tests {
     fn test_reasoning_deserialization() {
         let json_str = r#"{"effort": "medium", "exclude": true}"#;
         let reasoning: Reasoning = serde_json::from_str(json_str).unwrap();
-        
+
         match reasoning.mode {
             Some(ReasoningMode::Effort { effort }) => {
                 assert_eq!(effort, ReasoningEffort::Medium);
@@ -411,11 +405,8 @@ mod tests {
 
     #[test]
     fn test_chat_completion_request_with_reasoning() {
-        let mut req = ChatCompletionRequest::new(
-            "gpt-4".to_string(),
-            vec![],
-        );
-        
+        let mut req = ChatCompletionRequest::new("gpt-4".to_string(), vec![]);
+
         req.reasoning = Some(Reasoning {
             mode: Some(ReasoningMode::Effort {
                 effort: ReasoningEffort::Low,
@@ -423,7 +414,7 @@ mod tests {
             exclude: None,
             enabled: None,
         });
-        
+
         let serialized = serde_json::to_value(&req).unwrap();
         assert_eq!(serialized["reasoning"]["effort"], "low");
     }
