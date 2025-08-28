@@ -21,6 +21,7 @@ pub enum EncodingFormat {
 pub struct EmbeddingRequest {
     pub model: String,
     pub input: Vec<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub encoding_format: Option<EncodingFormat>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub dimensions: Option<i32>,
