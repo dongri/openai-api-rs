@@ -77,6 +77,13 @@ pub struct ChatCompletionRequest {
     pub tool_choice: Option<ToolChoiceType>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub reasoning: Option<Reasoning>,
+    /// Optional list of transforms to apply to the chat completion request.
+    ///
+    /// Transforms allow modifying the request before it's sent to the API,
+    /// enabling features like prompt rewriting, content filtering, or other
+    /// preprocessing steps. When None, no transforms are applied.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub transforms: Option<Vec<String>>,
 }
 
 impl ChatCompletionRequest {
@@ -100,6 +107,7 @@ impl ChatCompletionRequest {
             parallel_tool_calls: None,
             tool_choice: None,
             reasoning: None,
+            transforms: None,
         }
     }
 }
@@ -121,7 +129,8 @@ impl_builder_methods!(
     tools: Vec<Tool>,
     parallel_tool_calls: bool,
     tool_choice: ToolChoiceType,
-    reasoning: Reasoning
+    reasoning: Reasoning,
+    transforms: Vec<String>
 );
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
@@ -417,5 +426,54 @@ mod tests {
 
         let serialized = serde_json::to_value(&req).unwrap();
         assert_eq!(serialized["reasoning"]["effort"], "low");
+    }
+
+    #[test]
+    fn test_transforms_none_serialization() {
+        let req = ChatCompletionRequest::new("gpt-4".to_string(), vec![]);
+        let serialised = serde_json::to_value(&req).unwrap();
+        // Verify that the transforms field is completely omitted from JSON output
+        assert!(!serialised.as_object().unwrap().contains_key("transforms"));
+    }
+
+    #[test]
+    fn test_transforms_some_serialization() {
+        let mut req = ChatCompletionRequest::new("gpt-4".to_string(), vec![]);
+        req.transforms = Some(vec!["transform1".to_string(), "transform2".to_string()]);
+        let serialised = serde_json::to_value(&req).unwrap();
+        // Verify that the transforms field is included as a proper JSON array
+        assert_eq!(
+            serialised["transforms"],
+            serde_json::json!(["transform1", "transform2"])
+        );
+    }
+
+    #[test]
+    fn test_transforms_some_deserialization() {
+        let json_str =
+            r#"{"model": "gpt-4", "messages": [], "transforms": ["transform1", "transform2"]}"#;
+        let req: ChatCompletionRequest = serde_json::from_str(json_str).unwrap();
+        // Verify that the transforms field is properly populated with Some(vec)
+        assert_eq!(
+            req.transforms,
+            Some(vec!["transform1".to_string(), "transform2".to_string()])
+        );
+    }
+
+    #[test]
+    fn test_transforms_none_deserialization() {
+        let json_str = r#"{"model": "gpt-4", "messages": []}"#;
+        let req: ChatCompletionRequest = serde_json::from_str(json_str).unwrap();
+        // Verify that the transforms field is properly set to None when absent
+        assert_eq!(req.transforms, None);
+    }
+
+    #[test]
+    fn test_transforms_builder_method() {
+        let transforms = vec!["transform1".to_string(), "transform2".to_string()];
+        let req =
+            ChatCompletionRequest::new("gpt-4".to_string(), vec![]).transforms(transforms.clone());
+        // Verify that the transforms field is properly set through the builder method
+        assert_eq!(req.transforms, Some(transforms));
     }
 }
