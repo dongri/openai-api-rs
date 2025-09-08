@@ -92,7 +92,7 @@ pub enum ClientEvent {
 
 impl From<ClientEvent> for Message {
     fn from(value: ClientEvent) -> Self {
-        Message::Text(String::from(&value))
+        Message::Text(String::from(&value).into())
     }
 }
 
