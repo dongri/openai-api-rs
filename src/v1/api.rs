@@ -77,7 +77,7 @@ pub struct OpenAIClientBuilder {
     headers: Option<HeaderMap>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct OpenAIClient {
     api_endpoint: String,
     api_key: Option<String>,
