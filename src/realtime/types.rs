@@ -1,10 +1,27 @@
 use serde::{Deserialize, Serialize};
 
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "lowercase", tag = "type")]
+pub enum Session {
+    Realtime(RealtimeSession),
+    Transcription(TranscriptionSession),
+}
+impl Default for Session {
+    fn default() -> Self {
+        Self::Realtime(Default::default())
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
-pub struct Session {
-    /// Always `realtime` if specified.
-    #[serde(rename = "type", skip_serializing_if = "Option::is_none")]
-    pub session_type: Option<RealtimeCallSessionType>,
+pub struct TranscriptionSession {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub audio: Option<AudioConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub include: Option<Vec<AdditionalServerOutput>>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+pub struct RealtimeSession {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub audio: Option<AudioConfig>,
     #[serde(skip_serializing_if = "Option::is_none")]
