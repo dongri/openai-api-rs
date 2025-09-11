@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-/// Used to start a realtime session based on an incoming call.
+/// Used to start a realtime session based on an incoming call that you can then connect to over WSS with `RealtimeSipClient` from `openai_api_rs::realtime::sip`.
 /// Note that this is poorly documented by OpenAI with the only example data given in https://platform.openai.com/docs/guides/realtime-sip#handle-the-webhook and these may not be all the possible fields.
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct AcceptCallRequest {
