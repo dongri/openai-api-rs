@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::realtime::types::{RealtimeModel, RealtimeSessionType};
+use crate::realtime::types::{AcceptCallSessionType, RealtimeModel};
 
 /// Used to start a realtime session based on an incoming call that you can then connect to over WSS with `RealtimeSipClient` from `openai_api_rs::realtime::sip`.
 /// Note that this is poorly documented by OpenAI with the only example data given in https://platform.openai.com/docs/guides/realtime-sip#handle-the-webhook and these may not be all the possible fields.
@@ -8,14 +8,14 @@ use crate::realtime::types::{RealtimeModel, RealtimeSessionType};
 pub struct AcceptCallRequest {
     /// This is *always* `realtime`. Convenience constructor exposed to ensure this.
     #[serde(rename = "type")]
-    pub session_type: RealtimeSessionType,
+    pub session_type: AcceptCallSessionType,
     pub instructions: String,
     pub model: RealtimeModel,
 }
 impl AcceptCallRequest {
     pub fn new(instructions: impl Into<String>, model: RealtimeModel) -> Self {
         Self {
-            session_type: RealtimeSessionType,
+            session_type: AcceptCallSessionType::Realtime,
             instructions: instructions.into(),
             model,
         }
