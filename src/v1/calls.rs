@@ -1,0 +1,19 @@
+use serde::{Deserialize, Serialize};
+
+/// Used to start a realtime session based on an incoming call.
+/// Note that this is poorly documented by OpenAI with the only example data given in https://platform.openai.com/docs/guides/realtime-sip#handle-the-webhook and these may not be all the possible fields.
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct AcceptCallRequest {
+    /// This is *always* `realtime`.
+    #[serde(rename = "type")]
+    pub session_type: String,
+    pub instructions: String,
+    pub model: String,
+}
+
+/// Used to redirect a call to another number. Per https://platform.openai.com/docs/guides/realtime-sip#handle-the-webhook the Tel-URI scheme may be used.
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ReferCallRequest {
+    /// The URI to redirect the call to, for example `tel:+14152909007`
+    pub target_uri: String,
+}

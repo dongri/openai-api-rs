@@ -4,6 +4,7 @@ pub mod types;
 
 pub mod audio;
 pub mod batch;
+pub mod calls;
 pub mod chat_completion;
 pub mod completion;
 pub mod edit;
