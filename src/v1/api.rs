@@ -7,6 +7,7 @@ use crate::v1::audio::{
     AudioTranslationRequest, AudioTranslationResponse,
 };
 use crate::v1::batch::{BatchResponse, CreateBatchRequest, ListBatchResponse};
+use crate::v1::calls::{AcceptCallRequest, ReferCallRequest};
 use crate::v1::chat_completion::{ChatCompletionRequest, ChatCompletionResponse};
 use crate::v1::common;
 use crate::v1::completion::{CompletionRequest, CompletionResponse};
@@ -794,6 +795,32 @@ impl OpenAIClient {
         model_id: String,
     ) -> Result<common::DeletionStatus, APIError> {
         self.delete(&format!("models/{model_id}")).await
+    }
+
+    pub async fn accept_call(
+        &mut self,
+        call_id: &str,
+        accept: AcceptCallRequest,
+    ) -> Result<(), APIError> {
+        self.post::<()>(&format!("realtime/calls/{call_id}/accept"), &accept)
+            .await?;
+        Ok(())
+    }
+
+    pub async fn reject_call(&mut self, call_id: &str) -> Result<(), APIError> {
+        self.post::<()>(&format!("realtime/calls/{call_id}/reject"), &())
+            .await?;
+        Ok(())
+    }
+
+    pub async fn refer_call(
+        &mut self,
+        call_id: &str,
+        refer: ReferCallRequest,
+    ) -> Result<(), APIError> {
+        self.post::<()>(&format!("realtime/calls/{call_id}/refer"), &refer)
+            .await?;
+        Ok(())
     }
 
     fn build_url_with_preserved_query(&self, path: &str) -> Result<String, url::ParseError> {
