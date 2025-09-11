@@ -195,6 +195,32 @@ impl OpenAIClient {
         self.handle_response(response).await
     }
 
+    /// `POST`s but expects an empty response rather than anything to deserialize.
+    async fn post_empty(
+        &mut self,
+        path: &str,
+        body: &impl serde::ser::Serialize,
+    ) -> Result<(), APIError> {
+        let request = self.build_request(Method::POST, path).await;
+        let request = request.json(body);
+        let response = request.send().await?;
+
+        if response.status().is_success() {
+            let headers = response.headers().clone();
+            self.response_headers = Some(headers);
+            Ok(())
+        } else {
+            let status = response.status();
+            let error_message = response
+                .text()
+                .await
+                .unwrap_or_else(|_| format!("Unknown error - no body text was provided"));
+            Err(APIError::CustomError {
+                message: format!("{status}: {error_message}"),
+            })
+        }
+    }
+
     async fn get<T: serde::de::DeserializeOwned>(&mut self, path: &str) -> Result<T, APIError> {
         let request = self.build_request(Method::GET, path).await;
         let response = request.send().await?;
@@ -802,17 +828,15 @@ impl OpenAIClient {
         call_id: &str,
         accept: AcceptCallRequest,
     ) -> Result<(), APIError> {
-        // /realtime/calls endpoints return empty strings on success
-        self.post::<String>(&format!("realtime/calls/{call_id}/accept"), &accept)
-            .await?;
-        Ok(())
+        // /realtime/calls endpoints return empty responses on success
+        self.post_empty(&format!("realtime/calls/{call_id}/accept"), &accept)
+            .await
     }
 
     pub async fn hangup_call(&mut self, call_id: &str) -> Result<(), APIError> {
-        // /realtime/calls endpoints return empty strings on success
-        self.post::<String>(&format!("realtime/calls/{call_id}/hangup"), &())
-            .await?;
-        Ok(())
+        // /realtime/calls endpoints return empty responses on success
+        self.post_empty(&format!("realtime/calls/{call_id}/hangup"), &())
+            .await
     }
 
     /// Note that `reject_call` is very poorly documented and seems to be non-functional even in the GA release as of 2025-09-11:
@@ -825,9 +849,8 @@ impl OpenAIClient {
     /// a sensible workaround is to `accept` the call and immediately `hangup`. See `hangup_call`.
     pub async fn reject_call(&mut self, call_id: &str) -> Result<(), APIError> {
         // ditto WRT successful body
-        self.post::<String>(&format!("realtime/calls/{call_id}/reject"), &())
-            .await?;
-        Ok(())
+        self.post_empty(&format!("realtime/calls/{call_id}/reject"), &())
+            .await
     }
 
     pub async fn refer_call(
@@ -836,9 +859,8 @@ impl OpenAIClient {
         refer: ReferCallRequest,
     ) -> Result<(), APIError> {
         // ditto WRT successful body
-        self.post::<String>(&format!("realtime/calls/{call_id}/refer"), &refer)
-            .await?;
-        Ok(())
+        self.post_empty(&format!("realtime/calls/{call_id}/refer"), &refer)
+            .await
     }
 
     fn build_url_with_preserved_query(&self, path: &str) -> Result<String, url::ParseError> {
