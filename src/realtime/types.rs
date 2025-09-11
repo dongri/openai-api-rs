@@ -27,6 +27,24 @@ pub struct Session {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
+pub enum RealtimeModel {
+    #[serde(rename = "gpt-realtime")]
+    GptRealtime,
+    #[serde(rename = "gpt-4o-realtime-preview")]
+    Gpt4oRealtimePreview,
+    #[serde(rename = "gpt-4o-mini-realtime-preview")]
+    Gpt4oMiniRealtimePreview,
+    #[serde(rename = "gpt-realtime-2025-08-28")]
+    GptRealtime20250828,
+    #[serde(rename = "gpt-4o-realtime-preview-2024-12-17")]
+    Gpt4oRealtimePreview20241217,
+    #[serde(rename = "gpt-4o-realtime-preview-2024-10-01")]
+    Gpt4oRealtimePreview20241001,
+    #[serde(rename = "gpt-4o-mini-realtime-preview-2024-12-17")]
+    Gpt4oMiniRealtimePreview20241217,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "lowercase")]
 pub enum RealtimeVoice {
     Alloy,
