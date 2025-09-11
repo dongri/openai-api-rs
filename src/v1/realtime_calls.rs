@@ -13,10 +13,10 @@ pub struct AcceptCallRequest {
     pub model: RealtimeModel,
 }
 impl AcceptCallRequest {
-    pub fn new(instructions: String, model: RealtimeModel) -> Self {
+    pub fn new(instructions: impl Into<String>, model: RealtimeModel) -> Self {
         Self {
             session_type: RealtimeSessionType,
-            instructions,
+            instructions: instructions.into(),
             model,
         }
     }
