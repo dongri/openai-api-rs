@@ -12,6 +12,7 @@ use crate::v1::chat_completion::chat_completion::{ChatCompletionRequest, ChatCom
 use crate::v1::chat_completion::chat_completion_stream::{
     ChatCompletionStream, ChatCompletionStreamRequest, ChatCompletionStreamResponse,
 };
+use crate::v1::chat_completion::{ChatCompletionRequest, ChatCompletionResponse};
 use crate::v1::common;
 use crate::v1::completion::{CompletionRequest, CompletionResponse};
 use crate::v1::edit::{EditRequest, EditResponse};
@@ -36,6 +37,7 @@ use crate::v1::message::{
 };
 use crate::v1::model::{ModelResponse, ModelsResponse};
 use crate::v1::moderation::{CreateModerationRequest, CreateModerationResponse};
+use crate::v1::realtime_calls::{AcceptCallRequest, ReferCallRequest};
 use crate::v1::responses::responses::{
     CountTokensRequest, CountTokensResponse, CreateResponseRequest, ListResponses, ResponseObject,
 };
