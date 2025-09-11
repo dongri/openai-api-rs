@@ -5,7 +5,8 @@ pub struct Session {
     /// Always `realtime` if specified.
     #[serde(rename = "type", skip_serializing_if = "Option::is_none")]
     pub session_type: Option<RealtimeCallSessionType>,
-    // todo: audio
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub audio: Option<AudioConfig>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub include: Option<Vec<AdditionalServerOutput>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -16,16 +17,6 @@ pub struct Session {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub instructions: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub voice: Option<RealtimeVoice>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub input_audio_format: Option<AudioFormat>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub output_audio_format: Option<AudioFormat>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub input_audio_transcription: Option<AudioTranscription>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub turn_detection: Option<TurnDetection>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub tools: Option<Vec<ToolDefinition>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub tool_choice: Option<ToolChoice>,
@@ -34,7 +25,12 @@ pub struct Session {
     // Todo: Support prompt template reference and variables
     // #[serde(skip_serializing_if = "Option::is_none")]
     // pub prompt: Option<PromptReference>,
-    //
+    // Todo: Support tracing config
+    // #[serde(skip_serializing_if = "Option::is_none")]
+    // pub tracing: Option<TracingMode>, // "auto" or config object
+    // Todo: Support truncation config (poorly documented atm)
+    // #[serde(skip_serializing_if = "Option::is_none")]
+    // pub tracing: Option<TracingMode>, // "auto" or config object
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -92,12 +88,148 @@ pub enum RealtimeVoice {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct AudioConfig {
+    pub input: AudioInput,
+    pub output: AudioOutput,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct AudioInput {
+    pub format: AudioFormat,
+    /// Configuration for input audio noise reduction. This can be set to null to turn off. Noise reduction filters audio added to the input audio buffer before it is sent to VAD and the model.
+    /// Filtering the audio can improve VAD and turn detection accuracy (reducing false positives) and model performance by improving perception of the input audio.
+    pub noise_reduction: Option<NoiseReduction>,
+    /// Configuration for input audio transcription, defaults to off and can be set to null to turn off once on. Input audio transcription is not native to the model, since the model consumes audio directly. Transcription runs asynchronously through the /audio/transcriptions endpoint and should be treated as guidance of input audio content rather than precisely what the model heard. The client can optionally set the language and prompt for transcription, these offer additional guidance to the transcription service.
+    pub transcription: Option<TranscriptionConfig>,
+    /// Configuration for turn detection, ether Server VAD or Semantic VAD. This can be set to null to turn off, in which case the client must manually trigger model response.
+    pub turn_detection: Option<TurnDetection>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct TranscriptionConfig {
+    /// The language of the input audio in ISO-639-1 (e.g. "en") format. Will improve accuracy and latency if set.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub language: Option<String>,
+    pub model: TranscriptionModel,
+    /// An optional text to guide the model's style or continue a previous audio segment. For `whisper-1`, the prompt is a list of keywords. For `gpt-4o-transcribe` models, the prompt is a free text string, for example "expect words related to technology".
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub prompt: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub enum TranscriptionModel {
+    #[serde(rename = "whisper-1")]
+    Whisper1,
+    #[serde(rename = "gpt-4o-transcribe-latest")]
+    Gpt4oTranscribeLatest,
+    #[serde(rename = "gpt-4o-mini-transcribe")]
+    Gpt4oMiniTranscribe,
+    #[serde(rename = "gpt-4o-transcribe")]
+    Gpt4oTranscribe,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "snake_case")]
+pub enum VadMode {
+    SemanticVad(SemanticVadConfig),
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ServerVadConfig {
+    /// Whether or not to automatically generate a response when a VAD stop event occurs.
+    pub create_response: bool,
+    /// Optional timeout after which a model response will be triggered automatically. This is useful for situations in which a long pause from the user is unexpected, such as a phone call. The model will effectively prompt the user to continue the conversation based on the current context.
+    /// The timeout value will be applied after the last model response's audio has finished playing, i.e. it's set to the `response.done` time plus audio playback duration.
+    /// An `input_audio_buffer.timeout_triggered` event (plus events associated with the Response) will be emitted when the timeout is reached. Idle timeout is currently only supported for server_vad mode.
+    pub idle_timeout_ms: Option<u32>,
+    /// Whether or not to automatically interrupt any ongoing response with output to the default conversation (i.e. `conversation` of `auto`) when a VAD start event occurs.
+    pub interrupt_response: bool,
+    /// Used only for server_vad mode. Amount of audio to include before the VAD detected speech (in milliseconds). Defaults to 300ms.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub prefix_padding_ms: Option<u32>,
+    /// Used only for server_vad mode. Duration of silence to detect speech stop (in milliseconds). Defaults to 500ms. With shorter values the model will respond more quickly, but may jump in on short pauses from the user.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub silence_duration_ms: Option<u32>,
+    /// Used only for server_vad mode. Activation threshold for VAD (0.0 to 1.0), this defaults to 0.5. A higher threshold will require louder audio to activate the model, and thus might perform better in noisy environments.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub threshold: Option<f64>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct SemanticVadConfig {
+    /// Whether or not to automatically generate a response when a VAD stop event occurs.
+    pub create_response: bool,
+    pub eagerness: SemanticVadEagerness,
+    /// Whether or not to automatically interrupt any ongoing response with output to the default conversation (i.e. `conversation` of `auto`) when a VAD start event occurs.
+    pub interrupt_response: bool,
+}
+
+/// low will wait longer for the user to continue speaking, high will respond more quickly. auto is the default and is equivalent to medium. low, medium, and high have max timeouts of 8s, 4s, and 2s respectively.
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub enum SemanticVadEagerness {
+    /// Equivalent to Medium.
+    Auto,
+    Low,
+    Medium,
+    High,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct NoiseReduction {
+    #[serde(rename = "type")]
+    pub reduction_type: NoiseReductionType,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "snake_case")]
+pub enum NoiseReductionType {
+    /// `near_field` is for close-talking microphones such as headphones
+    NearField,
+    /// `far_field` is for far-field microphones such as laptop or conference room microphones
+    FarField,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct AudioOutput {
+    pub format: AudioFormat,
+    /// The speed of the model's spoken response as a multiple of the original speed. 1.0 is the default speed. 0.25 is the minimum speed. 1.5 is the maximum speed. This value can only be changed in between model turns, not while a response is in progress.
+    /// This parameter is a post-processing adjustment to the audio after it is generated, it's also possible to prompt the model to speak faster or slower.
+    pub speed: f64,
+    /// The voice the model uses to respond. Voice cannot be changed during the session once the model has responded with audio at least once.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub voice: Option<RealtimeVoice>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(untagged)]
 pub enum AudioFormat {
-    #[serde(rename = "pcm16")]
-    PCM16,
-    #[serde(rename = "g711_ulaw")]
+    Pcm(AudioFormatDefinitionWithSampleRate),
+    Other(AudioFormatDefinition),
+}
+
+/// This form of audio format definition is *only* used for the raw PCM format.
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct AudioFormatDefinitionWithSampleRate {
+    /// This must always be `24000` for PCM.
+    rate: i32,
+    /// Must be `Pcm`.
+    #[serde(rename = "type")]
+    audio_type: AudioFormatIdentifier,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct AudioFormatDefinition {
+    #[serde(rename = "type")]
+    audio_type: AudioFormatIdentifier,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub enum AudioFormatIdentifier {
+    #[serde(rename = "audio/pcm")]
+    Pcm,
+    #[serde(rename = "audio/pcmu")]
     G711ULAW,
-    #[serde(rename = "g711_alaw")]
+    #[serde(rename = "audio/pcma")]
     G711ALAW,
 }
 
