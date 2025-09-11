@@ -4,7 +4,6 @@ pub mod types;
 
 pub mod audio;
 pub mod batch;
-pub mod calls;
 pub mod chat_completion;
 pub mod completion;
 pub mod edit;
@@ -14,6 +13,7 @@ pub mod fine_tuning;
 pub mod image;
 pub mod model;
 pub mod moderation;
+pub mod realtime_calls;
 
 // beta
 pub mod assistant;
