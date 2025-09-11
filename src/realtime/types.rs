@@ -44,10 +44,12 @@ pub enum RealtimeModel {
     Gpt4oMiniRealtimePreview20241217,
 }
 
-/// Unit struct representing the only possible value for `type` in the accept call payload.
+/// Enum representing the only possible value for `type` in the accept call payload.
 #[derive(Debug, Serialize, Deserialize, Clone)]
-#[serde(rename = "realtime")]
-pub struct RealtimeSessionType;
+#[serde(rename_all = "lowercase")]
+pub enum AcceptCallSessionType {
+    Realtime,
+}
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "lowercase")]
