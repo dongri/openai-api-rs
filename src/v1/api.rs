@@ -802,13 +802,30 @@ impl OpenAIClient {
         call_id: &str,
         accept: AcceptCallRequest,
     ) -> Result<(), APIError> {
-        self.post::<()>(&format!("realtime/calls/{call_id}/accept"), &accept)
+        // /realtime/calls endpoints return empty strings on success
+        self.post::<String>(&format!("realtime/calls/{call_id}/accept"), &accept)
             .await?;
         Ok(())
     }
 
+    pub async fn hangup_call(&mut self, call_id: &str) -> Result<(), APIError> {
+        // /realtime/calls endpoints return empty strings on success
+        self.post::<String>(&format!("realtime/calls/{call_id}/hangup"), &())
+            .await?;
+        Ok(())
+    }
+
+    /// Note that `reject_call` is very poorly documented and seems to be non-functional even in the GA release as of 2025-09-11:
+    ///
+    /// - it returns a 404 if there is no session associated with the call (ie. it hasn't been `accept`ed yet)
+    /// - it returns a 500 if there *is* one
+    /// - in neither case does the call actually end
+    ///
+    /// Per https://community.openai.com/t/how-can-i-programatically-end-a-gpt-realtime-sip-call/1355362 a `hangup` method exists, not documented elsewhere;
+    /// a sensible workaround is to `accept` the call and immediately `hangup`. See `hangup_call`.
     pub async fn reject_call(&mut self, call_id: &str) -> Result<(), APIError> {
-        self.post::<()>(&format!("realtime/calls/{call_id}/reject"), &())
+        // ditto WRT successful body
+        self.post::<String>(&format!("realtime/calls/{call_id}/reject"), &())
             .await?;
         Ok(())
     }
@@ -818,7 +835,8 @@ impl OpenAIClient {
         call_id: &str,
         refer: ReferCallRequest,
     ) -> Result<(), APIError> {
-        self.post::<()>(&format!("realtime/calls/{call_id}/refer"), &refer)
+        // ditto WRT successful body
+        self.post::<String>(&format!("realtime/calls/{call_id}/refer"), &refer)
             .await?;
         Ok(())
     }
