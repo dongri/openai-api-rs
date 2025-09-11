@@ -2,8 +2,17 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct Session {
+    /// Always `realtime` if specified.
+    #[serde(rename = "type", skip_serializing_if = "Option::is_none")]
+    pub session_type: Option<RealtimeCallSessionType>,
+    // todo: audio
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub modalities: Option<Vec<String>>,
+    pub include: Option<Vec<AdditionalServerOutput>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub model: Option<RealtimeModel>,
+    /// Just `Audio` by default. Can also be `Text` for text-only. Both at the same time are not supported.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub output_modalities: Option<Vec<OutputModality>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub instructions: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -21,9 +30,11 @@ pub struct Session {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub tool_choice: Option<ToolChoice>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub temperature: Option<f32>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub max_output_tokens: Option<MaxOutputTokens>,
+    // Todo: Support prompt template reference and variables
+    // #[serde(skip_serializing_if = "Option::is_none")]
+    // pub prompt: Option<PromptReference>,
+    //
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -44,10 +55,24 @@ pub enum RealtimeModel {
     Gpt4oMiniRealtimePreview20241217,
 }
 
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub enum AdditionalServerOutput {
+    /// Include logprobs for input audio transcription.
+    #[serde(rename = "item.input_audio_transcription.logprobs")]
+    Logprobs,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "lowercase")]
+pub enum OutputModality {
+    Audio,
+    Text,
+}
+
 /// Enum representing the only possible value for `type` in the accept call payload.
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "lowercase")]
-pub enum AcceptCallSessionType {
+pub enum RealtimeCallSessionType {
     Realtime,
 }
 
