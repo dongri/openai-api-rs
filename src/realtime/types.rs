@@ -261,11 +261,8 @@ pub struct AudioTranscription {
 #[serde(tag = "type")]
 pub enum TurnDetection {
     #[serde(rename = "server_vad")]
-    ServerVAD {
-        threshold: f32,
-        prefix_padding_ms: u32,
-        silence_duration_ms: u32,
-    },
+    ServerVAD(ServerVadConfig),
+    SemanticVAD(SemanticVadConfig),
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
