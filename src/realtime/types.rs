@@ -301,8 +301,7 @@ pub enum FunctionType {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(untagged)]
 pub enum MaxOutputTokens {
-    #[serde(rename = "inf")]
-    Inf,
+    Inf(String),
     Num(u16),
 }
 
