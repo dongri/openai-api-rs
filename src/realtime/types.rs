@@ -336,7 +336,7 @@ pub enum ItemContentType {
     InputAudio,
     InputImage,
     Text,
-    Audio,
+    OutputAudio,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
