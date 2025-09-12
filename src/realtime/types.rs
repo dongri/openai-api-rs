@@ -298,9 +298,9 @@ pub enum FunctionType {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(untagged)]
 pub enum MaxOutputTokens {
-    Num(u16),
     #[serde(rename = "inf")]
     Inf,
+    Num(u16),
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
