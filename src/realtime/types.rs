@@ -341,7 +341,7 @@ pub struct ItemContent {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub text: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub audio: Option<String>,
+    pub output_audio: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub transcript: Option<String>,
 }
