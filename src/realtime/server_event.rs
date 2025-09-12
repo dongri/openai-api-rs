@@ -178,7 +178,7 @@ pub struct ResponseTextDone {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct ResponseAudioTranscriptDelta {
+pub struct ResponseOutputAudioTranscriptDelta {
     pub event_id: String,
     pub response_id: String,
     pub item_id: String,
@@ -188,7 +188,7 @@ pub struct ResponseAudioTranscriptDelta {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct ResponseAudioTranscriptDone {
+pub struct ResponseOutputAudioTranscriptDone {
     pub event_id: String,
     pub response_id: String,
     pub item_id: String,
@@ -198,7 +198,7 @@ pub struct ResponseAudioTranscriptDone {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct ResponseAudioDelta {
+pub struct ResponseOutputAudioDelta {
     pub event_id: String,
     pub response_id: String,
     pub item_id: String,
@@ -208,7 +208,7 @@ pub struct ResponseAudioDelta {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct ResponseAudioDone {
+pub struct ResponseOutputAudioDone {
     pub event_id: String,
     pub response_id: String,
     pub item_id: String,
@@ -262,7 +262,7 @@ pub enum ServerEvent {
     #[serde(rename = "input_audio_buffer.speech_stopped")]
     InputAudioBufferSpeechStopped(InputAudioBufferSpeechStopped),
     #[serde(rename = "conversation.item.added")]
-    ConversationItemCreated(ConversationItemAdded),
+    ConversationItemAdded(ConversationItemAdded),
     #[serde(rename = "conversation.item.input_audio_transcription.completed")]
     ConversationItemInputAudioTranscriptionCompleted(
         ConversationItemInputAudioTranscriptionCompleted,
@@ -295,14 +295,14 @@ pub enum ServerEvent {
     ResponseTextDelta(ResponseTextDelta),
     #[serde(rename = "response.text.done")]
     ResponseTextDone(ResponseTextDone),
-    #[serde(rename = "response.audio_transcript.delta")]
-    ResponseAudioTranscriptDelta(ResponseAudioTranscriptDelta),
-    #[serde(rename = "response.audio_transcript.done")]
-    ResponseAudioTranscriptDone(ResponseAudioTranscriptDone),
-    #[serde(rename = "response.audio.delta")]
-    ResponseAudioDelta(ResponseAudioDelta),
-    #[serde(rename = "response.audio.done")]
-    ResponseAudioDone(ResponseAudioDone),
+    #[serde(rename = "response.output_audio_transcript.delta")]
+    ResponseOutputAudioTranscriptDelta(ResponseOutputAudioTranscriptDelta),
+    #[serde(rename = "response.output_audio_transcript.done")]
+    ResponseOutputAudioTranscriptDone(ResponseOutputAudioTranscriptDone),
+    #[serde(rename = "response.output_audio.delta")]
+    ResponseOutputAudioDelta(ResponseOutputAudioDelta),
+    #[serde(rename = "response.output_audio.done")]
+    ResponseOutputAudioDone(ResponseOutputAudioDone),
     #[serde(rename = "response.function_call_arguments.delta")]
     ResponseFunctionCallArgumentsDelta(ResponseFunctionCallArgumentsDelta),
     #[serde(rename = "response.function_call_arguments.done")]
