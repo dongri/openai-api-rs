@@ -1,5 +1,7 @@
 use serde::{Deserialize, Serialize};
 
+use crate::realtime::types::RealtimeModel;
+
 use super::*;
 
 /// Intended for connecting to an already existing Realtime session spawned by accepting an incoming SIP call from e.g. Twilio.
@@ -7,19 +9,26 @@ pub struct RealtimeSipClient {
     pub wss_url: String,
     pub api_key: String,
     pub call_id: String,
+    pub model: RealtimeModel, // contrary to the OpenAI tutorial, joining an SIP session without a `model` param causes an "invalid_request_error.missing_model"
 }
 
 impl RealtimeSipClient {
-    pub fn new(api_key: String, call_id: String) -> Self {
+    pub fn new(api_key: String, call_id: String, model: RealtimeModel) -> Self {
         let wss_url = std::env::var("WSS_URL").unwrap_or_else(|_| WSS_URL.to_owned());
-        Self::new_with_endpoint(wss_url, api_key, call_id)
+        Self::new_with_endpoint(wss_url, api_key, call_id, model)
     }
 
-    pub fn new_with_endpoint(wss_url: String, api_key: String, call_id: String) -> Self {
+    pub fn new_with_endpoint(
+        wss_url: String,
+        api_key: String,
+        call_id: String,
+        model: RealtimeModel,
+    ) -> Self {
         Self {
             wss_url,
             api_key,
             call_id,
+            model,
         }
     }
 
@@ -32,7 +41,17 @@ impl RealtimeSipClient {
         ),
         Box<dyn std::error::Error>,
     > {
-        let url = format!("{}?callId={}", self.wss_url, self.call_id);
+        let model_slug = serde_json::to_string(&self.model).unwrap();
+        let model_slug = model_slug
+            .strip_prefix("\"")
+            .unwrap()
+            .strip_suffix("\"")
+            .unwrap();
+
+        let url = format!(
+            "{}?callId={}&model={}",
+            self.wss_url, self.call_id, model_slug
+        );
         let mut request = url.into_client_request()?;
         let api_key = self.api_key.clone();
         request
