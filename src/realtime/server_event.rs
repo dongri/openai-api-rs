@@ -55,7 +55,7 @@ pub struct InputAudioBufferSpeechStopped {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct ConversationItemCreated {
+pub struct ConversationItemAdded {
     pub event_id: String,
     pub previous_item_id: Option<String>,
     pub item: Item,
@@ -261,8 +261,8 @@ pub enum ServerEvent {
     InputAudioBufferSpeechStarted(InputAudioBufferSpeechStarted),
     #[serde(rename = "input_audio_buffer.speech_stopped")]
     InputAudioBufferSpeechStopped(InputAudioBufferSpeechStopped),
-    #[serde(rename = "conversation.item.created")]
-    ConversationItemCreated(ConversationItemCreated),
+    #[serde(rename = "conversation.item.added")]
+    ConversationItemCreated(ConversationItemAdded),
     #[serde(rename = "conversation.item.input_audio_transcription.completed")]
     ConversationItemInputAudioTranscriptionCompleted(
         ConversationItemInputAudioTranscriptionCompleted,
