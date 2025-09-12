@@ -62,6 +62,13 @@ pub struct ConversationItemAdded {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ConversationItemDone {
+    pub event_id: String,
+    pub previous_item_id: Option<String>,
+    pub item: Item,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ConversationItemInputAudioTranscriptionCompleted {
     pub event_id: String,
     pub item_id: String,
@@ -273,6 +280,8 @@ pub enum ServerEvent {
     ConversationItemTruncated(ConversationItemTruncated),
     #[serde(rename = "conversation.item.deleted")]
     ConversationItemDeleted(ConversationItemDeleted),
+    #[serde(rename = "conversation.item.done")]
+    ConversationItemDone(ConversationItemDone),
     #[serde(rename = "output_audio_buffer.started")]
     OutputAudioBufferStarted(OutputAudioBufferStarted),
     #[serde(rename = "output_audio_buffer.stopped")]
