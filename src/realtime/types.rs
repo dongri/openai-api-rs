@@ -228,16 +228,16 @@ pub enum AudioFormat {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct AudioFormatDefinitionWithSampleRate {
     /// This must always be `24000` for PCM.
-    rate: i32,
+    pub rate: i32,
     /// Must be `Pcm`.
     #[serde(rename = "type")]
-    audio_type: AudioFormatIdentifier,
+    pub audio_type: AudioFormatIdentifier,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct AudioFormatDefinition {
     #[serde(rename = "type")]
-    audio_type: AudioFormatIdentifier,
+    pub audio_type: AudioFormatIdentifier,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
