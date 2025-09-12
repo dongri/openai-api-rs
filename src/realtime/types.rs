@@ -317,7 +317,7 @@ pub enum ItemType {
     FunctionCallOutput,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub enum ItemStatus {
     Completed,
@@ -333,7 +333,7 @@ pub enum ItemRole {
     System,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub enum ItemContentType {
     InputText,
