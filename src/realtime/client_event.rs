@@ -58,7 +58,7 @@ pub struct ConversationItemDelete {
 pub struct ResponseCreate {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub event_id: Option<String>,
-    pub response: Option<RealtimeSession>, // this will not work
+    pub response: Option<RealtimeSession>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
