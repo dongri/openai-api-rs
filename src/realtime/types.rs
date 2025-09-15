@@ -82,13 +82,6 @@ pub enum OutputModality {
     Text,
 }
 
-/// Enum representing the only possible value for `type` in the accept call payload.
-#[derive(Debug, Serialize, Deserialize, Clone)]
-#[serde(rename_all = "lowercase")]
-pub enum RealtimeCallSessionType {
-    Realtime,
-}
-
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "lowercase")]
 pub enum RealtimeVoice {
