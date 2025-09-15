@@ -49,7 +49,7 @@ impl RealtimeSipClient {
             .unwrap();
 
         let url = format!(
-            "{}?callId={}&model={}",
+            "{}?call_id={}&model={}",
             self.wss_url, self.call_id, model_slug
         );
         let mut request = url.into_client_request()?;
