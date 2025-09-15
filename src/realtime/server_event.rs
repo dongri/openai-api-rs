@@ -77,6 +77,15 @@ pub struct ConversationItemInputAudioTranscriptionCompleted {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ConversationItemInputAudioTranscriptionDelta {
+    pub event_id: String,
+    pub item_id: String,
+    pub content_index: u32,
+    pub delta: String,
+    // todo: add logprobs support
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ConversationItemInputAudioTranscriptionFailed {
     pub event_id: String,
     pub item_id: String,
@@ -274,6 +283,8 @@ pub enum ServerEvent {
     ConversationItemInputAudioTranscriptionCompleted(
         ConversationItemInputAudioTranscriptionCompleted,
     ),
+    #[serde(rename = "conversation.item.input_audio_transcription.delta")]
+    ConversationItemInputAudioTranscriptionDelta(ConversationItemInputAudioTranscriptionDelta),
     #[serde(rename = "conversation.item.input_audio_transcription.failed")]
     ConversationItemInputAudioTranscriptionFailed(ConversationItemInputAudioTranscriptionFailed),
     #[serde(rename = "conversation.item.truncated")]
