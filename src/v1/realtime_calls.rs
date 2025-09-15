@@ -1,25 +1,16 @@
 use serde::{Deserialize, Serialize};
 
-use crate::realtime::types::{RealtimeCallSessionType, RealtimeModel};
+use crate::realtime::types::Session;
 
 /// Used to start a realtime session based on an incoming call that you can then connect to over WSS with `RealtimeSipClient` from `openai_api_rs::realtime::sip`.
 /// Note that this is poorly documented by OpenAI with the only example data given in https://platform.openai.com/docs/guides/realtime-sip#handle-the-webhook and these may not be all the possible fields.
+/// Per an OpenAI dev (https://community.openai.com/t/how-to-setup-transcription-on-realtime-api-with-sip/1355068/12) anything that can be passed to `session.update` over WSS can be passed to /accept,
+/// as well as `model`, ordinarily reserved for `session.create`.
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct AcceptCallRequest {
-    /// This is *always* `realtime`. Convenience constructor exposed to ensure this.
-    #[serde(rename = "type")]
-    pub session_type: RealtimeCallSessionType,
-    pub instructions: String,
-    pub model: RealtimeModel,
-}
-impl AcceptCallRequest {
-    pub fn new(instructions: impl Into<String>, model: RealtimeModel) -> Self {
-        Self {
-            session_type: RealtimeCallSessionType::Realtime,
-            instructions: instructions.into(),
-            model,
-        }
-    }
+    /// The session must *always* be a `realtime` one.
+    #[serde(flatten)]
+    pub session: Session,
 }
 
 /// Used to redirect a call to another number. Per https://platform.openai.com/docs/guides/realtime-sip#handle-the-webhook the Tel-URI scheme may be used.
