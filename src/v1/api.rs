@@ -207,13 +207,6 @@ impl OpenAIClient {
 
         if response.status().is_success() {
             let headers = response.headers().clone();
-            // added for debugging because passing MCP tool definitions seems to silently fail:
-            #[cfg(debug_assertions)]
-            {
-                if let Ok(text) = &response.text().await {
-                    eprintln!("Response body: {}", text);
-                }
-            }
             self.response_headers = Some(headers);
             Ok(())
         } else {
