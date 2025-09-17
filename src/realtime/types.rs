@@ -306,7 +306,9 @@ pub struct McpApprovalFilter {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "lowercase")]
 pub enum McpApprovalMode {
+    /// Always require approval
     Always,
+    /// Never require approval
     Never,
 }
 
