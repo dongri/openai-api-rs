@@ -300,6 +300,27 @@ pub struct RateLimitsUpdated {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct McpListToolsInProgress {
+    pub event_id: String,
+    pub item_id: String,
+    pub output_index: u32,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct McpListToolsCompleted {
+    pub event_id: String,
+    pub item_id: String,
+    pub output_index: u32,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct McpListToolsFailed {
+    pub event_id: String,
+    pub item_id: String,
+    pub output_index: u32,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(tag = "type")]
 pub enum ServerEvent {
     #[serde(rename = "error")]
@@ -380,4 +401,10 @@ pub enum ServerEvent {
     ResponseMcpCallFailed(ResponseMcpCallFailed),
     #[serde(rename = "rate_limits.updated")]
     RateLimitsUpdated(RateLimitsUpdated),
+    #[serde(rename = "mcp_list_tools.in_progress")]
+    McpListToolsInProgress(McpListToolsInProgress),
+    #[serde(rename = "mcp_list_tools.completed")]
+    McpListToolsCompleted(McpListToolsCompleted),
+    #[serde(rename = "mcp_list_tools.failed")]
+    McpListToolsFailed(McpListToolsFailed),
 }
