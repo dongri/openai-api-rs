@@ -387,6 +387,10 @@ pub enum ItemType {
     Message,
     FunctionCall,
     FunctionCallOutput,
+    McpApprovalResponse,
+    McpListTools,
+    McpToolCall,
+    McpApprovalRequest,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
@@ -429,6 +433,9 @@ pub struct ItemContent {
 pub struct Item {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub id: Option<String>,
+    // Generic to all Item types:
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub previous_item_id: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub r#type: Option<ItemType>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -443,8 +450,30 @@ pub struct Item {
     pub name: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub arguments: Option<String>,
+    // found both in function and MCP tool calls
     #[serde(skip_serializing_if = "Option::is_none")]
     pub output: Option<String>,
+    // fields specific to approval request items:
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub approval_request_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub approve: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub reason: Option<bool>,
+    // common to all MCP items:
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub server_label: Option<String>,
+    // specific to MCP tool list:
+    // "name", server_label is already there
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tools: Option<Vec<McpToolListing>>,
+    // to MCP tool call:
+    // arguments already there from the deprecated "functions" functionality
+    // id, name, server_label, approval_request_id, output already there
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub error: Option<serde_json::Value>,
+    // specific to MCP approval request:
+    // arguments, id, name, server_label all already there
 }
 
 impl TryFrom<serde_json::Value> for Item {
@@ -548,4 +577,13 @@ pub struct RateLimit {
     pub limit: u32,
     pub remaining: u32,
     pub reset_seconds: f32,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct McpToolListing {
+    pub input_schema: serde_json::Value,
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub annotations: Option<serde_json::Value>,
+    pub description: String,
 }
