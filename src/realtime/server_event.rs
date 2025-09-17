@@ -253,6 +253,26 @@ pub struct ResponseFunctionCallArgumentsDone {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ResponseMcpCallArgumentsDelta {
+    pub event_id: String,
+    pub item_id: String,
+    #[serde(default)]
+    pub obfuscation: Option<String>,
+    pub output_index: u32,
+    pub response_id: String,
+    pub delta: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ResponseMcpCallArgumentsDone {
+    pub event_id: String,
+    pub item_id: String,
+    pub output_index: u32,
+    pub response_id: String,
+    pub arguments: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct RateLimitsUpdated {
     pub event_id: String,
     pub rate_limits: Vec<RateLimit>,
@@ -327,6 +347,10 @@ pub enum ServerEvent {
     ResponseFunctionCallArgumentsDelta(ResponseFunctionCallArgumentsDelta),
     #[serde(rename = "response.function_call_arguments.done")]
     ResponseFunctionCallArgumentsDone(ResponseFunctionCallArgumentsDone),
+    #[serde(rename = "response.mcp_call_arguments.delta")]
+    ResponseMcpCallArgumentsDelta(ResponseMcpCallArgumentsDelta),
+    #[serde(rename = "response.mcp_call_arguments.done")]
+    ResponseMcpCallArgumentsDone(ResponseMcpCallArgumentsDone),
     #[serde(rename = "rate_limits.updated")]
     RateLimitsUpdated(RateLimitsUpdated),
 }
