@@ -391,6 +391,7 @@ pub enum ItemType {
     FunctionCallOutput,
     McpApprovalResponse,
     McpListTools,
+    #[serde(rename = "mcp_call")] // not consistent with the docs
     McpToolCall,
     McpApprovalRequest,
 }
