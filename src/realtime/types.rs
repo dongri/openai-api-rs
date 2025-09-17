@@ -354,12 +354,24 @@ pub enum ToolChoice {
         r#type: FunctionType,
         name: String,
     },
+    #[serde(untagged)]
+    Mcp {
+        r#type: McpType,
+        name: String,
+        server_label: String,
+    },
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "lowercase")]
 pub enum FunctionType {
     Function,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "lowercase")]
+pub enum McpType {
+    Mcp,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
