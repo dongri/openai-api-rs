@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -260,13 +262,85 @@ pub enum TurnDetection {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(tag = "type")]
+#[serde(rename_all = "lowercase")]
 pub enum ToolDefinition {
-    #[serde(rename = "function")]
     Function {
         name: String,
         description: String,
         parameters: serde_json::Value,
     },
+    Mcp {
+        server_label: String,
+        allowed_tools: McpAllowedTools,
+        /// An OAuth access token that can be used with a remote MCP server, either with a custom MCP server URL or a service connector. Your application must handle the OAuth authorization flow and provide the token here.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        authorization: Option<String>,
+        /// One of server_url or connector_id must be provided but not both.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        connector_id: Option<Connector>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        headers: Option<HashMap<String, String>>,
+        /// Specify which of the MCP server's tools require approval.
+        require_approval: McpApprovalSettings,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        server_description: Option<String>,
+        /// One of server_url or connector_id must be provided but not both.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        server_url: Option<String>,
+    },
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(untagged)]
+pub enum McpApprovalSettings {
+    Filter(McpApprovalFilter),
+    SinglePolicy(McpApprovalMode),
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct McpApprovalFilter {
+    always: McpFilterObject,
+    never: McpFilterObject,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "lowercase")]
+pub enum McpApprovalMode {
+    Always,
+    Never,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(untagged)]
+pub enum McpAllowedTools {
+    FilterObject(McpFilterObject),
+    ToolNames(Vec<String>),
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct McpFilterObject {
+    read_only: bool,
+    tool_names: Vec<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub enum Connector {
+    #[serde(rename = "connector_dropbox")]
+    ConnectorDropbox,
+    #[serde(rename = "connector_gmail")]
+    ConnectorGmail,
+    #[serde(rename = "connector_googlecalendar")]
+    ConnectorGoogleCalendar,
+    #[serde(rename = "connector_googledrive")]
+    ConnectorGoogleDrive,
+    #[serde(rename = "connector_microsoftteams")]
+    ConnectorMicrosoftTeams,
+    #[serde(rename = "connector_outlookcalendar")]
+    ConnectorOutlookCalendar,
+    #[serde(rename = "connector_outlookemail")]
+    ConnectorOutlookEmail,
+    #[serde(rename = "connector_sharepoint")]
+    ConnectorSharepoint,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
