@@ -48,10 +48,11 @@ impl RealtimeSipClient {
             .strip_suffix("\"")
             .unwrap();
 
-        let url = format!(
-            "{}?call_id={}&model={}",
-            self.wss_url, self.call_id, model_slug
-        );
+        let url = format!("{}?call_id={}", self.wss_url, self.call_id);
+        // let url = format!(
+        //     "{}?call_id={}&model={}",
+        //     self.wss_url, self.call_id, model_slug
+        // );
         let mut request = url.into_client_request()?;
         let api_key = self.api_key.clone();
         request
