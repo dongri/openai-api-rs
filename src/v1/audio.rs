@@ -5,6 +5,13 @@ use crate::impl_builder_methods;
 
 pub const WHISPER_1: &str = "whisper-1";
 
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+#[serde(rename_all = "lowercase")]
+pub enum TimestampGranularity {
+    Word,
+    Segment,
+}
+
 #[derive(Debug, Serialize, Clone)]
 pub struct AudioTranscriptionRequest {
     pub model: String,
@@ -19,6 +26,8 @@ pub struct AudioTranscriptionRequest {
     pub temperature: Option<f32>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub language: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub timestamp_granularities: Option<Vec<TimestampGranularity>>,
 }
 
 impl AudioTranscriptionRequest {
@@ -31,6 +40,7 @@ impl AudioTranscriptionRequest {
             response_format: None,
             temperature: None,
             language: None,
+            timestamp_granularities: None,
         }
     }
 
@@ -43,6 +53,7 @@ impl AudioTranscriptionRequest {
             response_format: None,
             temperature: None,
             language: None,
+            timestamp_granularities: None,
         }
     }
 }
@@ -52,7 +63,8 @@ impl_builder_methods!(
     prompt: String,
     response_format: String,
     temperature: f32,
-    language: String
+    language: String,
+    timestamp_granularities: Vec<TimestampGranularity>
 );
 
 #[derive(Debug, Deserialize, Serialize)]
