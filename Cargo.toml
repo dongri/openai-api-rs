@@ -34,7 +34,7 @@ version = "1"
 version = "1.7.1"
 
 [dependencies.tokio-tungstenite]
-version = "0.24.0"
+version = "0.28.0"
 features = ["connect"]
 
 [dependencies.futures-util]
