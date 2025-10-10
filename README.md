@@ -1,19 +1,24 @@
 # OpenAI API client library for Rust (unofficial)
+
 The OpenAI API client Rust library provides convenient access to the OpenAI API from Rust applications.
 
 Check out the [docs.rs](https://docs.rs/openai-api-rs/).
 
 ## Installation:
+
 Cargo.toml
+
 ```toml
 [dependencies]
-openai-api-rs = "6.0.12"
+openai-api-rs = "6.0.13"
 ```
 
 ## Usage
+
 The library needs to be configured with your account's secret key, which is available on the [website](https://platform.openai.com/account/api-keys). We recommend setting it as an environment variable. Here's an example of initializing the library with the API key loaded from an environment variable and creating a completion:
 
 ### Set OPENAI_API_KEY or OPENROUTER_API_KEY to environment variable
+
 ```bash
 $ export OPENAI_API_KEY=sk-xxxxxxx
 or
@@ -21,12 +26,14 @@ $ export OPENROUTER_API_KEY=sk-xxxxxxx
 ```
 
 ### Create OpenAI client
+
 ```rust
 let api_key = env::var("OPENAI_API_KEY").unwrap().to_string();
 let mut client = OpenAIClient::builder().with_api_key(api_key).build()?;
 ```
 
 ### Create OpenRouter client
+
 ```rust
 let api_key = env::var("OPENROUTER_API_KEY").unwrap().to_string();
 let mut client = OpenAIClient::builder()
@@ -36,6 +43,7 @@ let mut client = OpenAIClient::builder()
 ```
 
 ### Create request
+
 ```rust
 let req = ChatCompletionRequest::new(
     GPT4_O.to_string(),
@@ -50,6 +58,7 @@ let req = ChatCompletionRequest::new(
 ```
 
 ### Send request
+
 ```rust
 let result = client.chat_completion(req)?;
 println!("Content: {:?}", result.choices[0].message.content);
@@ -60,11 +69,13 @@ for (key, value) in client.headers.unwrap().iter() {
 ```
 
 ### Set OPENAI_API_BASE to environment variable (optional)
+
 ```bash
 $ export OPENAI_API_BASE=https://api.openai.com/v1
 ```
 
 ## Example of chat completion
+
 ```rust
 use openai_api_rs::v1::api::OpenAIClient;
 use openai_api_rs::v1::chat_completion::{self, ChatCompletionRequest};
@@ -99,6 +110,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 ```
 
 ## Example for OpenRouter
+
 ```rust
 use openai_api_rs::v1::api::OpenAIClient;
 use openai_api_rs::v1::chat_completion::{self, ChatCompletionRequest};
@@ -126,7 +138,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let result = client.chat_completion(req).await?;
     println!("Content: {:?}", result.choices[0].message.content);
-    
+
     for (key, value) in client.headers.unwrap().iter() {
         println!("{}: {:?}", key, value);
     }
@@ -140,6 +152,7 @@ More Examples: [examples](https://github.com/dongri/openai-api-rs/tree/main/exam
 Check out the [full API documentation](https://platform.openai.com/docs/api-reference/completions) for examples of all the available functions.
 
 ## Supported APIs
+
 - [x] [Completions](https://platform.openai.com/docs/api-reference/completions)
 - [x] [Chat](https://platform.openai.com/docs/api-reference/chat)
 - [x] [Edits](https://platform.openai.com/docs/api-reference/edits)
@@ -155,4 +168,5 @@ Check out the [full API documentation](https://platform.openai.com/docs/api-refe
 - [x] [Realtime](https://platform.openai.com/docs/api-reference/realtime)
 
 ## License
+
 This project is licensed under [MIT license](https://github.com/dongri/openai-api-rs/blob/main/LICENSE).
