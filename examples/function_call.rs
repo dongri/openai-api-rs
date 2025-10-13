@@ -1,5 +1,10 @@
 use openai_api_rs::v1::api::OpenAIClient;
-use openai_api_rs::v1::chat_completion::{self, ChatCompletionRequest};
+use openai_api_rs::v1::chat_completion::{
+    chat_completion::ChatCompletionRequest, ChatCompletionMessage,
+};
+use openai_api_rs::v1::chat_completion::{
+    Content, FinishReason, MessageRole, Tool, ToolChoiceType, ToolType,
+};
 use openai_api_rs::v1::common::GPT4_O;
 use openai_api_rs::v1::types;
 use serde::{Deserialize, Serialize};
@@ -32,16 +37,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let req = ChatCompletionRequest::new(
         GPT4_O.to_string(),
-        vec![chat_completion::ChatCompletionMessage {
-            role: chat_completion::MessageRole::user,
-            content: chat_completion::Content::Text(String::from("What is the price of Ethereum?")),
+        vec![ChatCompletionMessage {
+            role: MessageRole::user,
+            content: Content::Text(String::from("What is the price of Ethereum?")),
             name: None,
             tool_calls: None,
             tool_call_id: None,
         }],
     )
-    .tools(vec![chat_completion::Tool {
-        r#type: chat_completion::ToolType::Function,
+    .tools(vec![Tool {
+        r#type: ToolType::Function,
         function: types::Function {
             name: String::from("get_coin_price"),
             description: Some(String::from("Get the price of a cryptocurrency")),
@@ -52,7 +57,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             },
         },
     }])
-    .tool_choice(chat_completion::ToolChoiceType::Auto);
+    .tool_choice(ToolChoiceType::Auto);
 
     // debug request json
     // let serialized = serde_json::to_string(&req).unwrap();
@@ -65,14 +70,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             println!("No finish_reason");
             println!("{:?}", result.choices[0].message.content);
         }
-        Some(chat_completion::FinishReason::stop) => {
+        Some(FinishReason::stop) => {
             println!("Stop");
             println!("{:?}", result.choices[0].message.content);
         }
-        Some(chat_completion::FinishReason::length) => {
+        Some(FinishReason::length) => {
             println!("Length");
         }
-        Some(chat_completion::FinishReason::tool_calls) => {
+        Some(FinishReason::tool_calls) => {
             println!("ToolCalls");
             #[derive(Deserialize, Serialize)]
             struct Currency {
@@ -90,10 +95,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
             }
         }
-        Some(chat_completion::FinishReason::content_filter) => {
+        Some(FinishReason::content_filter) => {
             println!("ContentFilter");
         }
-        Some(chat_completion::FinishReason::null) => {
+        Some(FinishReason::null) => {
             println!("Null");
         }
     }

@@ -1,5 +1,6 @@
 use openai_api_rs::v1::api::OpenAIClient;
-use openai_api_rs::v1::chat_completion::{self, ChatCompletionRequest};
+use openai_api_rs::v1::chat_completion::chat_completion::ChatCompletionRequest;
+use openai_api_rs::v1::chat_completion::{self};
 use openai_api_rs::v1::common::GPT4_O;
 use openai_api_rs::v1::types;
 use serde::{Deserialize, Serialize};

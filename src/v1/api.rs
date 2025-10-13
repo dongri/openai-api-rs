@@ -7,7 +7,7 @@ use crate::v1::audio::{
     AudioTranslationRequest, AudioTranslationResponse,
 };
 use crate::v1::batch::{BatchResponse, CreateBatchRequest, ListBatchResponse};
-use crate::v1::chat_completion::{ChatCompletionRequest, ChatCompletionResponse};
+use crate::v1::chat_completion::chat_completion::{ChatCompletionRequest, ChatCompletionResponse};
 use crate::v1::common;
 use crate::v1::completion::{CompletionRequest, CompletionResponse};
 use crate::v1::edit::{EditRequest, EditResponse};
