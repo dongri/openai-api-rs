@@ -4,6 +4,7 @@ use serde::ser::SerializeMap;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::fmt;
 
+#[allow(clippy::module_inception)]
 pub mod chat_completion;
 pub mod chat_completion_stream;
 
