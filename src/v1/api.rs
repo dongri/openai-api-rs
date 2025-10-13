@@ -8,6 +8,9 @@ use crate::v1::audio::{
 };
 use crate::v1::batch::{BatchResponse, CreateBatchRequest, ListBatchResponse};
 use crate::v1::chat_completion::chat_completion::{ChatCompletionRequest, ChatCompletionResponse};
+use crate::v1::chat_completion::chat_completion_stream::{
+    ChatCompletionStream, ChatCompletionStreamRequest, ChatCompletionStreamResponse,
+};
 use crate::v1::common;
 use crate::v1::completion::{CompletionRequest, CompletionResponse};
 use crate::v1::edit::{EditRequest, EditResponse};
@@ -39,11 +42,12 @@ use crate::v1::run::{
 use crate::v1::thread::{CreateThreadRequest, ModifyThreadRequest, ThreadObject};
 
 use bytes::Bytes;
+use futures_util::Stream;
 use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
 use reqwest::multipart::{Form, Part};
 use reqwest::{Client, Method, Response};
 use serde::Serialize;
-use serde_json::Value;
+use serde_json::{to_value, Value};
 use url::Url;
 
 use std::error::Error;
@@ -332,6 +336,40 @@ impl OpenAIClient {
         req: ChatCompletionRequest,
     ) -> Result<ChatCompletionResponse, APIError> {
         self.post("chat/completions", &req).await
+    }
+
+    pub async fn chat_completion_stream(
+        &mut self,
+        req: ChatCompletionStreamRequest,
+    ) -> Result<impl Stream<Item = ChatCompletionStreamResponse>, APIError> {
+        let mut payload = to_value(&req).map_err(|err| APIError::CustomError {
+            message: format!("Failed to serialize request: {}", err),
+        })?;
+
+        if let Some(obj) = payload.as_object_mut() {
+            obj.insert("stream".into(), Value::Bool(true));
+        }
+
+        let request = self.build_request(Method::POST, "chat/completions").await;
+        let request = request.json(&payload);
+        let response = request.send().await?;
+
+        if response.status().is_success() {
+            Ok(ChatCompletionStream {
+                response: Box::pin(response.bytes_stream()),
+                buffer: String::new(),
+                first_chunk: true,
+            })
+        } else {
+            let error_text = response
+                .text()
+                .await
+                .unwrap_or_else(|_| String::from("Unknown error"));
+
+            Err(APIError::CustomError {
+                message: error_text,
+            })
+        }
     }
 
     pub async fn audio_transcription(
