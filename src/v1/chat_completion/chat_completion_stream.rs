@@ -142,45 +142,39 @@ impl<S: Stream<Item = Result<bytes::Bytes, reqwest::Error>> + Unpin> Stream
                     self.buffer.push_str(trimmed_str);
                     let json_result: Result<Value, _> = serde_json::from_str(&self.buffer);
 
-                    match json_result {
-                        Ok(json) => {
-                            self.buffer.clear();
+                    if let Ok(json) = json_result {
+                        self.buffer.clear();
 
-                            if let Some(choices) = json.get("choices") {
-                                if let Some(choice) = choices.get(0) {
-                                    if let Some(delta) = choice.get("delta") {
-                                        if let Some(tool_calls) = delta.get("tool_calls") {
-                                            if let Some(tool_calls_array) = tool_calls.as_array() {
-                                                let tool_calls_vec: Vec<ToolCall> =
-                                                    tool_calls_array
-                                                        .iter()
-                                                        .filter_map(|v| {
-                                                            serde_json::from_value(v.clone()).ok()
-                                                        })
-                                                        .collect();
+                        if let Some(choices) = json.get("choices") {
+                            if let Some(choice) = choices.get(0) {
+                                if let Some(delta) = choice.get("delta") {
+                                    if let Some(tool_calls) = delta.get("tool_calls") {
+                                        if let Some(tool_calls_array) = tool_calls.as_array() {
+                                            let tool_calls_vec: Vec<ToolCall> = tool_calls_array
+                                                .iter()
+                                                .filter_map(|v| {
+                                                    serde_json::from_value(v.clone()).ok()
+                                                })
+                                                .collect();
 
-                                                return Poll::Ready(Some(
-                                                    ChatCompletionStreamResponse::ToolCall(
-                                                        tool_calls_vec,
-                                                    ),
-                                                ));
-                                            }
-                                        }
-
-                                        if let Some(content) =
-                                            delta.get("content").and_then(|c| c.as_str())
-                                        {
-                                            let output = content.replace("\\n", "\n");
                                             return Poll::Ready(Some(
-                                                ChatCompletionStreamResponse::Content(output),
+                                                ChatCompletionStreamResponse::ToolCall(
+                                                    tool_calls_vec,
+                                                ),
                                             ));
                                         }
                                     }
+
+                                    if let Some(content) =
+                                        delta.get("content").and_then(|c| c.as_str())
+                                    {
+                                        let output = content.replace("\\n", "\n");
+                                        return Poll::Ready(Some(
+                                            ChatCompletionStreamResponse::Content(output),
+                                        ));
+                                    }
                                 }
                             }
-                        }
-                        Err(err) => {
-                            eprintln!("Failed to parse response: {:?}", err)
                         }
                     }
                 }
