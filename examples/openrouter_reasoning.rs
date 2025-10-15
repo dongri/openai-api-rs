@@ -1,7 +1,6 @@
 use openai_api_rs::v1::api::OpenAIClient;
-use openai_api_rs::v1::chat_completion::{
-    self, ChatCompletionRequest, Reasoning, ReasoningEffort, ReasoningMode,
-};
+use openai_api_rs::v1::chat_completion::chat_completion::ChatCompletionRequest;
+use openai_api_rs::v1::chat_completion::{self, Reasoning, ReasoningEffort, ReasoningMode};
 use std::env;
 
 #[tokio::main]
