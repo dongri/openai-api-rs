@@ -113,6 +113,95 @@ pub struct ChatCompletionStream<S: Stream<Item = Result<bytes::Bytes, reqwest::E
     pub first_chunk: bool,
 }
 
+impl<S> ChatCompletionStream<S>
+where
+    S: Stream<Item = Result<bytes::Bytes, reqwest::Error>> + Unpin,
+{
+    fn find_event_delimiter(buffer: &str) -> Option<(usize, usize)> {
+        let carriage_idx = buffer.find("\r\n\r\n");
+        let newline_idx = buffer.find("\n\n");
+
+        match (carriage_idx, newline_idx) {
+            (Some(r_idx), Some(n_idx)) => {
+                if r_idx <= n_idx {
+                    Some((r_idx, 4))
+                } else {
+                    Some((n_idx, 2))
+                }
+            }
+            (Some(r_idx), None) => Some((r_idx, 4)),
+            (None, Some(n_idx)) => Some((n_idx, 2)),
+            (None, None) => None,
+        }
+    }
+
+    fn next_response_from_buffer(&mut self) -> Option<ChatCompletionStreamResponse> {
+        while let Some((idx, delimiter_len)) = Self::find_event_delimiter(&self.buffer) {
+            let event = self.buffer[..idx].to_owned();
+            self.buffer = self.buffer[idx + delimiter_len..].to_owned();
+
+            let mut data_payload = String::new();
+            for line in event.lines() {
+                let trimmed_line = line.trim_end_matches('\r');
+                if let Some(content) = trimmed_line
+                    .strip_prefix("data: ")
+                    .or_else(|| trimmed_line.strip_prefix("data:"))
+                {
+                    if !content.is_empty() {
+                        if !data_payload.is_empty() {
+                            data_payload.push('\n');
+                        }
+                        data_payload.push_str(content);
+                    }
+                }
+            }
+
+            if data_payload.is_empty() {
+                continue;
+            }
+
+            if data_payload == "[DONE]" {
+                return Some(ChatCompletionStreamResponse::Done);
+            }
+
+            match serde_json::from_str::<Value>(&data_payload) {
+                Ok(json) => {
+                    if let Some(delta) = json
+                        .get("choices")
+                        .and_then(|choices| choices.get(0))
+                        .and_then(|choice| choice.get("delta"))
+                    {
+                        if let Some(tool_call_response) = delta
+                            .get("tool_calls")
+                            .and_then(|tool_calls| tool_calls.as_array())
+                            .map(|tool_calls_array| {
+                                tool_calls_array
+                                    .iter()
+                                    .filter_map(|v| serde_json::from_value(v.clone()).ok())
+                                    .collect::<Vec<ToolCall>>()
+                            })
+                            .filter(|tool_calls_vec| !tool_calls_vec.is_empty())
+                            .map(ChatCompletionStreamResponse::ToolCall)
+                        {
+                            return Some(tool_call_response);
+                        }
+
+                        if let Some(content) = delta.get("content").and_then(|c| c.as_str()) {
+                            let output = content.replace("\\n", "\n");
+                            return Some(ChatCompletionStreamResponse::Content(output));
+                        }
+                    }
+                }
+                Err(error) => {
+                    eprintln!("Failed to parse SSE chunk as JSON: {}", error);
+                }
+            }
+        }
+
+        None
+    }
+}
+
 impl<S: Stream<Item = Result<bytes::Bytes, reqwest::Error>> + Unpin> Stream
     for ChatCompletionStream<S>
 {
@@ -120,63 +209,18 @@ impl<S: Stream<Item = Result<bytes::Bytes, reqwest::Error>> + Unpin> Stream
 
     fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
         loop {
+            if let Some(response) = self.next_response_from_buffer() {
+                return Poll::Ready(Some(response));
+            }
+
             match Pin::new(&mut self.as_mut().response).poll_next(cx) {
                 Poll::Ready(Some(Ok(chunk))) => {
-                    let mut utf8_str = String::from_utf8_lossy(&chunk).to_string();
+                    let chunk_str = String::from_utf8_lossy(&chunk).to_string();
 
                     if self.first_chunk {
-                        let lines: Vec<&str> = utf8_str.lines().collect();
-                        utf8_str = if lines.len() >= 2 {
-                            lines[lines.len() - 2].to_string()
-                        } else {
-                            utf8_str.clone()
-                        };
                         self.first_chunk = false;
                     }
-
-                    let trimmed_str = utf8_str.trim_start_matches("data: ");
-                    if trimmed_str.contains("[DONE]") {
-                        return Poll::Ready(Some(ChatCompletionStreamResponse::Done));
-                    }
-
-                    self.buffer.push_str(trimmed_str);
-                    let json_result: Result<Value, _> = serde_json::from_str(&self.buffer);
-
-                    if let Ok(json) = json_result {
-                        self.buffer.clear();
-
-                        if let Some(choices) = json.get("choices") {
-                            if let Some(choice) = choices.get(0) {
-                                if let Some(delta) = choice.get("delta") {
-                                    if let Some(tool_calls) = delta.get("tool_calls") {
-                                        if let Some(tool_calls_array) = tool_calls.as_array() {
-                                            let tool_calls_vec: Vec<ToolCall> = tool_calls_array
-                                                .iter()
-                                                .filter_map(|v| {
-                                                    serde_json::from_value(v.clone()).ok()
-                                                })
-                                                .collect();
-
-                                            return Poll::Ready(Some(
-                                                ChatCompletionStreamResponse::ToolCall(
-                                                    tool_calls_vec,
-                                                ),
-                                            ));
-                                        }
-                                    }
-
-                                    if let Some(content) =
-                                        delta.get("content").and_then(|c| c.as_str())
-                                    {
-                                        let output = content.replace("\\n", "\n");
-                                        return Poll::Ready(Some(
-                                            ChatCompletionStreamResponse::Content(output),
-                                        ));
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    self.buffer.push_str(&chunk_str);
                 }
                 Poll::Ready(Some(Err(error))) => {
                     eprintln!("Error in stream: {:?}", error);
