@@ -166,30 +166,29 @@ where
 
             match serde_json::from_str::<Value>(&data_payload) {
                 Ok(json) => {
-                    if let Some(choices) = json.get("choices") {
-                        if let Some(choice) = choices.get(0) {
-                            if let Some(delta) = choice.get("delta") {
-                                if let Some(tool_calls) = delta.get("tool_calls") {
-                                    if let Some(tool_calls_array) = tool_calls.as_array() {
-                                        let tool_calls_vec: Vec<ToolCall> = tool_calls_array
-                                            .iter()
-                                            .filter_map(|v| serde_json::from_value(v.clone()).ok())
-                                            .collect();
+                    if let Some(delta) = json
+                        .get("choices")
+                        .and_then(|choices| choices.get(0))
+                        .and_then(|choice| choice.get("delta"))
+                    {
+                        if let Some(tool_call_response) = delta
+                            .get("tool_calls")
+                            .and_then(|tool_calls| tool_calls.as_array())
+                            .map(|tool_calls_array| {
+                                tool_calls_array
+                                    .iter()
+                                    .filter_map(|v| serde_json::from_value(v.clone()).ok())
+                                    .collect::<Vec<ToolCall>>()
+                            })
+                            .filter(|tool_calls_vec| !tool_calls_vec.is_empty())
+                            .map(ChatCompletionStreamResponse::ToolCall)
+                        {
+                            return Some(tool_call_response);
+                        }
 
-                                        if !tool_calls_vec.is_empty() {
-                                            return Some(ChatCompletionStreamResponse::ToolCall(
-                                                tool_calls_vec,
-                                            ));
-                                        }
-                                    }
-                                }
-
-                                if let Some(content) = delta.get("content").and_then(|c| c.as_str())
-                                {
-                                    let output = content.replace("\\n", "\n");
-                                    return Some(ChatCompletionStreamResponse::Content(output));
-                                }
-                            }
+                        if let Some(content) = delta.get("content").and_then(|c| c.as_str()) {
+                            let output = content.replace("\\n", "\n");
+                            return Some(ChatCompletionStreamResponse::Content(output));
                         }
                     }
                 }
