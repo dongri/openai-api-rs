@@ -55,7 +55,14 @@ pub struct InputAudioBufferSpeechStopped {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct ConversationItemCreated {
+pub struct ConversationItemAdded {
+    pub event_id: String,
+    pub previous_item_id: Option<String>,
+    pub item: Item,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ConversationItemDone {
     pub event_id: String,
     pub previous_item_id: Option<String>,
     pub item: Item,
@@ -67,6 +74,15 @@ pub struct ConversationItemInputAudioTranscriptionCompleted {
     pub item_id: String,
     pub content_index: u32,
     pub transcript: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ConversationItemInputAudioTranscriptionDelta {
+    pub event_id: String,
+    pub item_id: String,
+    pub content_index: u32,
+    pub delta: String,
+    // todo: add logprobs support
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -178,7 +194,7 @@ pub struct ResponseTextDone {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct ResponseAudioTranscriptDelta {
+pub struct ResponseOutputAudioTranscriptDelta {
     pub event_id: String,
     pub response_id: String,
     pub item_id: String,
@@ -188,7 +204,7 @@ pub struct ResponseAudioTranscriptDelta {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct ResponseAudioTranscriptDone {
+pub struct ResponseOutputAudioTranscriptDone {
     pub event_id: String,
     pub response_id: String,
     pub item_id: String,
@@ -198,7 +214,7 @@ pub struct ResponseAudioTranscriptDone {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct ResponseAudioDelta {
+pub struct ResponseOutputAudioDelta {
     pub event_id: String,
     pub response_id: String,
     pub item_id: String,
@@ -208,7 +224,7 @@ pub struct ResponseAudioDelta {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct ResponseAudioDone {
+pub struct ResponseOutputAudioDone {
     pub event_id: String,
     pub response_id: String,
     pub item_id: String,
@@ -237,9 +253,68 @@ pub struct ResponseFunctionCallArgumentsDone {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ResponseMcpCallArgumentsDelta {
+    pub event_id: String,
+    pub item_id: String,
+    #[serde(default)]
+    pub obfuscation: Option<String>,
+    pub output_index: u32,
+    pub response_id: String,
+    pub delta: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ResponseMcpCallArgumentsDone {
+    pub event_id: String,
+    pub item_id: String,
+    pub output_index: u32,
+    pub response_id: String,
+    pub arguments: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ResponseMcpCallInProgress {
+    pub event_id: String,
+    pub item_id: String,
+    pub output_index: u32,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ResponseMcpCallCompleted {
+    pub event_id: String,
+    pub item_id: String,
+    pub output_index: u32,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ResponseMcpCallFailed {
+    pub event_id: String,
+    pub item_id: String,
+    pub output_index: u32,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct RateLimitsUpdated {
     pub event_id: String,
     pub rate_limits: Vec<RateLimit>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct McpListToolsInProgress {
+    pub event_id: String,
+    pub item_id: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct McpListToolsCompleted {
+    pub event_id: String,
+    pub item_id: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct McpListToolsFailed {
+    pub event_id: String,
+    pub item_id: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -261,18 +336,22 @@ pub enum ServerEvent {
     InputAudioBufferSpeechStarted(InputAudioBufferSpeechStarted),
     #[serde(rename = "input_audio_buffer.speech_stopped")]
     InputAudioBufferSpeechStopped(InputAudioBufferSpeechStopped),
-    #[serde(rename = "conversation.item.created")]
-    ConversationItemCreated(ConversationItemCreated),
+    #[serde(rename = "conversation.item.added")]
+    ConversationItemAdded(ConversationItemAdded),
     #[serde(rename = "conversation.item.input_audio_transcription.completed")]
     ConversationItemInputAudioTranscriptionCompleted(
         ConversationItemInputAudioTranscriptionCompleted,
     ),
+    #[serde(rename = "conversation.item.input_audio_transcription.delta")]
+    ConversationItemInputAudioTranscriptionDelta(ConversationItemInputAudioTranscriptionDelta),
     #[serde(rename = "conversation.item.input_audio_transcription.failed")]
     ConversationItemInputAudioTranscriptionFailed(ConversationItemInputAudioTranscriptionFailed),
     #[serde(rename = "conversation.item.truncated")]
     ConversationItemTruncated(ConversationItemTruncated),
     #[serde(rename = "conversation.item.deleted")]
     ConversationItemDeleted(ConversationItemDeleted),
+    #[serde(rename = "conversation.item.done")]
+    ConversationItemDone(ConversationItemDone),
     #[serde(rename = "output_audio_buffer.started")]
     OutputAudioBufferStarted(OutputAudioBufferStarted),
     #[serde(rename = "output_audio_buffer.stopped")]
@@ -295,18 +374,34 @@ pub enum ServerEvent {
     ResponseTextDelta(ResponseTextDelta),
     #[serde(rename = "response.text.done")]
     ResponseTextDone(ResponseTextDone),
-    #[serde(rename = "response.audio_transcript.delta")]
-    ResponseAudioTranscriptDelta(ResponseAudioTranscriptDelta),
-    #[serde(rename = "response.audio_transcript.done")]
-    ResponseAudioTranscriptDone(ResponseAudioTranscriptDone),
-    #[serde(rename = "response.audio.delta")]
-    ResponseAudioDelta(ResponseAudioDelta),
-    #[serde(rename = "response.audio.done")]
-    ResponseAudioDone(ResponseAudioDone),
+    #[serde(rename = "response.output_audio_transcript.delta")]
+    ResponseOutputAudioTranscriptDelta(ResponseOutputAudioTranscriptDelta),
+    #[serde(rename = "response.output_audio_transcript.done")]
+    ResponseOutputAudioTranscriptDone(ResponseOutputAudioTranscriptDone),
+    #[serde(rename = "response.output_audio.delta")]
+    ResponseOutputAudioDelta(ResponseOutputAudioDelta),
+    #[serde(rename = "response.output_audio.done")]
+    ResponseOutputAudioDone(ResponseOutputAudioDone),
     #[serde(rename = "response.function_call_arguments.delta")]
     ResponseFunctionCallArgumentsDelta(ResponseFunctionCallArgumentsDelta),
     #[serde(rename = "response.function_call_arguments.done")]
     ResponseFunctionCallArgumentsDone(ResponseFunctionCallArgumentsDone),
+    #[serde(rename = "response.mcp_call_arguments.delta")]
+    ResponseMcpCallArgumentsDelta(ResponseMcpCallArgumentsDelta),
+    #[serde(rename = "response.mcp_call_arguments.done")]
+    ResponseMcpCallArgumentsDone(ResponseMcpCallArgumentsDone),
+    #[serde(rename = "response.mcp_call.in_progress")]
+    ResponseMcpCallInProgress(ResponseMcpCallInProgress),
+    #[serde(rename = "response.mcp_call.completed")]
+    ResponseMcpCallCompleted(ResponseMcpCallCompleted),
+    #[serde(rename = "response.mcp_call.failed")]
+    ResponseMcpCallFailed(ResponseMcpCallFailed),
     #[serde(rename = "rate_limits.updated")]
     RateLimitsUpdated(RateLimitsUpdated),
+    #[serde(rename = "mcp_list_tools.in_progress")]
+    McpListToolsInProgress(McpListToolsInProgress),
+    #[serde(rename = "mcp_list_tools.completed")]
+    McpListToolsCompleted(McpListToolsCompleted),
+    #[serde(rename = "mcp_list_tools.failed")]
+    McpListToolsFailed(McpListToolsFailed),
 }
