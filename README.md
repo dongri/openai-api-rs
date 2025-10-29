@@ -10,7 +10,7 @@ Cargo.toml
 
 ```toml
 [dependencies]
-openai-api-rs = "7.0.0"
+openai-api-rs = "7.0.1"
 ```
 
 ## Usage
