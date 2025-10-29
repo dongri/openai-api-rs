@@ -51,8 +51,11 @@ pub enum AudioFormat {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct AudioTranscription {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub language: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub model: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub prompt: Option<String>,
 }
 
