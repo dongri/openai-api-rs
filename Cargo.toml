@@ -1,11 +1,11 @@
 [package]
-name = "openai-api-rs-prime"
+name = "openai-api-rs"
 version = "7.0.1"
 edition = "2021"
 authors = ["Dongri Jin <dongrium@gmail.com>"]
 license = "MIT"
 description = "OpenAI API client library for Rust (unofficial)"
-repository = "https://github.com/MoonKraken/openai-api-rs"
+repository = "https://github.com/dongri/openai-api-rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
