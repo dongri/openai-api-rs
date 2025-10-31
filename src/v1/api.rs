@@ -35,6 +35,7 @@ use crate::v1::message::{
 };
 use crate::v1::model::{ModelResponse, ModelsResponse};
 use crate::v1::moderation::{CreateModerationRequest, CreateModerationResponse};
+use crate::v1::realtime_calls::{AcceptCallRequest, ReferCallRequest};
 use crate::v1::run::{
     CreateRunRequest, CreateThreadAndRunRequest, ListRun, ListRunStep, ModifyRunRequest, RunObject,
     RunStepObject,
@@ -68,7 +69,7 @@ pub struct OpenAIClientBuilder {
     headers: Option<HeaderMap>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct OpenAIClient {
     api_endpoint: String,
     api_key: Option<String>,
@@ -196,6 +197,32 @@ impl OpenAIClient {
         let request = request.json(body);
         let response = request.send().await?;
         self.handle_response(response).await
+    }
+
+    /// `POST`s but expects an empty response rather than anything to deserialize.
+    async fn post_empty(
+        &mut self,
+        path: &str,
+        body: &impl serde::ser::Serialize,
+    ) -> Result<(), APIError> {
+        let request = self.build_request(Method::POST, path).await;
+        let request = request.json(body);
+        let response = request.send().await?;
+
+        if response.status().is_success() {
+            let headers = response.headers().clone();
+            self.response_headers = Some(headers);
+            Ok(())
+        } else {
+            let status = response.status();
+            let error_message = response
+                .text()
+                .await
+                .unwrap_or_else(|_| format!("Unknown error - no body text was provided"));
+            Err(APIError::CustomError {
+                message: format!("{status}: {error_message}"),
+            })
+        }
     }
 
     async fn get<T: serde::de::DeserializeOwned>(&mut self, path: &str) -> Result<T, APIError> {
@@ -832,6 +859,46 @@ impl OpenAIClient {
         model_id: String,
     ) -> Result<common::DeletionStatus, APIError> {
         self.delete(&format!("models/{model_id}")).await
+    }
+
+    pub async fn accept_call(
+        &mut self,
+        call_id: &str,
+        accept: AcceptCallRequest,
+    ) -> Result<(), APIError> {
+        // /realtime/calls endpoints return empty responses on success
+        self.post_empty(&format!("realtime/calls/{call_id}/accept"), &accept)
+            .await
+    }
+
+    pub async fn hangup_call(&mut self, call_id: &str) -> Result<(), APIError> {
+        // /realtime/calls endpoints return empty responses on success
+        self.post_empty(&format!("realtime/calls/{call_id}/hangup"), &())
+            .await
+    }
+
+    /// Note that `reject_call` is very poorly documented and seems to be non-functional even in the GA release as of 2025-09-11:
+    ///
+    /// - it returns a 404 if there is no session associated with the call (ie. it hasn't been `accept`ed yet)
+    /// - it returns a 500 if there *is* one
+    /// - in neither case does the call actually end
+    ///
+    /// Per https://community.openai.com/t/how-can-i-programatically-end-a-gpt-realtime-sip-call/1355362 a `hangup` method exists, not documented elsewhere;
+    /// a sensible workaround is to `accept` the call and immediately `hangup`. See `hangup_call`.
+    pub async fn reject_call(&mut self, call_id: &str) -> Result<(), APIError> {
+        // ditto WRT successful body
+        self.post_empty(&format!("realtime/calls/{call_id}/reject"), &())
+            .await
+    }
+
+    pub async fn refer_call(
+        &mut self,
+        call_id: &str,
+        refer: ReferCallRequest,
+    ) -> Result<(), APIError> {
+        // ditto WRT successful body
+        self.post_empty(&format!("realtime/calls/{call_id}/refer"), &refer)
+            .await
     }
 
     fn build_url_with_preserved_query(&self, path: &str) -> Result<String, url::ParseError> {

@@ -7,6 +7,8 @@ use tokio_tungstenite::{
     MaybeTlsStream, WebSocketStream,
 };
 
+pub mod sip;
+
 const WSS_URL: &str = "wss://api.openai.com/v1/realtime";
 
 pub struct RealtimeClient {
