@@ -101,7 +101,7 @@ impl_builder_methods!(
 #[derive(Debug, Deserialize, Serialize)]
 pub struct ChatCompletionResponse {
     pub id: Option<String>,
-    pub object: String,
+    pub object: Option<String>,
     pub created: i64,
     pub model: String,
     pub choices: Vec<ChatCompletionChoice>,
