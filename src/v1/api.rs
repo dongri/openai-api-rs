@@ -35,6 +35,9 @@ use crate::v1::message::{
 };
 use crate::v1::model::{ModelResponse, ModelsResponse};
 use crate::v1::moderation::{CreateModerationRequest, CreateModerationResponse};
+use crate::v1::responses::{
+    CountTokensRequest, CountTokensResponse, CreateResponseRequest, ListResponses, ResponseObject,
+};
 use crate::v1::run::{
     CreateRunRequest, CreateThreadAndRunRequest, ListRun, ListRunStep, ModifyRunRequest, RunObject,
     RunStepObject,
@@ -817,6 +820,70 @@ impl OpenAIClient {
     ) -> Result<ListBatchResponse, APIError> {
         let url = Self::query_params(limit, None, after, None, "batches".to_string());
         self.get(&url).await
+    }
+
+    // Responses API
+    pub async fn create_response(
+        &mut self,
+        req: CreateResponseRequest,
+    ) -> Result<ResponseObject, APIError> {
+        self.post("responses", &req).await
+    }
+
+    pub async fn retrieve_response(
+        &mut self,
+        response_id: String,
+    ) -> Result<ResponseObject, APIError> {
+        self.get(&format!("responses/{response_id}")).await
+    }
+
+    pub async fn delete_response(
+        &mut self,
+        response_id: String,
+    ) -> Result<common::DeletionStatus, APIError> {
+        self.delete(&format!("responses/{response_id}")).await
+    }
+
+    pub async fn cancel_response(
+        &mut self,
+        response_id: String,
+    ) -> Result<ResponseObject, APIError> {
+        self.post(
+            &format!("responses/{response_id}/cancel"),
+            &common::EmptyRequestBody {},
+        )
+        .await
+    }
+
+    pub async fn list_response_input_items(
+        &mut self,
+        response_id: String,
+        after: Option<String>,
+        limit: Option<i64>,
+        order: Option<String>,
+    ) -> Result<ListResponses, APIError> {
+        let mut url = format!("responses/{}/input_items", response_id);
+        let mut params = vec![];
+        if let Some(after) = after {
+            params.push(format!("after={}", after));
+        }
+        if let Some(limit) = limit {
+            params.push(format!("limit={}", limit));
+        }
+        if let Some(order) = order {
+            params.push(format!("order={}", order));
+        }
+        if !params.is_empty() {
+            url = format!("{}?{}", url, params.join("&"));
+        }
+        self.get(&url).await
+    }
+
+    pub async fn count_response_input_tokens(
+        &mut self,
+        req: CountTokensRequest,
+    ) -> Result<CountTokensResponse, APIError> {
+        self.post("responses/input_tokens", &req).await
     }
 
     pub async fn list_models(&mut self) -> Result<ModelsResponse, APIError> {
