@@ -166,6 +166,7 @@ Check out the [full API documentation](https://platform.openai.com/docs/api-refe
 - [x] [Assistants](https://platform.openai.com/docs/assistants/overview)
 - [x] [Batch](https://platform.openai.com/docs/api-reference/batch)
 - [x] [Realtime](https://platform.openai.com/docs/api-reference/realtime)
+- [x] [Responses](https://platform.openai.com/docs/api-reference/responses)
 
 ## License
 
