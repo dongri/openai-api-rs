@@ -11,7 +11,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut req = CreateResponseRequest::new();
     req.model = Some(GPT4_1_MINI.to_string());
-    req.input = Some(json!("Tell me a three sentence bedtime story about a unicorn."));
+    req.input = Some(json!(
+        "Tell me a three sentence bedtime story about a unicorn."
+    ));
     req.extra.insert("temperature".to_string(), json!(0.7));
 
     let resp = client.create_response(req).await?;
