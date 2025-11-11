@@ -137,6 +137,7 @@ pub enum ItemRole {
 pub enum ItemContentType {
     InputText,
     InputAudio,
+    InputImage,
     Text,
     Audio,
 }
@@ -150,6 +151,8 @@ pub struct ItemContent {
     pub audio: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub transcript: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub image_url: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
