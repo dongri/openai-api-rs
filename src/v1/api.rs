@@ -35,8 +35,11 @@ use crate::v1::message::{
 };
 use crate::v1::model::{ModelResponse, ModelsResponse};
 use crate::v1::moderation::{CreateModerationRequest, CreateModerationResponse};
-use crate::v1::responses::{
+use crate::v1::responses::responses::{
     CountTokensRequest, CountTokensResponse, CreateResponseRequest, ListResponses, ResponseObject,
+};
+use crate::v1::responses::responses_stream::{
+    CreateResponseStreamRequest, ResponseStream, ResponseStreamResponse,
 };
 use crate::v1::run::{
     CreateRunRequest, CreateThreadAndRunRequest, ListRun, ListRunStep, ModifyRunRequest, RunObject,
@@ -828,6 +831,40 @@ impl OpenAIClient {
         req: CreateResponseRequest,
     ) -> Result<ResponseObject, APIError> {
         self.post("responses", &req).await
+    }
+
+    pub async fn create_response_stream(
+        &mut self,
+        req: CreateResponseStreamRequest,
+    ) -> Result<impl Stream<Item = ResponseStreamResponse>, APIError> {
+        let mut payload = to_value(&req).map_err(|err| APIError::CustomError {
+            message: format!("Failed to serialize request: {}", err),
+        })?;
+
+        if let Some(obj) = payload.as_object_mut() {
+            obj.insert("stream".into(), Value::Bool(true));
+        }
+
+        let request = self.build_request(Method::POST, "responses").await;
+        let request = request.json(&payload);
+        let response = request.send().await?;
+
+        if response.status().is_success() {
+            Ok(ResponseStream {
+                response: Box::pin(response.bytes_stream()),
+                buffer: String::new(),
+                first_chunk: true,
+            })
+        } else {
+            let error_text = response
+                .text()
+                .await
+                .unwrap_or_else(|_| String::from("Unknown error"));
+
+            Err(APIError::CustomError {
+                message: error_text,
+            })
+        }
     }
 
     pub async fn retrieve_response(
