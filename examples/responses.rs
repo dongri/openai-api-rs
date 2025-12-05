@@ -1,6 +1,6 @@
 use openai_api_rs::v1::api::OpenAIClient;
 use openai_api_rs::v1::common::GPT4_1_MINI;
-use openai_api_rs::v1::responses::CreateResponseRequest;
+use openai_api_rs::v1::responses::responses::CreateResponseRequest;
 use serde_json::json;
 use std::env;
 
