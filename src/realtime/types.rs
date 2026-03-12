@@ -209,7 +209,8 @@ pub enum NoiseReductionType {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct AudioOutput {
-    pub format: AudioFormat,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub format: Option<AudioFormat>,
     /// The speed of the model's spoken response as a multiple of the original speed. 1.0 is the default speed. 0.25 is the minimum speed. 1.5 is the maximum speed. This value can only be changed in between model turns, not while a response is in progress.
     /// This parameter is a post-processing adjustment to the audio after it is generated, it's also possible to prompt the model to speak faster or slower.
     pub speed: f64,
