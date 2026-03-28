@@ -7,7 +7,7 @@ use std::env;
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let api_key = env::var("OPENAI_API_KEY").unwrap();
-    let mut client = OpenAIClient::builder().with_api_key(api_key).build()?;
+    let client = OpenAIClient::builder().with_api_key(api_key).build()?;
 
     let mut req = CreateResponseRequest::new();
     req.model = Some(GPT4_1_MINI.to_string());
@@ -17,7 +17,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     req.extra.insert("temperature".to_string(), json!(0.7));
 
     let resp = client.create_response(req).await?;
-    println!("response id: {} status: {:?}", resp.id, resp.status);
-    println!("response output: {:?}", resp.output);
+    println!(
+        "response id: {} status: {:?}",
+        resp.inner.id, resp.inner.status
+    );
+    println!("response output: {:?}", resp.inner.output);
     Ok(())
 }

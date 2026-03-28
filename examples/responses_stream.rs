@@ -11,7 +11,7 @@ use std::io::{self, Write};
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let api_key = env::var("OPENAI_API_KEY").unwrap();
-    let mut client = OpenAIClient::builder().with_api_key(api_key).build()?;
+    let client = OpenAIClient::builder().with_api_key(api_key).build()?;
 
     let mut req = CreateResponseStreamRequest::new();
     req.model = Some(GPT4_1_MINI.to_string());

@@ -10,7 +10,7 @@ use std::env;
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let api_key = env::var("OPENAI_API_KEY").unwrap().to_string();
-    let mut client = OpenAIClient::builder().with_api_key(api_key).build()?;
+    let client = OpenAIClient::builder().with_api_key(api_key).build()?;
 
     let mut tools = HashMap::new();
     tools.insert("type".to_string(), "code_interpreter".to_string());
@@ -24,11 +24,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("AssistantRequest: {:?}", req);
 
     let result = client.create_assistant(req).await?;
-    println!("Create Assistant Result ID: {:?}", result.id);
+    println!("Create Assistant Result ID: {:?}", result.inner.id);
 
     let thread_req = CreateThreadRequest::new();
     let thread_result = client.create_thread(thread_req).await?;
-    println!("Create Thread Result ID: {:?}", thread_result.id.clone());
+    println!(
+        "Create Thread Result ID: {:?}",
+        thread_result.inner.id.clone()
+    );
 
     let message_req = CreateMessageRequest::new(
         MessageRole::user,
@@ -36,20 +39,25 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     );
 
     let message_result = client
-        .create_message(thread_result.id.clone(), message_req)
+        .create_message(thread_result.inner.id.clone(), message_req)
         .await?;
-    println!("Create Message Result ID: {:?}", message_result.id.clone());
+    println!(
+        "Create Message Result ID: {:?}",
+        message_result.inner.id.clone()
+    );
 
-    let run_req = CreateRunRequest::new(result.id);
-    let run_result = client.create_run(thread_result.id.clone(), run_req).await?;
-    println!("Create Run Result ID: {:?}", run_result.id.clone());
+    let run_req = CreateRunRequest::new(result.inner.id);
+    let run_result = client
+        .create_run(thread_result.inner.id.clone(), run_req)
+        .await?;
+    println!("Create Run Result ID: {:?}", run_result.inner.id.clone());
 
     loop {
         let run_result = client
-            .retrieve_run(thread_result.id.clone(), run_result.id.clone())
+            .retrieve_run(thread_result.inner.id.clone(), run_result.inner.id.clone())
             .await
             .unwrap();
-        if run_result.status == "completed" {
+        if run_result.inner.status == "completed" {
             break;
         } else {
             println!("waiting...");
@@ -58,10 +66,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     let list_message_result = client
-        .list_messages(thread_result.id.clone())
+        .list_messages(thread_result.inner.id.clone())
         .await
         .unwrap();
-    for data in list_message_result.data {
+    for data in list_message_result.inner.data {
         for content in data.content {
             println!(
                 "{:?}: {:?} {:?}",

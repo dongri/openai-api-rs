@@ -6,7 +6,7 @@ use std::env;
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let api_key = env::var("OPENROUTER_API_KEY").unwrap().to_string();
-    let mut client = OpenAIClient::builder()
+    let client = OpenAIClient::builder()
         .with_endpoint("https://openrouter.ai/api/v1")
         .with_api_key(api_key)
         .build()?;
@@ -35,7 +35,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     });
 
     let result = client.chat_completion(req).await?;
-    println!("Content: {:?}", result.choices[0].message.content);
+    println!("Content: {:?}", result.inner.choices[0].message.content);
 
     // Example 2: Using reasoning with max_tokens
     let mut req2 = ChatCompletionRequest::new(
@@ -59,7 +59,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     });
 
     let result2 = client.chat_completion(req2).await?;
-    println!("Content: {:?}", result2.choices[0].message.content);
+    println!("Content: {:?}", result2.inner.choices[0].message.content);
 
     Ok(())
 }

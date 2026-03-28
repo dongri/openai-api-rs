@@ -1,4 +1,3 @@
-use reqwest::header::HeaderMap;
 use serde::{Deserialize, Serialize};
 
 use crate::impl_builder_methods;
@@ -142,5 +141,4 @@ impl_builder_methods!(AudioSpeechRequest,);
 #[derive(Debug)]
 pub struct AudioSpeechResponse {
     pub result: bool,
-    pub headers: Option<HeaderMap>,
 }

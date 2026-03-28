@@ -5,7 +5,7 @@ use std::env;
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let api_key = env::var("OPENAI_API_KEY").unwrap().to_string();
-    let mut client = OpenAIClient::builder().with_api_key(api_key).build()?;
+    let client = OpenAIClient::builder().with_api_key(api_key).build()?;
 
     let req = CompletionRequest::new(
         completion::GPT3_TEXT_DAVINCI_003.to_string(),
@@ -19,7 +19,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     .frequency_penalty(0.0);
 
     let result = client.completion(req).await?;
-    println!("{:}", result.choices[0].text);
+    println!("{:}", result.inner.choices[0].text);
 
     Ok(())
 }

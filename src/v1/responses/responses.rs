@@ -1,9 +1,16 @@
 use crate::v1::types::Tools;
+use reqwest::header::HeaderMap;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::BTreeMap;
 
 // pub mod responses_stream;
+
+#[derive(Debug, Clone)]
+pub struct CallResponse<T> {
+    pub headers: HeaderMap,
+    pub inner: T,
+}
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct CreateResponseRequest {
