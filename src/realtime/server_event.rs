@@ -19,7 +19,7 @@ pub struct SessionCreated {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct SessionUpdated {
     pub event_id: String,
-    pub session: Session,
+    pub session: UntaggedSession,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
