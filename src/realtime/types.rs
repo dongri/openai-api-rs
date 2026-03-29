@@ -14,6 +14,13 @@ impl Default for Session {
     }
 }
 
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(untagged)]
+pub enum SessionInSessionCreated {
+    Realtime(RealtimeSession),
+    Transcription(TranscriptionSession),
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct TranscriptionSession {
     #[serde(skip_serializing_if = "Option::is_none")]
