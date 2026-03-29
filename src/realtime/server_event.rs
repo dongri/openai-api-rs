@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::realtime::types::{
-    APIError, ContentPart, Conversation, Item, RateLimit, Response, Session, UntaggedSession,
+    APIError, ContentPart, Conversation, Item, RateLimit, Response, UntaggedSession,
 };
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
