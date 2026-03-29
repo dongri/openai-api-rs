@@ -19,7 +19,7 @@ fn get_coin_price(coin: &str) -> f64 {
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let api_key = env::var("OPENAI_API_KEY").unwrap().to_string();
-    let mut client = OpenAIClient::builder().with_api_key(api_key).build()?;
+    let client = OpenAIClient::builder().with_api_key(api_key).build()?;
 
     let mut properties = HashMap::new();
     properties.insert(
@@ -56,14 +56,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let result = client.chat_completion(req).await?;
 
-    match result.choices[0].finish_reason {
+    match result.inner.choices[0].finish_reason {
         None => {
             println!("No finish_reason");
-            println!("{:?}", result.choices[0].message.content);
+            println!("{:?}", result.inner.choices[0].message.content);
         }
         Some(chat_completion::FinishReason::stop) => {
             println!("Stop");
-            println!("{:?}", result.choices[0].message.content);
+            println!("{:?}", result.inner.choices[0].message.content);
         }
         Some(chat_completion::FinishReason::length) => {
             println!("Length");
@@ -74,7 +74,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             struct Currency {
                 coin: String,
             }
-            let tool_calls = result.choices[0].message.tool_calls.as_ref().unwrap();
+            let tool_calls = result.inner.choices[0].message.tool_calls.as_ref().unwrap();
             for tool_call in tool_calls {
                 let function_call = &tool_call.function;
                 let arguments = function_call.arguments.clone().unwrap();
@@ -110,7 +110,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 );
 
                 let result = client.chat_completion(req).await?;
-                println!("{:?}", result.choices[0].message.content);
+                println!("{:?}", result.inner.choices[0].message.content);
             }
         }
         Some(chat_completion::FinishReason::content_filter) => {
