@@ -1,8 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::realtime::types::{
-    APIError, ContentPart, Conversation, Item, RateLimit, Response, Session,
-    SessionInSessionCreated,
+    APIError, ContentPart, Conversation, Item, RateLimit, Response, Session, UntaggedSession,
 };
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -14,7 +13,7 @@ pub struct Error {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct SessionCreated {
     pub event_id: String,
-    pub session: SessionInSessionCreated,
+    pub session: UntaggedSession,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

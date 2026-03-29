@@ -16,9 +16,15 @@ impl Default for Session {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(untagged)]
-pub enum SessionInSessionCreated {
+/// The `Session` info is sent without an inner `type` tag on the `session.created` server event and the `session.update` client one.
+pub enum UntaggedSession {
     Realtime(RealtimeSession),
     Transcription(TranscriptionSession),
+}
+impl Default for UntaggedSession {
+    fn default() -> Self {
+        Self::Realtime(Default::default())
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]

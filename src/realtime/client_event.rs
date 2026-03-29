@@ -1,13 +1,13 @@
 use serde::{Deserialize, Serialize};
 use tokio_tungstenite::tungstenite::Message;
 
-use crate::realtime::types::{Item, RealtimeSession, Session};
+use crate::realtime::types::{Item, RealtimeSession, UntaggedSession};
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct SessionUpdate {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub event_id: Option<String>,
-    pub session: Session,
+    pub session: UntaggedSession,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
