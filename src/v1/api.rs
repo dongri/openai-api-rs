@@ -83,7 +83,6 @@ pub struct OpenAIClient {
     proxy: Option<String>,
     timeout: Option<u64>,
     headers: Option<HeaderMap>,
-    pub response_headers: Option<HeaderMap>,
 }
 
 impl OpenAIClientBuilder {
@@ -137,7 +136,6 @@ impl OpenAIClientBuilder {
             proxy: self.proxy,
             timeout: self.timeout,
             headers: self.headers,
-            response_headers: None,
         })
     }
 }
@@ -252,8 +250,8 @@ impl OpenAIClient {
         response: Response,
     ) -> Result<CallResponse<T>, APIError> {
         let status = response.status();
-        let headers = response.headers().clone();
         if status.is_success() {
+            let headers = response.headers().clone();
             let text = response.text().await.unwrap_or_else(|_| "".to_string());
             match serde_json::from_str::<T>(&text) {
                 Ok(parsed) => Ok(CallResponse {
@@ -480,7 +478,7 @@ impl OpenAIClient {
         }
 
         Ok(CallResponse {
-            headers: headers.clone(),
+            headers,
             inner: AudioSpeechResponse { result: true },
         })
     }
