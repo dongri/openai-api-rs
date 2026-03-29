@@ -215,6 +215,8 @@ pub struct ResponseOutputAudioTranscriptDone {
     pub transcript: String,
 }
 
+pub type ResponseAudioDelta = ResponseOutputAudioDelta;
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ResponseOutputAudioDelta {
     pub event_id: String,
@@ -362,6 +364,8 @@ pub enum ServerEvent {
     OutputAudioBufferStopped(OutputAudioBufferStopped),
     #[serde(rename = "output_audio_buffer.cleared")]
     OutputAudioBufferCleared(OutputAudioBufferCleared),
+    #[serde(rename = "response.audio.delta")]
+    ResponseAudioDelta(ResponseAudioDelta),
     #[serde(rename = "response.created")]
     ResponseCreated(ResponseCreated),
     #[serde(rename = "response.done")]
