@@ -1,8 +1,22 @@
 use serde::{Deserialize, Serialize};
 use tokio_tungstenite::tungstenite::Message;
 
-use crate::realtime::types::{Item, Session};
+#[cfg(not(feature = "realtime_beta_v1"))]
+use crate::realtime::types::Session;
+#[cfg(feature = "realtime_beta_v1")]
+use crate::realtime::types::UntaggedSession;
+use crate::realtime::types::{Item, RealtimeSession};
 
+#[cfg(feature = "realtime_beta_v1")]
+#[deprecated]
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+pub struct SessionUpdate {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub event_id: Option<String>,
+    pub session: UntaggedSession,
+}
+
+#[cfg(not(feature = "realtime_beta_v1"))]
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct SessionUpdate {
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -58,7 +72,7 @@ pub struct ConversationItemDelete {
 pub struct ResponseCreate {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub event_id: Option<String>,
-    pub response: Option<Session>,
+    pub response: Option<RealtimeSession>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
