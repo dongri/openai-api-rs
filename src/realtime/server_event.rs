@@ -60,6 +60,8 @@ pub struct ConversationItemAdded {
     pub previous_item_id: Option<String>,
     pub item: Item,
 }
+/// No idea why OpenAI keeps both around. Per the docs they seem to be identical.
+pub type ConversationItemCreated = ConversationItemAdded;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ConversationItemDone {
@@ -338,6 +340,8 @@ pub enum ServerEvent {
     InputAudioBufferSpeechStopped(InputAudioBufferSpeechStopped),
     #[serde(rename = "conversation.item.added")]
     ConversationItemAdded(ConversationItemAdded),
+    #[serde(rename = "conversation.item.created")]
+    ConversationItemCreated(ConversationItemCreated),
     #[serde(rename = "conversation.item.input_audio_transcription.completed")]
     ConversationItemInputAudioTranscriptionCompleted(
         ConversationItemInputAudioTranscriptionCompleted,
