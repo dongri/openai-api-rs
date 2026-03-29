@@ -44,6 +44,8 @@ pub struct RealtimeSession {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub model: Option<RealtimeModel>,
     /// Just `Audio` by default. Can also be `Text` for text-only. Both at the same time are not supported.
+    ///
+    /// **Seemingly unsupported in response.create as of 2026-03.**
     #[serde(skip_serializing_if = "Option::is_none")]
     pub output_modalities: Option<Vec<OutputModality>>,
     #[serde(skip_serializing_if = "Option::is_none")]
