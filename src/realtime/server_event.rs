@@ -382,6 +382,8 @@ pub enum ServerEvent {
     ResponseTextDelta(ResponseTextDelta),
     #[serde(rename = "response.text.done")]
     ResponseTextDone(ResponseTextDone),
+    #[serde(rename = "response.audio_transcript.delta")]
+    ResponseAudioTranscriptDelta(ResponseOutputAudioTranscriptDelta),
     #[serde(rename = "response.output_audio_transcript.delta")]
     ResponseOutputAudioTranscriptDelta(ResponseOutputAudioTranscriptDelta),
     #[serde(rename = "response.output_audio_transcript.done")]
