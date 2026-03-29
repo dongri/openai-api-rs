@@ -386,10 +386,14 @@ pub enum ServerEvent {
     ResponseAudioTranscriptDelta(ResponseOutputAudioTranscriptDelta),
     #[serde(rename = "response.output_audio_transcript.delta")]
     ResponseOutputAudioTranscriptDelta(ResponseOutputAudioTranscriptDelta),
+    #[serde(rename = "response.audio_transcript.done")]
+    ResponseAudioTranscriptDone(ResponseOutputAudioTranscriptDone),
     #[serde(rename = "response.output_audio_transcript.done")]
     ResponseOutputAudioTranscriptDone(ResponseOutputAudioTranscriptDone),
     #[serde(rename = "response.output_audio.delta")]
     ResponseOutputAudioDelta(ResponseOutputAudioDelta),
+    #[serde(rename = "response.audio.done")]
+    ResponseAudioDone(ResponseOutputAudioDone),
     #[serde(rename = "response.output_audio.done")]
     ResponseOutputAudioDone(ResponseOutputAudioDone),
     #[serde(rename = "response.function_call_arguments.delta")]
