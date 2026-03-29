@@ -46,9 +46,15 @@ impl RealtimeClient {
         request
             .headers_mut()
             .insert("Authorization", format!("Bearer {api_key}").parse()?);
-        request
-            .headers_mut()
-            .insert("OpenAI-Beta", "realtime=v1".parse()?);
+
+        #[deprecated]
+        #[cfg(feature = "realtime_beta_v1")]
+        {
+            request
+                .headers_mut()
+                .insert("OpenAI-Beta", "realtime=v1".parse()?);
+        }
+
         let (ws_stream, _) = connect_async(request).await?;
         let (write, read) = ws_stream.split();
         Ok((write, read))
