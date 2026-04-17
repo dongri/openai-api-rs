@@ -29,6 +29,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             ChatCompletionStreamResponse::ToolCall(toolcalls) => {
                 println!("Tool Call: {:?}", toolcalls);
             }
+            ChatCompletionStreamResponse::Reasoning(reasoning) => {
+                println!("Reasoning: {:?}", reasoning);
+            }
             ChatCompletionStreamResponse::Content(content) => {
                 println!("Content: {:?}", content);
             }

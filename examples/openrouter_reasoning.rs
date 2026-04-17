@@ -1,6 +1,6 @@
 use openai_api_rs::v1::api::OpenAIClient;
 use openai_api_rs::v1::chat_completion::chat_completion::ChatCompletionRequest;
-use openai_api_rs::v1::chat_completion::{self, Reasoning, ReasoningEffort, ReasoningMode};
+use openai_api_rs::v1::chat_completion::{self, Reasoning, ReasoningEffort, ReasoningSummary};
 use std::env;
 
 #[tokio::main]
@@ -11,7 +11,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .with_api_key(api_key)
         .build()?;
 
-    // Example 1: Using reasoning with effort
+    // Example 1: OpenRouter reasoning uses the reasoning object.
     let mut req = ChatCompletionRequest::new(
         "x-ai/grok-3-mini".to_string(), // Grok model that supports reasoning
         vec![chat_completion::ChatCompletionMessage {
@@ -25,21 +25,21 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }],
     );
 
-    // Set reasoning with high effort
     req.reasoning = Some(Reasoning {
-        mode: Some(ReasoningMode::Effort {
-            effort: ReasoningEffort::High,
-        }),
-        exclude: Some(false), // Include reasoning in response
-        enabled: None,
+        effort: Some(ReasoningEffort::High),
+        summary: Some(ReasoningSummary::Detailed),
     });
 
     let result = client.chat_completion(req).await?;
     println!("Content: {:?}", result.inner.choices[0].message.content);
+    println!(
+        "Reasoning: {:?}",
+        result.inner.choices[0].message.reasoning_content
+    );
 
-    // Example 2: Using reasoning with max_tokens
+    // Example 2: Another reasoning configuration with a different summary verbosity.
     let mut req2 = ChatCompletionRequest::new(
-        "anthropic/claude-4-sonnet".to_string(), // Claude model that supports max_tokens
+        "anthropic/claude-opus-4.6".to_string(), // Claude model that supports max_tokens
         vec![chat_completion::ChatCompletionMessage {
             role: chat_completion::MessageRole::user,
             content: chat_completion::Content::Text(String::from(
@@ -51,15 +51,17 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }],
     );
 
-    // Set reasoning with max_tokens
     req2.reasoning = Some(Reasoning {
-        mode: Some(ReasoningMode::MaxTokens { max_tokens: 2000 }),
-        exclude: None,
-        enabled: None,
+        effort: Some(ReasoningEffort::Minimal),
+        summary: Some(ReasoningSummary::Concise),
     });
 
     let result2 = client.chat_completion(req2).await?;
     println!("Content: {:?}", result2.inner.choices[0].message.content);
+    println!(
+        "Reasoning: {:?}",
+        result2.inner.choices[0].message.reasoning_content
+    );
 
     Ok(())
 }

@@ -1,4 +1,4 @@
-use crate::v1::chat_completion::{Reasoning, Tool, ToolCall, ToolChoiceType};
+use crate::v1::chat_completion::{Reasoning, ReasoningEffort, Tool, ToolCall, ToolChoiceType};
 use crate::{
     impl_builder_methods,
     v1::chat_completion::{serialize_tool_choice, ChatCompletionMessage},
@@ -46,6 +46,8 @@ pub struct ChatCompletionStreamRequest {
     pub tool_choice: Option<ToolChoiceType>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub reasoning: Option<Reasoning>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub reasoning_effort: Option<ReasoningEffort>,
     /// Optional list of transforms to apply to the chat completion request.
     ///
     /// Transforms allow modifying the request before it's sent to the API,
@@ -75,6 +77,7 @@ impl ChatCompletionStreamRequest {
             parallel_tool_calls: None,
             tool_choice: None,
             reasoning: None,
+            reasoning_effort: None,
             transforms: None,
         }
     }
@@ -97,12 +100,14 @@ impl_builder_methods!(
     parallel_tool_calls: bool,
     tool_choice: ToolChoiceType,
     reasoning: Reasoning,
+    reasoning_effort: ReasoningEffort,
     transforms: Vec<String>
 );
 
 #[derive(Debug, Clone)]
 pub enum ChatCompletionStreamResponse {
     Content(String),
+    Reasoning(String),
     ToolCall(Vec<ToolCall>),
     Done,
 }
@@ -186,6 +191,15 @@ where
                             return Some(tool_call_response);
                         }
 
+                        if let Some(reasoning) = delta
+                            .get("reasoning")
+                            .or_else(|| delta.get("reasoning_content"))
+                            .and_then(|r| r.as_str())
+                        {
+                            let output = reasoning.replace("\\n", "\n");
+                            return Some(ChatCompletionStreamResponse::Reasoning(output));
+                        }
+
                         if let Some(content) = delta.get("content").and_then(|c| c.as_str()) {
                             let output = content.replace("\\n", "\n");
                             return Some(ChatCompletionStreamResponse::Content(output));
@@ -239,7 +253,7 @@ impl<S: Stream<Item = Result<bytes::Bytes, reqwest::Error>> + Unpin> Stream
 
 #[cfg(test)]
 mod tests {
-    use crate::v1::chat_completion::{ReasoningEffort, ReasoningMode};
+    use crate::v1::chat_completion::{ReasoningEffort, ReasoningSummary};
 
     use super::*;
     use serde_json::json;
@@ -247,34 +261,29 @@ mod tests {
     #[test]
     fn test_reasoning_effort_serialization() {
         let reasoning = Reasoning {
-            mode: Some(ReasoningMode::Effort {
-                effort: ReasoningEffort::High,
-            }),
-            exclude: Some(false),
-            enabled: None,
+            effort: Some(ReasoningEffort::High),
+            summary: Some(ReasoningSummary::Detailed),
         };
 
         let serialized = serde_json::to_value(&reasoning).unwrap();
         let expected = json!({
             "effort": "high",
-            "exclude": false
+            "summary": "detailed"
         });
 
         assert_eq!(serialized, expected);
     }
 
     #[test]
-    fn test_reasoning_max_tokens_serialization() {
+    fn test_reasoning_summary_only_serialization() {
         let reasoning = Reasoning {
-            mode: Some(ReasoningMode::MaxTokens { max_tokens: 2000 }),
-            exclude: None,
-            enabled: Some(true),
+            effort: None,
+            summary: Some(ReasoningSummary::Auto),
         };
 
         let serialized = serde_json::to_value(&reasoning).unwrap();
         let expected = json!({
-            "max_tokens": 2000,
-            "enabled": true
+            "summary": "auto"
         });
 
         assert_eq!(serialized, expected);
@@ -282,16 +291,10 @@ mod tests {
 
     #[test]
     fn test_reasoning_deserialization() {
-        let json_str = r#"{"effort": "medium", "exclude": true}"#;
+        let json_str = r#"{"effort": "medium", "summary": "concise"}"#;
         let reasoning: Reasoning = serde_json::from_str(json_str).unwrap();
-
-        match reasoning.mode {
-            Some(ReasoningMode::Effort { effort }) => {
-                assert_eq!(effort, ReasoningEffort::Medium);
-            }
-            _ => panic!("Expected effort mode"),
-        }
-        assert_eq!(reasoning.exclude, Some(true));
+        assert_eq!(reasoning.effort, Some(ReasoningEffort::Medium));
+        assert_eq!(reasoning.summary, Some(ReasoningSummary::Concise));
     }
 
     #[test]
@@ -299,15 +302,22 @@ mod tests {
         let mut req = ChatCompletionStreamRequest::new("gpt-4".to_string(), vec![]);
 
         req.reasoning = Some(Reasoning {
-            mode: Some(ReasoningMode::Effort {
-                effort: ReasoningEffort::Low,
-            }),
-            exclude: None,
-            enabled: None,
+            effort: Some(ReasoningEffort::Low),
+            summary: Some(ReasoningSummary::Auto),
         });
 
         let serialized = serde_json::to_value(&req).unwrap();
         assert_eq!(serialized["reasoning"]["effort"], "low");
+        assert_eq!(serialized["reasoning"]["summary"], "auto");
+    }
+
+    #[test]
+    fn test_chat_completion_stream_request_with_reasoning_effort() {
+        let mut req = ChatCompletionStreamRequest::new("gpt-5.1".to_string(), vec![]);
+        req.reasoning_effort = Some(ReasoningEffort::None);
+
+        let serialized = serde_json::to_value(&req).unwrap();
+        assert_eq!(serialized["reasoning_effort"], "none");
     }
 
     #[test]
@@ -357,5 +367,29 @@ mod tests {
             .transforms(transforms.clone());
         // Verify that the transforms field is properly set through the builder method
         assert_eq!(req.transforms, Some(transforms));
+    }
+
+    #[test]
+    fn test_reasoning_effort_builder_method() {
+        let req = ChatCompletionStreamRequest::new("gpt-5.1".to_string(), vec![])
+            .reasoning_effort(ReasoningEffort::Xhigh);
+        assert_eq!(req.reasoning_effort, Some(ReasoningEffort::Xhigh));
+    }
+
+    #[test]
+    fn test_stream_reasoning_delta() {
+        let mut stream = ChatCompletionStream {
+            response: futures_util::stream::empty(),
+            buffer: "data: {\"choices\":[{\"delta\":{\"reasoning\":\"step 1\"}}]}\n\n".to_string(),
+            first_chunk: false,
+        };
+
+        let response = stream.next_response_from_buffer();
+        match response {
+            Some(ChatCompletionStreamResponse::Reasoning(reasoning)) => {
+                assert_eq!(reasoning, "step 1");
+            }
+            _ => panic!("Expected reasoning delta"),
+        }
     }
 }

@@ -19,26 +19,28 @@ pub enum ToolChoiceType {
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]
 pub enum ReasoningEffort {
+    None,
+    Minimal,
     Low,
     Medium,
     High,
+    Xhigh,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
-#[serde(untagged)]
-pub enum ReasoningMode {
-    Effort { effort: ReasoningEffort },
-    MaxTokens { max_tokens: i64 },
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
+#[serde(rename_all = "lowercase")]
+pub enum ReasoningSummary {
+    Auto,
+    Concise,
+    Detailed,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Reasoning {
-    #[serde(flatten)]
-    pub mode: Option<ReasoningMode>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub exclude: Option<bool>,
+    pub effort: Option<ReasoningEffort>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub enabled: Option<bool>,
+    pub summary: Option<ReasoningSummary>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
@@ -174,6 +176,7 @@ pub struct ChatCompletionMessageForResponse {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub content: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(alias = "reasoning")]
     pub reasoning_content: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,

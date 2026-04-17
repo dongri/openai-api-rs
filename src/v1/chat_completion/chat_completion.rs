@@ -1,4 +1,6 @@
-use crate::v1::chat_completion::{ChatCompletionChoice, Reasoning, Tool, ToolChoiceType};
+use crate::v1::chat_completion::{
+    ChatCompletionChoice, Reasoning, ReasoningEffort, Tool, ToolChoiceType,
+};
 use crate::v1::common;
 use crate::{
     impl_builder_methods,
@@ -44,6 +46,8 @@ pub struct ChatCompletionRequest {
     pub tool_choice: Option<ToolChoiceType>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub reasoning: Option<Reasoning>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub reasoning_effort: Option<ReasoningEffort>,
     /// Optional list of transforms to apply to the chat completion request.
     ///
     /// Transforms allow modifying the request before it's sent to the API,
@@ -73,6 +77,7 @@ impl ChatCompletionRequest {
             parallel_tool_calls: None,
             tool_choice: None,
             reasoning: None,
+            reasoning_effort: None,
             transforms: None,
         }
     }
@@ -95,6 +100,7 @@ impl_builder_methods!(
     parallel_tool_calls: bool,
     tool_choice: ToolChoiceType,
     reasoning: Reasoning,
+    reasoning_effort: ReasoningEffort,
     transforms: Vec<String>
 );
 
@@ -111,7 +117,7 @@ pub struct ChatCompletionResponse {
 
 #[cfg(test)]
 mod tests {
-    use crate::v1::chat_completion::{ReasoningEffort, ReasoningMode};
+    use crate::v1::chat_completion::{ReasoningEffort, ReasoningSummary};
 
     use super::*;
     use serde_json::json;
@@ -119,34 +125,29 @@ mod tests {
     #[test]
     fn test_reasoning_effort_serialization() {
         let reasoning = Reasoning {
-            mode: Some(ReasoningMode::Effort {
-                effort: ReasoningEffort::High,
-            }),
-            exclude: Some(false),
-            enabled: None,
+            effort: Some(ReasoningEffort::High),
+            summary: Some(ReasoningSummary::Detailed),
         };
 
         let serialized = serde_json::to_value(&reasoning).unwrap();
         let expected = json!({
             "effort": "high",
-            "exclude": false
+            "summary": "detailed"
         });
 
         assert_eq!(serialized, expected);
     }
 
     #[test]
-    fn test_reasoning_max_tokens_serialization() {
+    fn test_reasoning_summary_only_serialization() {
         let reasoning = Reasoning {
-            mode: Some(ReasoningMode::MaxTokens { max_tokens: 2000 }),
-            exclude: None,
-            enabled: Some(true),
+            effort: None,
+            summary: Some(ReasoningSummary::Auto),
         };
 
         let serialized = serde_json::to_value(&reasoning).unwrap();
         let expected = json!({
-            "max_tokens": 2000,
-            "enabled": true
+            "summary": "auto"
         });
 
         assert_eq!(serialized, expected);
@@ -154,16 +155,10 @@ mod tests {
 
     #[test]
     fn test_reasoning_deserialization() {
-        let json_str = r#"{"effort": "medium", "exclude": true}"#;
+        let json_str = r#"{"effort": "medium", "summary": "concise"}"#;
         let reasoning: Reasoning = serde_json::from_str(json_str).unwrap();
-
-        match reasoning.mode {
-            Some(ReasoningMode::Effort { effort }) => {
-                assert_eq!(effort, ReasoningEffort::Medium);
-            }
-            _ => panic!("Expected effort mode"),
-        }
-        assert_eq!(reasoning.exclude, Some(true));
+        assert_eq!(reasoning.effort, Some(ReasoningEffort::Medium));
+        assert_eq!(reasoning.summary, Some(ReasoningSummary::Concise));
     }
 
     #[test]
@@ -171,15 +166,28 @@ mod tests {
         let mut req = ChatCompletionRequest::new("gpt-4".to_string(), vec![]);
 
         req.reasoning = Some(Reasoning {
-            mode: Some(ReasoningMode::Effort {
-                effort: ReasoningEffort::Low,
-            }),
-            exclude: None,
-            enabled: None,
+            effort: Some(ReasoningEffort::Low),
+            summary: Some(ReasoningSummary::Auto),
         });
 
         let serialized = serde_json::to_value(&req).unwrap();
         assert_eq!(serialized["reasoning"]["effort"], "low");
+        assert_eq!(serialized["reasoning"]["summary"], "auto");
+    }
+
+    #[test]
+    fn test_chat_completion_request_with_reasoning_effort() {
+        let mut req = ChatCompletionRequest::new("gpt-5.1".to_string(), vec![]);
+        req.reasoning_effort = Some(ReasoningEffort::None);
+
+        let serialized = serde_json::to_value(&req).unwrap();
+        assert_eq!(serialized["reasoning_effort"], "none");
+    }
+
+    #[test]
+    fn test_reasoning_effort_enum_deserialization() {
+        let effort: ReasoningEffort = serde_json::from_str(r#""xhigh""#).unwrap();
+        assert_eq!(effort, ReasoningEffort::Xhigh);
     }
 
     #[test]
@@ -229,5 +237,42 @@ mod tests {
             ChatCompletionRequest::new("gpt-4".to_string(), vec![]).transforms(transforms.clone());
         // Verify that the transforms field is properly set through the builder method
         assert_eq!(req.transforms, Some(transforms));
+    }
+
+    #[test]
+    fn test_reasoning_effort_builder_method() {
+        let req = ChatCompletionRequest::new("gpt-5.1".to_string(), vec![])
+            .reasoning_effort(ReasoningEffort::Minimal);
+        assert_eq!(req.reasoning_effort, Some(ReasoningEffort::Minimal));
+    }
+
+    #[test]
+    fn test_openrouter_reasoning_response_deserialization() {
+        let json_str = r#"{
+            "id": "chatcmpl-123",
+            "object": "chat.completion",
+            "created": 1677652288,
+            "model": "openai/gpt-4",
+            "choices": [{
+                "index": 0,
+                "finish_reason": "stop",
+                "message": {
+                    "role": "assistant",
+                    "content": "Final answer",
+                    "reasoning": "Intermediate reasoning"
+                }
+            }],
+            "usage": {
+                "prompt_tokens": 10,
+                "completion_tokens": 5,
+                "total_tokens": 15
+            }
+        }"#;
+
+        let res: ChatCompletionResponse = serde_json::from_str(json_str).unwrap();
+        assert_eq!(
+            res.choices[0].message.reasoning_content.as_deref(),
+            Some("Intermediate reasoning")
+        );
     }
 }
