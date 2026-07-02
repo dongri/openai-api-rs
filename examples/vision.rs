@@ -4,7 +4,8 @@ use openai_api_rs::v1::chat_completion::{self};
 use openai_api_rs::v1::common::GPT4_O;
 use std::env;
 
-#[tokio::main]
+#[cfg_attr(not(target_arch = "wasm32"), tokio::main)] // Базовый макрос
+#[cfg_attr(target_arch = "wasm32", tokio::main(flavor = "current_thread"))] // Перезапись для WASM
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let api_key = env::var("OPENAI_API_KEY").unwrap().to_string();
     let client = OpenAIClient::builder().with_api_key(api_key).build()?;

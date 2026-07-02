@@ -2,15 +2,19 @@ use crate::v1::assistant::{
     AssistantFileObject, AssistantFileRequest, AssistantObject, AssistantRequest, ListAssistant,
     ListAssistantFile,
 };
+
+#[cfg(not(all(target_arch = "wasm32", target_os = "wasi")))]
+use crate::v1::audio::{
+    AudioSpeechRequest, AudioSpeechResponse, AudioTranscriptionRequest,
+    AudioTranslationRequest, AudioTranslationResponse,
+};
+#[cfg(all(target_arch = "wasm32", target_os = "wasi"))]
 use crate::v1::audio::{
     AudioSpeechRequest, AudioSpeechResponse, AudioTranscriptionRequest, AudioTranscriptionResponse,
     AudioTranslationRequest, AudioTranslationResponse,
 };
 use crate::v1::batch::{BatchResponse, CreateBatchRequest, ListBatchResponse};
 use crate::v1::chat_completion::chat_completion::{ChatCompletionRequest, ChatCompletionResponse};
-use crate::v1::chat_completion::chat_completion_stream::{
-    ChatCompletionStream, ChatCompletionStreamRequest, ChatCompletionStreamResponse,
-};
 use crate::v1::common;
 use crate::v1::completion::{CompletionRequest, CompletionResponse};
 use crate::v1::edit::{EditRequest, EditResponse};
@@ -47,17 +51,32 @@ use crate::v1::run::{
     RunStepObject,
 };
 use crate::v1::thread::{CreateThreadRequest, ModifyThreadRequest, ThreadObject};
+use crate::v1::chat_completion::chat_completion_stream::{ChatCompletionStream, ChatCompletionStreamRequest, ChatCompletionStreamResponse};
 
 use bytes::Bytes;
 use futures_util::Stream;
+
+#[cfg(not(all(target_arch = "wasm32", target_os = "wasi")))]
 use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
+#[cfg(not(all(target_arch = "wasm32", target_os = "wasi")))]
 use reqwest::multipart::{Form, Part};
+#[cfg(not(all(target_arch = "wasm32", target_os = "wasi")))]
 use reqwest::{Client, Method, Response};
+
+#[cfg(all(target_arch = "wasm32", target_os = "wasi"))]
+use std::result::Result;
+#[cfg(all(target_arch = "wasm32", target_os = "wasi"))]
+use golem_wasi_http::multipart::{Form, Part};
+#[cfg(all(target_arch = "wasm32", target_os = "wasi"))]
+use golem_wasi_http::{Client, Method, Response, RequestBuilder};
+#[cfg(all(target_arch = "wasm32", target_os = "wasi"))]
+use golem_wasi_http::header::{HeaderMap, HeaderName, HeaderValue};
+
 use serde::Serialize;
 use serde_json::{to_value, Value};
 use url::Url;
 
-use std::error::Error;
+use anyhow::Error;
 use std::fs::{create_dir_all, File};
 use std::io::Read;
 use std::io::Write;
@@ -78,10 +97,15 @@ pub struct OpenAIClientBuilder {
 #[derive(Debug)]
 pub struct OpenAIClient {
     api_endpoint: String,
+    #[allow(dead_code)]
     api_key: Option<String>,
+    #[allow(dead_code)]
     organization: Option<String>,
+    #[allow(dead_code)]
     proxy: Option<String>,
+    #[allow(dead_code)]
     timeout: Option<u64>,
+    #[allow(dead_code)]
     headers: Option<HeaderMap>,
 }
 
@@ -124,7 +148,7 @@ impl OpenAIClientBuilder {
         self
     }
 
-    pub fn build(self) -> Result<OpenAIClient, Box<dyn Error>> {
+    pub fn build(self) -> Result<OpenAIClient, Error> {
         let api_endpoint = self.api_endpoint.unwrap_or_else(|| {
             std::env::var("OPENAI_API_BASE").unwrap_or_else(|_| API_URL_V1.to_owned())
         });
@@ -145,6 +169,7 @@ impl OpenAIClient {
         OpenAIClientBuilder::new()
     }
 
+    #[cfg(not(all(target_arch = "wasm32", target_os = "wasi")))]
     async fn build_request(&self, method: Method, path: &str) -> reqwest::RequestBuilder {
         let url = self
             .build_url_with_preserved_query(path)
@@ -152,7 +177,6 @@ impl OpenAIClient {
 
         let client = Client::builder();
 
-        #[cfg(feature = "rustls")]
         let client = client.use_rustls_tls();
 
         let client = if let Some(timeout) = self.timeout {
@@ -162,6 +186,7 @@ impl OpenAIClient {
         };
 
         let client = if let Some(proxy) = &self.proxy {
+            #[cfg(not(all(target_arch = "wasm32", target_os = "wasi")))]
             client.proxy(reqwest::Proxy::all(proxy).unwrap())
         } else {
             client
@@ -191,7 +216,54 @@ impl OpenAIClient {
 
         request
     }
+    #[cfg(all(target_arch = "wasm32", target_os = "wasi"))]
+    async fn build_request(&self, method: Method, path: &str) -> RequestBuilder {
+        let url = self
+            .build_url_with_preserved_query(path)
+            .unwrap_or_else(|_| format!("{}/{}", self.api_endpoint, path));
 
+        let mut client = Client::new().request(method, url);
+
+        client = if let Some(timeout) = self.timeout {
+            client.timeout(std::time::Duration::from_secs(timeout))
+        } else {
+            client
+        };
+
+        // WARNING! Proxy - на уровне хоста
+
+        client = if let Some(api_key) = &self.api_key {
+            client.header("Authorization", format!("Bearer {api_key}"))
+        } else {
+            client
+        };
+
+        client = if let Some(organization) = &self.organization {
+            client.header("openai-organization", organization)
+        } else {
+            client
+        };
+
+        client = if let Some(headers) = &self.headers {
+            let mut client_intern = client;
+            for (key, value) in headers {
+                client_intern = client_intern.header(key, value);
+            };
+            client_intern
+        } else {
+            client
+        };
+
+        client = if Self::is_beta(path) {
+            client.header("OpenAI-Beta", "assistants=v2")
+        } else {
+            client
+        };
+
+        client
+    }
+
+    #[cfg(not(all(target_arch = "wasm32", target_os = "wasi")))]
     async fn post<T: serde::de::DeserializeOwned>(
         &self,
         path: &str,
@@ -203,6 +275,26 @@ impl OpenAIClient {
         self.handle_response(response).await
     }
 
+    #[cfg(all(target_arch = "wasm32", target_os = "wasi"))]
+    async fn post<T: serde::de::DeserializeOwned>(
+        &self,
+        path: &str,
+        body: &impl serde::ser::Serialize,
+    ) -> Result<CallResponse<T>, APIError> {
+        let raw_data = serde_json::to_vec(body).unwrap();
+
+        let request = self
+            .build_request(Method::POST, path)
+            .await
+            .body(raw_data);
+
+        let response = request.send()
+            .map_err(|err| APIError::from(err))?;
+
+        self.handle_response(response).await
+    }
+
+    #[cfg(not(all(target_arch = "wasm32", target_os = "wasi")))]
     async fn get<T: serde::de::DeserializeOwned>(
         &self,
         path: &str,
@@ -212,12 +304,41 @@ impl OpenAIClient {
         self.handle_response(response).await
     }
 
+    #[cfg(all(target_arch = "wasm32", target_os = "wasi"))]
+    async fn get<T: serde::de::DeserializeOwned>(
+        &self,
+        path: &str,
+    ) -> Result<CallResponse<T>, APIError> {
+        let request = self
+            .build_request(Method::GET, path)
+            .await;
+
+        let response = request.send()
+            .map_err(|err| APIError::from(err))?;
+
+        self.handle_response(response).await
+    }
+
+    #[cfg(not(all(target_arch = "wasm32", target_os = "wasi")))]
     async fn get_raw(&self, path: &str) -> Result<Bytes, APIError> {
         let request = self.build_request(Method::GET, path).await;
         let response = request.send().await?;
         Ok(response.bytes().await?)
     }
 
+    #[cfg(all(target_arch = "wasm32", target_os = "wasi"))]
+    async fn get_raw(&self, path: &str) -> Result<Bytes, APIError> {
+        let request = self
+            .build_request(Method::GET, path)
+            .await;
+
+        let response = request.send()
+            .map_err(|err| APIError::from(err))?;
+
+        Ok(response.bytes()?)
+    }
+
+    #[cfg(not(all(target_arch = "wasm32", target_os = "wasi")))]
     async fn delete<T: serde::de::DeserializeOwned>(
         &self,
         path: &str,
@@ -227,6 +348,21 @@ impl OpenAIClient {
         self.handle_response(response).await
     }
 
+    #[cfg(all(target_arch = "wasm32", target_os = "wasi"))]
+    async fn delete<T: serde::de::DeserializeOwned>(
+        &self,
+        path: &str,
+    ) -> Result<CallResponse<T>, APIError> {
+        let request = self
+            .build_request(Method::DELETE, path)
+            .await;
+
+        let response = request.send()?;
+
+        self.handle_response(response).await
+    }
+
+    #[cfg(not(all(target_arch = "wasm32", target_os = "wasi")))]
     async fn post_form<T: serde::de::DeserializeOwned>(
         &self,
         path: &str,
@@ -238,6 +374,19 @@ impl OpenAIClient {
         self.handle_response(response).await
     }
 
+    #[cfg(all(target_arch = "wasm32", target_os = "wasi"))]
+    async fn post_form<T: serde::de::DeserializeOwned>(
+        &self,
+        path: &str,
+        form: Form,
+    ) -> Result<CallResponse<T>, APIError> {
+        let request = self.build_request(Method::POST, path).await;
+        let request = request.multipart(form);
+        let response = request.send()?;
+        self.handle_response(response).await
+    }
+
+    #[cfg(not(all(target_arch = "wasm32", target_os = "wasi")))]
     async fn post_form_raw(&self, path: &str, form: Form) -> Result<Bytes, APIError> {
         let request = self.build_request(Method::POST, path).await;
         let request = request.multipart(form);
@@ -245,6 +394,15 @@ impl OpenAIClient {
         Ok(response.bytes().await?)
     }
 
+    #[cfg(all(target_arch = "wasm32", target_os = "wasi"))]
+    async fn post_form_raw(&self, path: &str, form: Form) -> Result<Bytes, APIError> {
+        let request = self.build_request(Method::POST, path).await;
+        let request = request.multipart(form);
+        let response = request.send()?;
+        Ok(response.bytes()?)
+    }
+
+    #[cfg(not(all(target_arch = "wasm32", target_os = "wasi")))]
     async fn handle_response<T: serde::de::DeserializeOwned>(
         &self,
         response: Response,
@@ -267,6 +425,33 @@ impl OpenAIClient {
                 .text()
                 .await
                 .unwrap_or_else(|_| "Unknown error".to_string());
+            Err(APIError::CustomError {
+                message: format!("{status}: {error_message}"),
+            })
+        }
+    }
+
+    #[cfg(all(target_arch = "wasm32", target_os = "wasi"))]
+    async fn handle_response<T: serde::de::DeserializeOwned>(
+        &self,
+        response: Response,
+    ) -> Result<CallResponse<T>, APIError> {
+        let status = response.status();
+        if status.is_success() {
+            let headers = response.headers().clone();
+            let body = response.bytes()?;
+            let parsed: T = serde_json::from_slice(body.as_ref()).map_err(|_| {
+                APIError::CustomError {
+                    message: format!("Failed to parse JSON from response {:?}", body),
+                }
+            })?;
+
+            Ok(CallResponse {
+                headers: headers.clone(),
+                inner: parsed,
+            })
+        } else {
+            let error_message = status.to_string();
             Err(APIError::CustomError {
                 message: format!("{status}: {error_message}"),
             })
@@ -349,6 +534,7 @@ impl OpenAIClient {
         self.post("chat/completions", &req).await
     }
 
+    #[cfg(not(all(target_arch = "wasm32", target_os = "wasi")))]
     pub async fn chat_completion_stream(
         &self,
         req: ChatCompletionStreamRequest,
@@ -383,6 +569,50 @@ impl OpenAIClient {
         }
     }
 
+    #[cfg(all(target_arch = "wasm32", target_os = "wasi"))]
+    pub async fn chat_completion_stream(
+        &self,
+        req: ChatCompletionStreamRequest,
+    ) -> Result<impl Stream<Item = ChatCompletionStreamResponse>, APIError> {
+        let mut payload = to_value(&req).map_err(|err| APIError::CustomError {
+            message: format!("Failed to serialize request: {}", err),
+        })?;
+
+        if let Some(obj) = payload.as_object_mut() {
+            obj.insert("stream".into(), Value::Bool(true));
+        }
+
+        let body = serde_json::to_string(&payload).map_err(|err| APIError::CustomError {
+            message: format!("Failed to serialize payload to JSON: {}", err),
+        })?;
+
+        let request = self.build_request(Method::POST, "chat/completions").await;
+        let request = request.body(body);
+        let response = request.send()?;
+
+        if response.status().is_success() {
+            let bytes = response.bytes()?;
+            let byte_stream = futures_util::stream::once(async move {
+                Ok::<Bytes, Error>(bytes)
+            });
+
+            Ok(ChatCompletionStream {
+                response: Box::pin(byte_stream),
+                buffer: String::new(),
+                first_chunk: true,
+            })
+        } else {
+            let error_text = response
+                .text()
+                .unwrap_or_else(|_| String::from("Unknown error"));
+
+            Err(APIError::CustomError {
+                message: error_text,
+            })
+        }
+    }
+
+    #[cfg(all(target_arch = "wasm32", target_os = "wasi"))]
     pub async fn audio_transcription(
         &self,
         req: AudioTranscriptionRequest,
@@ -446,9 +676,20 @@ impl OpenAIClient {
         req: AudioSpeechRequest,
     ) -> Result<CallResponse<AudioSpeechResponse>, APIError> {
         let request = self.build_request(Method::POST, "audio/speech").await;
-        let request = request.json(&req);
+
+        let body_json = serde_json::to_string(&req).map_err(|err| APIError::CustomError {
+            message: format!("Failed to serialize request: {}", err),
+        })?;
+        let request = request.body(body_json);
+        #[cfg(all(target_arch = "wasm32", target_os = "wasi"))]
+        let response = request.send()?;
+        #[cfg(not(all(target_arch = "wasm32", target_os = "wasi")))]
         let response = request.send().await?;
+
         let headers = response.headers().clone();
+        #[cfg(all(target_arch = "wasm32", target_os = "wasi"))]
+        let bytes = response.bytes()?;
+        #[cfg(not(all(target_arch = "wasm32", target_os = "wasi")))]
         let bytes = response.bytes().await?;
         let path = Path::new(req.output.as_str());
         if let Some(parent) = path.parent() {
@@ -850,6 +1091,7 @@ impl OpenAIClient {
         self.post("responses", &req).await
     }
 
+    #[cfg(not(all(target_arch = "wasm32", target_os = "wasi")))]
     pub async fn create_response_stream(
         &self,
         req: CreateResponseStreamRequest,
@@ -876,6 +1118,50 @@ impl OpenAIClient {
             let error_text = response
                 .text()
                 .await
+                .unwrap_or_else(|_| String::from("Unknown error"));
+
+            Err(APIError::CustomError {
+                message: error_text,
+            })
+        }
+    }
+
+    #[cfg(all(target_arch = "wasm32", target_os = "wasi"))]
+    pub async fn create_response_stream(
+        &self,
+        req: CreateResponseStreamRequest,
+    ) -> Result<impl Stream<Item = ResponseStreamResponse>, APIError> {
+        let payload = to_value(&req).map_err(|err| APIError::CustomError {
+            message: format!("Failed to serialize request: {}", err),
+        })?;
+
+        if let Some(obj) = payload.clone().as_object_mut() {
+            obj.insert("stream".into(), Value::Bool(true));
+        }
+
+        let request = self.build_request(Method::POST, "responses").await;
+
+        let body = serde_json::to_string(&payload).map_err(|err| APIError::CustomError {
+            message: format!("Failed to serialize payload to JSON: {}", err),
+        })?;
+
+        let request = request.body(body);
+        let response = request.send()?;
+
+        if response.status().is_success() {
+            let bytes = response.bytes()?;
+            let byte_stream = futures_util::stream::once(async move {
+                Ok::<Bytes, Error>(bytes)
+            });
+
+            Ok(ResponseStream {
+                response: Box::pin(byte_stream),
+                buffer: String::new(),
+                first_chunk: true,
+            })
+        } else {
+            let error_text = response
+                .text()
                 .unwrap_or_else(|_| String::from("Unknown error"));
 
             Err(APIError::CustomError {
@@ -958,6 +1244,7 @@ impl OpenAIClient {
         self.delete(&format!("models/{model_id}")).await
     }
 
+    #[allow(dead_code)]
     fn build_url_with_preserved_query(&self, path: &str) -> Result<String, url::ParseError> {
         let (base, query_opt) = match self.api_endpoint.split_once('?') {
             Some((b, q)) => (b.trim_end_matches('/'), Some(q)),
@@ -1001,6 +1288,7 @@ impl OpenAIClient {
         url
     }
 
+    #[allow(dead_code)]
     fn is_beta(path: &str) -> bool {
         path.starts_with("assistants") || path.starts_with("threads")
     }
@@ -1009,7 +1297,7 @@ impl OpenAIClient {
     where
         T: Serialize,
     {
-        let json = match serde_json::to_value(req) {
+        let json = match to_value(req) {
             Ok(json) => json,
             Err(e) => {
                 return Err(APIError::CustomError {
@@ -1073,7 +1361,7 @@ impl OpenAIClient {
     where
         T: Serialize,
     {
-        let json = match serde_json::to_value(req) {
+        let json = match to_value(req) {
             Ok(json) => json,
             Err(e) => {
                 return Err(APIError::CustomError {

@@ -1,0 +1,7 @@
+# Файл: .cargo/config.toml
+
+[build]
+target = "x86_64-unknown-linux-gnu"
+
+[target.wasm32-wasip2]
+rustflags = ["--cfg", "tokio_unstable"]

@@ -1,5 +1,10 @@
 use crate::v1::types::Tools;
+
+#[cfg(not(all(target_arch = "wasm32", target_os = "wasi")))]
 use reqwest::header::HeaderMap;
+#[cfg(all(target_arch = "wasm32", target_os = "wasi"))]
+use golem_wasi_http::header::HeaderMap;
+
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::BTreeMap;

@@ -8,7 +8,8 @@ use serde_json::{json, Value};
 use std::env;
 use std::io::{self, Write};
 
-#[tokio::main]
+#[cfg_attr(not(target_arch = "wasm32"), tokio::main)] // Базовый макрос
+#[cfg_attr(target_arch = "wasm32", tokio::main(flavor = "current_thread"))] // Перезапись для WASM
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let api_key = env::var("OPENAI_API_KEY").unwrap();
     let client = OpenAIClient::builder().with_api_key(api_key).build()?;

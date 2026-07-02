@@ -3,7 +3,8 @@ use openai_api_rs::v1::chat_completion::chat_completion::ChatCompletionRequest;
 use openai_api_rs::v1::chat_completion::{self, Reasoning, ReasoningEffort, ReasoningSummary};
 use std::env;
 
-#[tokio::main]
+#[cfg_attr(not(target_arch = "wasm32"), tokio::main)] // Базовый макрос
+#[cfg_attr(target_arch = "wasm32", tokio::main(flavor = "current_thread"))] // Перезапись для WASM
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let api_key = env::var("OPENROUTER_API_KEY").unwrap().to_string();
     let client = OpenAIClient::builder()

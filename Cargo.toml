@@ -1,6 +1,6 @@
 [package]
 name = "openai-api-rs"
-version = "10.0.1"
+version = "10.1.0"
 edition = "2021"
 authors = ["Dongri Jin <dongrium@gmail.com>"]
 license = "MIT"
@@ -8,20 +8,6 @@ description = "OpenAI API client library for Rust (unofficial)"
 repository = "https://github.com/dongri/openai-api-rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
-[features]
-default = ["default-tls"]
-rustls = ["reqwest/rustls-tls", "tokio-tungstenite/rustls-tls-webpki-roots"]
-default-tls = ["reqwest/default-tls", "tokio-tungstenite/native-tls"]
-
-[dependencies.reqwest]
-version = "0.12"
-default-features = false
-features = ["charset", "http2", "json", "multipart", "socks", "stream"]
-
-[dependencies.tokio]
-version = "1"
-features = ["full"]
 
 [dependencies.serde]
 version = "1"
@@ -31,15 +17,25 @@ features = ["derive"]
 version = "1"
 
 [dependencies.bytes]
-version = "1.7.1"
-
-[dependencies.tokio-tungstenite]
-version = "0.28.0"
-features = ["connect"]
+version = "1.12"
 
 [dependencies.futures-util]
-version = "0.3.31"
+version = "0.3"
 features = ["sink", "std"]
 
 [dependencies.url]
-version = "2.5.4"
+version = "2.5"
+
+# 1. Зависимости для стандартных ОС и старого WASI (не P2)
+[target.'cfg(not(all(target_arch = "wasm32", target_os = "wasi")))'.dependencies]
+reqwest = { version = "0.13", features = ["charset", "http2", "json", "multipart", "socks", "stream", "__rustls", "rustls"] }
+tokio-tungstenite = { version = "0.29", features = ["connect", "rustls-pki-types", "tokio-rustls"] }
+
+# 2. Зависимости конкретно для WASI Preview 2 (wasm32-wasip2)
+[target.'cfg(all(target_arch = "wasm32", target_os = "wasi"))'.dependencies]
+golem-wasi-http = { version = "0", features = ["multipart"] }
+url = "2.5"
+
+[dependencies]
+anyhow = "1.0"
+tokio = { version = "1", features = ["full"] }
