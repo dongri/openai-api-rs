@@ -215,7 +215,8 @@ impl OpenAIClient {
     async fn get_raw(&self, path: &str) -> Result<Bytes, APIError> {
         let request = self.build_request(Method::GET, path).await;
         let response = request.send().await?;
-        Ok(response.bytes().await?)
+        let (_, bytes) = Self::handle_raw_response(response).await?;
+        Ok(bytes)
     }
 
     async fn delete<T: serde::de::DeserializeOwned>(
@@ -242,7 +243,24 @@ impl OpenAIClient {
         let request = self.build_request(Method::POST, path).await;
         let request = request.multipart(form);
         let response = request.send().await?;
-        Ok(response.bytes().await?)
+        let (_, bytes) = Self::handle_raw_response(response).await?;
+        Ok(bytes)
+    }
+
+    async fn handle_raw_response(response: Response) -> Result<(HeaderMap, Bytes), APIError> {
+        let status = response.status();
+        let headers = response.headers().clone();
+        if status.is_success() {
+            Ok((headers, response.bytes().await?))
+        } else {
+            let error_message = response
+                .text()
+                .await
+                .unwrap_or_else(|_| "Unknown error".to_string());
+            Err(APIError::CustomError {
+                message: format!("{status}: {error_message}"),
+            })
+        }
     }
 
     async fn handle_response<T: serde::de::DeserializeOwned>(
@@ -448,18 +466,7 @@ impl OpenAIClient {
         let request = self.build_request(Method::POST, "audio/speech").await;
         let request = request.json(&req);
         let response = request.send().await?;
-        let status = response.status();
-        if !status.is_success() {
-            let error_message = response
-                .text()
-                .await
-                .unwrap_or_else(|_| "Unknown error".to_string());
-            return Err(APIError::CustomError {
-                message: format!("{status}: {error_message}"),
-            });
-        }
-        let headers = response.headers().clone();
-        let bytes = response.bytes().await?;
+        let (headers, bytes) = Self::handle_raw_response(response).await?;
         let path = Path::new(req.output.as_str());
         if let Some(parent) = path.parent() {
             match create_dir_all(parent) {
