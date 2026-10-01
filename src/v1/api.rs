@@ -448,6 +448,16 @@ impl OpenAIClient {
         let request = self.build_request(Method::POST, "audio/speech").await;
         let request = request.json(&req);
         let response = request.send().await?;
+        let status = response.status();
+        if !status.is_success() {
+            let error_message = response
+                .text()
+                .await
+                .unwrap_or_else(|_| "Unknown error".to_string());
+            return Err(APIError::CustomError {
+                message: format!("{status}: {error_message}"),
+            });
+        }
         let headers = response.headers().clone();
         let bytes = response.bytes().await?;
         let path = Path::new(req.output.as_str());
