@@ -49,6 +49,7 @@ use crate::v1::run::{
 use crate::v1::thread::{CreateThreadRequest, ModifyThreadRequest, ThreadObject};
 
 use bytes::Bytes;
+use futures_util::stream::poll_fn;
 use futures_util::Stream;
 use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
 use reqwest::multipart::{Form, Part};
@@ -371,6 +372,29 @@ impl OpenAIClient {
         &self,
         req: ChatCompletionStreamRequest,
     ) -> Result<impl Stream<Item = ChatCompletionStreamResponse>, APIError> {
+        self.open_chat_completion_stream(req).await
+    }
+
+    /// Like `chat_completion_stream`, but yields transport errors instead of ending the stream.
+    pub async fn try_chat_completion_stream(
+        &self,
+        req: ChatCompletionStreamRequest,
+    ) -> Result<impl Stream<Item = Result<ChatCompletionStreamResponse, APIError>>, APIError> {
+        let mut stream = self.open_chat_completion_stream(req).await?;
+        Ok(poll_fn(move |cx| {
+            stream
+                .poll_next_result(cx)
+                .map(|item| item.map(|result| result.map_err(APIError::from)))
+        }))
+    }
+
+    async fn open_chat_completion_stream(
+        &self,
+        req: ChatCompletionStreamRequest,
+    ) -> Result<
+        ChatCompletionStream<impl Stream<Item = Result<Bytes, reqwest::Error>> + Unpin>,
+        APIError,
+    > {
         let mut payload = to_value(&req).map_err(|err| APIError::CustomError {
             message: format!("Failed to serialize request: {}", err),
         })?;
@@ -871,6 +895,27 @@ impl OpenAIClient {
         &self,
         req: CreateResponseStreamRequest,
     ) -> Result<impl Stream<Item = ResponseStreamResponse>, APIError> {
+        self.open_response_stream(req).await
+    }
+
+    /// Like `create_response_stream`, but yields transport errors instead of ending the stream.
+    pub async fn try_create_response_stream(
+        &self,
+        req: CreateResponseStreamRequest,
+    ) -> Result<impl Stream<Item = Result<ResponseStreamResponse, APIError>>, APIError> {
+        let mut stream = self.open_response_stream(req).await?;
+        Ok(poll_fn(move |cx| {
+            stream
+                .poll_next_result(cx)
+                .map(|item| item.map(|result| result.map_err(APIError::from)))
+        }))
+    }
+
+    async fn open_response_stream(
+        &self,
+        req: CreateResponseStreamRequest,
+    ) -> Result<ResponseStream<impl Stream<Item = Result<Bytes, reqwest::Error>> + Unpin>, APIError>
+    {
         let mut payload = to_value(&req).map_err(|err| APIError::CustomError {
             message: format!("Failed to serialize request: {}", err),
         })?;
