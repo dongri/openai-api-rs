@@ -222,12 +222,32 @@ impl<S: Stream<Item = Result<bytes::Bytes, reqwest::Error>> + Unpin> Stream
     type Item = ChatCompletionStreamResponse;
 
     fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
+        match self.poll_next_result(cx) {
+            Poll::Ready(Some(Ok(response))) => Poll::Ready(Some(response)),
+            Poll::Ready(Some(Err(error))) => {
+                eprintln!("Error in stream: {:?}", error);
+                Poll::Ready(None)
+            }
+            Poll::Ready(None) => Poll::Ready(None),
+            Poll::Pending => Poll::Pending,
+        }
+    }
+}
+
+impl<S> ChatCompletionStream<S>
+where
+    S: Stream<Item = Result<bytes::Bytes, reqwest::Error>> + Unpin,
+{
+    pub(crate) fn poll_next_result(
+        &mut self,
+        cx: &mut Context<'_>,
+    ) -> Poll<Option<Result<ChatCompletionStreamResponse, reqwest::Error>>> {
         loop {
             if let Some(response) = self.next_response_from_buffer() {
-                return Poll::Ready(Some(response));
+                return Poll::Ready(Some(Ok(response)));
             }
 
-            match Pin::new(&mut self.as_mut().response).poll_next(cx) {
+            match Pin::new(&mut self.response).poll_next(cx) {
                 Poll::Ready(Some(Ok(chunk))) => {
                     let chunk_str = String::from_utf8_lossy(&chunk).to_string();
 
@@ -237,8 +257,7 @@ impl<S: Stream<Item = Result<bytes::Bytes, reqwest::Error>> + Unpin> Stream
                     self.buffer.push_str(&chunk_str);
                 }
                 Poll::Ready(Some(Err(error))) => {
-                    eprintln!("Error in stream: {:?}", error);
-                    return Poll::Ready(None);
+                    return Poll::Ready(Some(Err(error)));
                 }
                 Poll::Ready(None) => {
                     return Poll::Ready(None);
@@ -391,5 +410,57 @@ mod tests {
             }
             _ => panic!("Expected reasoning delta"),
         }
+    }
+
+    fn content_then_transport_error(
+    ) -> impl Stream<Item = Result<bytes::Bytes, reqwest::Error>> + Unpin {
+        let error = reqwest::Client::new().get("not a url").build().unwrap_err();
+        futures_util::stream::iter(vec![
+            Ok(bytes::Bytes::from(
+                "data: {\"choices\":[{\"delta\":{\"content\":\"hi\"}}]}\n\n",
+            )),
+            Err(error),
+        ])
+    }
+
+    #[tokio::test]
+    async fn test_poll_next_result_yields_transport_error() {
+        use futures_util::StreamExt;
+
+        let mut stream = ChatCompletionStream {
+            response: content_then_transport_error(),
+            buffer: String::new(),
+            first_chunk: true,
+        };
+
+        let items: Vec<_> = futures_util::stream::poll_fn(|cx| stream.poll_next_result(cx))
+            .collect()
+            .await;
+
+        assert_eq!(items.len(), 2);
+        assert!(matches!(
+            &items[0],
+            Ok(ChatCompletionStreamResponse::Content(content)) if content == "hi"
+        ));
+        assert!(items[1].is_err());
+    }
+
+    #[tokio::test]
+    async fn test_stream_ends_on_transport_error() {
+        use futures_util::StreamExt;
+
+        let stream = ChatCompletionStream {
+            response: content_then_transport_error(),
+            buffer: String::new(),
+            first_chunk: true,
+        };
+
+        let items: Vec<_> = stream.collect().await;
+
+        assert_eq!(items.len(), 1);
+        assert!(matches!(
+            &items[0],
+            ChatCompletionStreamResponse::Content(content) if content == "hi"
+        ));
     }
 }
