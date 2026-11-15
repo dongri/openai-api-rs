@@ -43,3 +43,6 @@ features = ["sink", "std"]
 
 [dependencies.url]
 version = "2.5.4"
+
+[dev-dependencies]
+llm-budget = "0.3"
